@@ -38,7 +38,7 @@ get_bs_samples <- function(data, id, cohorts, outcome, n.samples = 1000, ...){
     scores <- scores[!scores %in% c("id", "cohort", "outcome")]
     bs.sample2  <- bs.sample %>%
         nest() %>%
-        mutate(bs = map(data, bootstraps, times = n.samples, apparent = TRUE)) %>%
+        mutate(bs = map(data, rsample::bootstraps, times = n.samples, apparent = TRUE)) %>%
         select(-data) %>%
         unnest
     list(bs.sample = bs.sample2,
