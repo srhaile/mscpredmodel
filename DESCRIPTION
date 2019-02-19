@@ -17,7 +17,7 @@ Encoding: UTF-8
 LazyData: true
 URL: http://github.com/srhaile/mscpredmodel
 BugReports: http://github.com/srhaile/mscpredmodel/issues
-Imports: 
+Depends: 
     dplyr,
     forcats,
     purrr,
