@@ -66,12 +66,14 @@ compute_performance <- function(bs.sample,
     out
 }
 
+#' @rdname compute_performance
 print.msc_raw <- function(x, ...){
     x.apparent <- x$working.estimates %>%
         filter(id == "Apparent")
     print(x.apparent, ...)
 }
 
+#' @rdname compute_performance
 summary.msc_raw <- function(x, nonpar = TRUE, NArm = TRUE, ...){
     sc <- x$scores
     x.apparent <- x$working.estimates %>%

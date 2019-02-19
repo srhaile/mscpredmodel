@@ -2,9 +2,15 @@
 % Please edit documentation in R/compute_performance.R
 \name{compute_performance}
 \alias{compute_performance}
+\alias{print.msc_raw}
+\alias{summary.msc_raw}
 \title{Computes performance measures for prognostic scores on a set of bootstrap samples}
 \usage{
 compute_performance(bs.sample, fn = calibration_slope, lbl = NULL)
+
+\method{print}{msc_raw}(x, ...)
+
+\method{summary}{msc_raw}(x, nonpar = TRUE, NArm = TRUE, ...)
 }
 \arguments{
 \item{bs.sample}{A set of cohort-stratified bootstrap samples, as generated with \code{\link{get_bs_samples}}}
