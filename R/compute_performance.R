@@ -42,6 +42,8 @@ compute_performance <- function(bs.sample,
                           id = unique(bs.sample$id),
                           fm = formulas) %>%
         mutate_all(as.character)
+    bs.sample <- bs.sample %>%
+      mutate(cohort = as.character(cohort))
     working.data <- full_join(bs.sample, fm.dat, by = c("cohort", "id")) %>%
         mutate(fm = as.character(fm))
     working.estimates <- working.data %>%
