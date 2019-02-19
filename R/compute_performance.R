@@ -62,19 +62,19 @@ compute_performance <- function(bs.sample,
 
     out <- list("working.estimates" = working.estimates,
                 scores = scores, formulas = formulas, fn = fn, lbl = lbl)
-    class(out) <- "msc_raw"
+    class(out) <- "mscraw"
     out
 }
 
 #' @rdname compute_performance
-print.msc_raw <- function(x, ...){
+print.mscraw <- function(x, ...){
     x.apparent <- x$working.estimates %>%
         filter(id == "Apparent")
     print(x.apparent, ...)
 }
 
 #' @rdname compute_performance
-summary.msc_raw <- function(x, nonpar = TRUE, NArm = TRUE, ...){
+summary.mscraw <- function(x, nonpar = TRUE, NArm = TRUE, ...){
     sc <- x$scores
     x.apparent <- x$working.estimates %>%
         filter(id == "Apparent") %>%
