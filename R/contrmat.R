@@ -7,9 +7,7 @@
 #' @param ref The name of the reference treatment / score (character)
 #' @param sc A vector containing the full list of scores considered, so that the scores are not put into alphabetical order. This keeps the order of the scores in later network meta-analysis models the same as in other places.
 #'
-#' @references  This function has been adapted slightly from the supplementary material of Law et al 2016:
-#' Law, M.; Jackson, D.; Turner, R.; Rhodes, K. & Viechtbauer, W. Two new methods to fit models for
-#' network meta-analysis with random inconsistency effects BMC Medical Research Methodology, 2016, 16, 87. \href{doi://10.1186/s12874-016-0184-5}
+#' @references  This function has been adapted slightly from the supplementary material of Law et al 2016: Law, M.; Jackson, D.; Turner, R.; Rhodes, K. & Viechtbauer, W. Two new methods to fit models for network meta-analysis with random inconsistency effects BMC Medical Research Methodology, 2016, 16, 87. \href{doi://10.1186/s12874-016-0184-5}
 #'
 #' @return A design matrix
 #' @export

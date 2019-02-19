@@ -20,7 +20,7 @@ A list with 3 elements, of class \code{msc_raw}:
   \item{scores}{Names of the scores as given in \code{\link{get_bs_samples}}}
   \item{formulas}{vector of formulas)}
   \item{fn}{The function definition used to compute performance}
-  \item{lbl} The label given in the arguments.
+  \item{lbl}{The label given in the arguments.}
 }
 The results of \code{\link{compute_performance}} have suitable \code{print} and \code{summary} methods.
 }
@@ -29,8 +29,8 @@ Computes performance measures for prognostic scores on a set of bootstrap sample
 }
 \details{
 The function to compute performance measures, \code{fn} requires two arguments:
-\describe{
-  \item{bss}{The name of the bootstrap sample. The full bootstrap data is called within the function as \code{analysis(bss)}. See \code{\link{?rsample::bootstraps}} for more details.}
+\describe{ 
+\item{bss}{The name of the bootstrap sample. The full bootstrap data is called within the function as \code{analysis(bss)}. See \code{\link{?rsample::bootstraps}} for more details.}
   \item{fn}{The formula that will be called by the model, of the form \code{outcome ~ score} (character).}
 }
 and outputs a single numeric value. Using \code{\link{possibly}}, \code{\link{compute_performance}} assigns a value of \code{NA} if there is an error.
