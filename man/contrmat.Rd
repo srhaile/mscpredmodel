@@ -21,11 +21,13 @@ A design matrix
 \description{
 Constructs a contrast matrix.
 }
+\details{
+This function has been adapted slightly from the supplementary material of  \href{doi://10.1186/s12874-016-0184-5}{Law et al 2016}: 
+
+Law, M.; Jackson, D.; Turner, R.; Rhodes, K. & Viechtbauer, W. Two new methods to fit models for network meta-analysis with random inconsistency effects BMC Medical Research Methodology, 2016, 16, 87.
+}
 \examples{
 contrmat(letters[c(1, 1, 2, 2, 3)], letters[c(2, 3, 4, 5, 6)], "a", sc = letters[1:6])
 contrmat(letters[c(1, 1, 2, 2, 3)], letters[c(2, 3, 4, 5, 6)], "a", sc = letters[6:1])
 contrmat(letters[c(1, 1, 2, 2, 3)], letters[c(2, 3, 4, 5, 6)], "c", sc = letters[6:1])
-}
-\references{
-This function has been adapted slightly from the supplementary material of Law et al 2016: Law, M.; Jackson, D.; Turner, R.; Rhodes, K. & Viechtbauer, W. Two new methods to fit models for network meta-analysis with random inconsistency effects BMC Medical Research Methodology, 2016, 16, 87. \href{doi://10.1186/s12874-016-0184-5}
 }
