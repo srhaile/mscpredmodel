@@ -27,6 +27,7 @@ points.mscraw <- function(perf.estimates){
         stop("Package \"ggplot2\" needed for this function to work. Please install it.",
              call. = FALSE)
     }
+    require(ggplot2)
     working.estimates <- perf.estimates$working.estimates
     scores <- perf.estimates$scores
     lbl <- perf.estimates$lbl
@@ -58,6 +59,7 @@ lines.mscraw <- function(perf.estimates) {
             call. = FALSE
         )
     }
+    require(ggplot2)
     working.estimates <- perf.estimates$working.estimates
     scores <- perf.estimates$scores
     lbl <- perf.estimates$lbl
@@ -66,8 +68,8 @@ lines.mscraw <- function(perf.estimates) {
         select(-id, -measure, -ref, -k) %>%
         gather(scores, key = "score", value = "value") %>%
         filter(type != "apparent") %>%
-        ggplot(aes(value, group = cohort)) +
-        geom_density() +
-        xlab(lbl) +
-        facet_wrap(~ score)
+      ggplot(aes(value, group = cohort)) +
+      geom_density() +
+      xlab(lbl) +
+      facet_wrap(~ score)
 }
