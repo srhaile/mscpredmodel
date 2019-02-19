@@ -22,6 +22,37 @@
 #' perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
 #' points(perf)
 #' lines(perf)
+#' 
+#' @rdname mscraw
+print.mscraw <- function(x, ...){
+  x.apparent <- x$working.estimates %>%
+    filter(id == "Apparent")
+  print(x.apparent, ...)
+}
+
+#' @rdname mscraw
+summary.mscraw <- function(x, nonpar = TRUE, NArm = TRUE, ...){
+  sc <- x$scores
+  x.apparent <- x$working.estimates %>%
+    filter(id == "Apparent") %>%
+    select(cohort, sc)
+  q1 <- partial(quantile, probs = 0.25)
+  q3 <- partial(quantile, probs = 0.75)
+  nonmiss <- function(x, na.rm = TRUE) sum(!is.na(x))
+  if(nonpar){
+    fns <- vars(nonmiss, median, q1, q3)
+  } else {
+    fns <- vars(nonmiss, mean, sd)
+  }
+  x.apparent  %>%
+    gather(sc, key = "score", value = "value") %>%
+    group_by(score) %>%
+    summarize_at("value", fns, na.rm = NArm) %>%
+    mutate(performance = x$lbl) %>%
+    select(score, performance, everything())
+}
+
+#' @rdname mscraw
 points.mscraw <- function(perf.estimates){
     if (!requireNamespace("ggplot2", quietly = TRUE)) {
         stop("Package \"ggplot2\" needed for this function to work. Please install it.",
@@ -51,7 +82,7 @@ points.mscraw <- function(perf.estimates){
         ylim(-2, 5)
 }
 
-#' @rdname points.mscraw
+#' @rdname mscraw
 lines.mscraw <- function(perf.estimates) {
     if (!requireNamespace("ggplot2", quietly = TRUE)) {
         stop(

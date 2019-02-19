@@ -4,6 +4,8 @@
 \alias{compute_performance}
 \alias{print.mscraw}
 \alias{summary.mscraw}
+\alias{points.mscraw}
+\alias{lines.mscraw}
 \title{Computes performance measures for prognostic scores on a set of bootstrap samples}
 \usage{
 compute_performance(bs.sample, fn = calibration_slope, lbl = NULL)
@@ -11,6 +13,10 @@ compute_performance(bs.sample, fn = calibration_slope, lbl = NULL)
 \method{print}{mscraw}(x, ...)
 
 \method{summary}{mscraw}(x, nonpar = TRUE, NArm = TRUE, ...)
+
+\method{points}{mscraw}(perf.estimates)
+
+\method{lines}{mscraw}(perf.estimates)
 }
 \arguments{
 \item{bs.sample}{A set of cohort-stratified bootstrap samples, as generated with \code{\link{get_bs_samples}}}
@@ -18,6 +24,12 @@ compute_performance(bs.sample, fn = calibration_slope, lbl = NULL)
 \item{fn}{The name of a function to compute performance measures. For example, \code{\link{calibration_slope}}. See \strong{details}.}
 
 \item{lbl}{A label to describe the performance measure computed. For example \code{"calibration slope"}. This label is used in subsequent plot functions, and appears in tables of regression coefficients of. Useful if you want to compute several performance measures, or the same performance measure on different subsets of data.}
+
+\item{x}{Set of performance estimates calculated with \code{\link{copute_performance}}}
+
+\item{nonpar}{Should nonparametric summary statistics (median [IQR]) be reported? (TRUE)}
+
+\item{NArm}{Should NAs be removed before calculated summary statistics? (TRUE)}
 }
 \value{
 A list with 3 elements, of class \code{msc_raw}:
@@ -41,10 +53,23 @@ The function to compute performance measures, \code{fn} requires two arguments:
 }
 and outputs a single numeric value. Using \code{\link{possibly}}, \code{\link{compute_performance}} assigns a value of \code{NA} if there is an error.
 }
+\section{Methods (by generic)}{
+\itemize{
+\item \code{print}: Print raw performance estimates
+
+\item \code{summary}: Print summary of raw performance estimates
+
+\item \code{points}: Plot variability of raw performance estimates across bootstrap samples using points
+
+\item \code{lines}: Plot variability of raw performance estimates across bootstrap samples using lines (density plots)
+}}
+
 \examples{
 dat <- msc_sample_data()
-bssamp <- get_bs_samples(dat, id, cohort, outcome, n.samples = 10, a, b, d, e, f)
+bssamp <- get_bs_samples(dat, id, cohort, outcome, n.samples = 10, a, b, c, d, e)
 perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
 print(perf)
 summary(perf)
+points(perf)
+lines(perf)
 }
