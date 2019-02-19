@@ -2,9 +2,18 @@
 % Please edit documentation in R/utils.R
 \name{contrmat}
 \alias{contrmat}
+\alias{get_diff}
+\alias{get_k}
+\alias{get_ref}
 \title{Various utility functions}
 \usage{
 contrmat(trt1, trt2, ref, sc = NULL)
+
+get_diff(d)
+
+get_k(x)
+
+get_ref(x)
 }
 \arguments{
 \item{trt1}{vector of the 1st treatment / score in the contrast}
@@ -14,9 +23,21 @@ contrmat(trt1, trt2, ref, sc = NULL)
 \item{ref}{The name of the reference treatment / score (character)}
 
 \item{sc}{A vector containing the full list of scores considered, so that the scores are not put into alphabetical order. This keeps the order of the scores in later network meta-analysis models the same as in other places.}
+
+\item{d}{A structured dataset, as calculated with \code{\link{aggregate_performance}}}
+
+\item{x}{A string of scores, pasted together with \code{:}.}
+
+\item{x}{A set of scores, pasted together.}
 }
 \value{
 A design matrix
+
+A new dataset with differences calculated
+
+Number of non-missing scores
+
+The number of the reference score
 }
 \description{
 Various utility functions
@@ -26,8 +47,23 @@ This function has been adapted slightly from the supplementary material of  \hre
 
 Law, M.; Jackson, D.; Turner, R.; Rhodes, K. & Viechtbauer, W. Two new methods to fit models for network meta-analysis with random inconsistency effects BMC Medical Research Methodology, 2016, 16, 87.
 }
+\section{Functions}{
+\itemize{
+\item \code{contrmat}: Make design matrix
+
+\item \code{get_diff}: Calculate differences between performance measures
+
+\item \code{get_k}: Get number of scores
+
+\item \code{get_ref}: Get reference score
+}}
+
 \examples{
 contrmat(letters[c(1, 1, 2, 2, 3)], letters[c(2, 3, 4, 5, 6)], "a", sc = letters[1:6])
 contrmat(letters[c(1, 1, 2, 2, 3)], letters[c(2, 3, 4, 5, 6)], "a", sc = letters[6:1])
 contrmat(letters[c(1, 1, 2, 2, 3)], letters[c(2, 3, 4, 5, 6)], "c", sc = letters[6:1])
+x <- paste(c(0.025, 0.05, NA, 0.1), sep = ":")
+y <- paste(c(NA, 0.01, 0.02, 0.05), sep = ":")
+get_ref(x)
+get_ref(y)
 }

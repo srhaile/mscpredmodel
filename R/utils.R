@@ -1,5 +1,6 @@
-#' Various utility functions
+#' @title Various utility functions
 #'
+#' @describeIn utils Make design matrix
 #' @param trt1 vector of the 1st treatment / score in the contrast
 #' @param trt2 vector of the 2nd treatment / score in the contrast
 #' @param ref The name of the reference treatment / score (character)
@@ -31,7 +32,7 @@ contrmat <- function(trt1, trt2, ref, sc = NULL) {
     X[, colnames(X) != ref]
 }
 
-#' @describeIn utils
+#' @describeIn utils Calculate differences between performance measures
 #' @param d A structured dataset, as calculated with \code{\link{aggregate_performance}}
 #' @return A new dataset with differences calculated
 #' @export
@@ -78,7 +79,7 @@ get_diff <- function(d){
     d
 }
 
-#' @describeIn utils
+#' @describeIn utils Get number of scores
 #' @param x A string of scores, pasted together with \code{:}.
 #' @return Number of non-missing scores
 #' @export
@@ -94,7 +95,7 @@ get_k <- function(x){
     }
 }
 
-#' @describeIn utils
+#' @describeIn utils Get reference score
 #' @param x A set of scores, pasted together.
 #' @return The number of the reference score
 #' @export

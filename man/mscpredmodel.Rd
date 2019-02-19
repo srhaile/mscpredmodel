@@ -4,8 +4,15 @@
 \name{mscpredmodel}
 \alias{mscpredmodel}
 \alias{mscpredmodel-package}
-\title{mscpredmodel: Multiple Score Comparison of Prediction Models with NMA}
+\title{mscpredmodel: Multiple Score Comparison of Prediction Models
+
+The mscpredmodel package provides a number of functions to facilitate
+multiple score comparison (MSC), a network meta-analytic approach to 
+comparing multiple prediction models or prognostic scores using 
+individual patient data (IPD).}
 \description{
+mscpredmodel: Multiple Score Comparison of Prediction Models
+
 The mscpredmodel package provides a number of functions to facilitate
 multiple score comparison (MSC), a network meta-analytic approach to 
 comparing multiple prediction models or prognostic scores using 

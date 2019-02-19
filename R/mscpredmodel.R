@@ -1,4 +1,4 @@
-#' mscpredmodel: Multiple Score Comparison of Prediction Models with NMA
+#' @title mscpredmodel: Multiple Score Comparison of Prediction Models
 #'
 #' The mscpredmodel package provides a number of functions to facilitate
 #' multiple score comparison (MSC), a network meta-analytic approach to 
@@ -6,7 +6,9 @@
 #' individual patient data (IPD). 
 #' 
 #' @section Main Functions
+#' 
 #' The main mscpredmodel functions are as follows, in approximately the order they might be used in a data analysis:
+#' 
 #' \describe{
 #'   \item{\code{\link{msc_sample_data}}}{Produces a simulated dataset in order to try out the package}
 #'   \item{\code{\link{get_bs_samples}}}{Generate bootstrap samples, stratified by cohort}
@@ -16,4 +18,5 @@
 #'
 #' @docType package
 #' @name mscpredmodel
+#' 
 NULL
