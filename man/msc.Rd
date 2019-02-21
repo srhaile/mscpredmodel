@@ -2,6 +2,7 @@
 % Please edit documentation in R/msc.R
 \name{msc_full}
 \alias{msc_full}
+\alias{msc_network}
 \alias{msc_indirect}
 \alias{msc_direct}
 \alias{print.msc}
@@ -10,6 +11,8 @@
 \usage{
 msc_full(ps, mtype = c("consistency", "inconsistency")[1],
   verbose = FALSE, ...)
+
+msc_network(ps, mtype = c("consistency", "inconsistency")[1], ...)
 
 msc_indirect(ps, mtype = c("consistency", "inconsistency")[1],
   verbose = FALSE, ...)
@@ -50,7 +53,9 @@ Compute all pairwise comparisons for the full network, all direct comparisons, o
 }
 \section{Functions}{
 \itemize{
-\item \code{msc_full}: Compute all pairwise comparisons in full network of evidence
+\item \code{msc_full}: Compute all pairwise comparisons in full network of evidence, as well as direct and indirect comparisons
+
+\item \code{msc_network}: Compute all pairwise comparisons in the full network of evidence
 
 \item \code{msc_indirect}: Compute all pairwise indirect comparisons
 

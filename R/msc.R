@@ -26,7 +26,7 @@
 #' plot(full)
 #' 
 #' @export
-#' @describeIn msc Compute all pairwise comparisons in full network of evidence
+#' @describeIn msc Compute all pairwise comparisons in full network of evidence, as well as direct and indirect comparisons
 msc_full <- function(ps, mtype = c("consistency", "inconsistency")[1], verbose = FALSE, ...){
     mt <- match.arg(mtype, c("consistency", "inconsistency"))
     res.nw <- msc_network(ps, mtype = mt, ...)
@@ -44,6 +44,51 @@ msc_full <- function(ps, mtype = c("consistency", "inconsistency")[1], verbose =
     class(out) <- "msc"
     out
 }
+
+#' @describeIn msc Compute all pairwise comparisons in the full network of evidence
+#' @export
+msc_network <- function(ps, mtype = c("consistency", "inconsistency")[1], ...){
+    scores <- ps$scores
+    mt <- match.arg(mtype, c("consistency", "inconsistency"))
+    modelfn <- switch(mt, 
+                      consistency = consistency,
+                      inconsistency = inconsistency)
+    this.ss <- aggregate_performance(ps, reference = ps$scores[1])
+    x <- modelfn(this.ss, ...)
+    #print(coeftable(x))
+    scorepairs <- expand.grid(x1 = scores, x2 = scores)
+    scorepairs$x1 <- factor(scorepairs$x1, scores)
+    scorepairs$x2 <- factor(scorepairs$x2, scores)
+    to.include <- with(scorepairs, x1 != x2 & as.numeric(x2) > as.numeric(x1))
+    scorepairs <- scorepairs[to.include, ]
+    pairmat <- (model.matrix(~ scorepairs$x2) - model.matrix( ~ scorepairs$x1))[, -1]
+    colnames(pairmat) <- scores[-1]
+    rownames(pairmat) <- with(scorepairs, paste(x2, x1, sep = "-"))
+    
+    est <- as.vector(pairmat %*% x$beta)
+    var.est <- pairmat %*% x$vb %*% t(pairmat)
+    ci.lb <- as.vector(est - qnorm(1 - 0.05 / 2) * sqrt(diag(var.est)))
+    ci.ub <- as.vector(est + qnorm(1 - 0.05 / 2) * sqrt(diag(var.est)))
+    pval <- as.vector(pnorm(-abs(est / sqrt(diag(var.est)))) * 2)
+    #list("estimate" = est, "ci.lb" = ci.lb, "ci.ub" = ci.ub, "var.estimate" = var.est)
+    out <- tibble(s1 = scorepairs$x1,
+                  s2 = scorepairs$x2,
+                  model = x$model,
+                  type = "network",
+                  estimate = est,
+                  ci.lb = ci.lb,
+                  ci.ub = ci.ub,
+                  pval = pval, measure = ps$lbl) %>%
+        mutate(s1 = factor(s1, scores),
+               s2 = factor(s2, scores))
+    out <- list("table" = out,
+                "models" = list("network" = x),
+                "type" = "network", 
+                "performance" = ps$lbl)
+    class(out) <- "msc"
+    out
+}
+
 
 #' @describeIn msc Compute all pairwise indirect comparisons
 #' @export
