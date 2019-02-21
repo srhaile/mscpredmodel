@@ -2,7 +2,7 @@
 #' 
 #' @description Compute all pairwise comparisons for the full network, all direct comparisons, or all indirect.
 #'
-#' @param ps A set of aggregated performance estimates, see \code{\link{aggregate_performance}}.
+#' @param ps A set of raw performance estimates, see \code{\link{compute_performance}}. Since we have to compute a range of different aggregated performance measures, we start here with the raw performance estimates.
 #' @param mtype Type of model (default "consistency", else "inconsistency"). It is sufficient to write \code{"c"} or \code{"i"}.
 #' @param verbose If TRUE, results of each model will be printed (default FALSE)
 #' @param ... Other arguments to be passed to \code{\link[metafor]{rma.mv}}. See also \code{\link{consistency}}.
@@ -19,15 +19,16 @@
 #' dat <- msc_sample_data()
 #' bssamp <- get_bs_samples(dat, id, cohort, outcome, n.samples = 10, a, b, c, d, e)
 #' perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
-#' agg <- aggregate_performance(perf)
-#' msc_indirect(agg, mtype = "inconsistency")
-#' msc_direct(agg, mtype = "inconsistency")
-#' full <- msc_full(agg, mtype = "inconsistency")
+#' msc_indirect(perf, mtype = "inconsistency")
+#' msc_direct(perf, mtype = "inconsistency")
+#' msc_network(perf, mtype = "inconsistency")
+#' full <- msc_full(perf, mtype = "inconsistency")
 #' plot(full)
 #' 
 #' @export
 #' @describeIn msc Compute all pairwise comparisons in full network of evidence, as well as direct and indirect comparisons
 msc_full <- function(ps, mtype = c("consistency", "inconsistency")[1], verbose = FALSE, ...){
+    if(class(ps) != "mscraw") warning("A set of *raw* performance estimates is needed (class(ps) == 'mscraw'), from compute_performance().")
     mt <- match.arg(mtype, c("consistency", "inconsistency"))
     res.nw <- msc_network(ps, mtype = mt, ...)
     res.d <- msc_direct(ps, mtype = mt, verbose = verbose, ...)
@@ -48,6 +49,7 @@ msc_full <- function(ps, mtype = c("consistency", "inconsistency")[1], verbose =
 #' @describeIn msc Compute all pairwise comparisons in the full network of evidence
 #' @export
 msc_network <- function(ps, mtype = c("consistency", "inconsistency")[1], ...){
+    if(class(ps) != "mscraw") warning("A set of *raw* performance estimates is needed (class(ps) == 'mscraw'), from compute_performance().")
     scores <- ps$scores
     mt <- match.arg(mtype, c("consistency", "inconsistency"))
     modelfn <- switch(mt, 
@@ -93,6 +95,7 @@ msc_network <- function(ps, mtype = c("consistency", "inconsistency")[1], ...){
 #' @describeIn msc Compute all pairwise indirect comparisons
 #' @export
 msc_indirect <- function(ps, mtype = c("consistency", "inconsistency")[1], verbose = FALSE, ...){
+    if(class(ps) != "mscraw") warning("A set of *raw* performance estimates is needed (class(ps) == 'mscraw'), from compute_performance().")
     # node splitting approach to estimating direct and indirect differences
     # takes result of compute_performance as argument
     
@@ -200,6 +203,7 @@ msc_indirect <- function(ps, mtype = c("consistency", "inconsistency")[1], verbo
 #' @describeIn msc Compute all pairwise indirect comparisons
 #' @export
 msc_direct <- function(ps, mtype = c("consistency", "inconsistency")[1], verbose = FALSE, ...){
+    if(class(ps) != "mscraw") warning("A set of *raw* performance estimates is needed (class(ps) == 'mscraw'), from compute_performance().")
     # keep only if (pair %in% design)
     scores <- ps$scores
     we <- ps$working.estimates

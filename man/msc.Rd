@@ -25,7 +25,7 @@ msc_direct(ps, mtype = c("consistency", "inconsistency")[1],
 \method{plot}{msc}(x, compare_to = NULL, newlabels = NULL)
 }
 \arguments{
-\item{ps}{A set of aggregated performance estimates, see \code{\link{aggregate_performance}}.}
+\item{ps}{A set of raw performance estimates, see \code{\link{compute_performance}}. Since we have to compute a range of different aggregated performance measures, we start here with the raw performance estimates.}
 
 \item{mtype}{Type of model (default "consistency", else "inconsistency"). It is sufficient to write \code{"c"} or \code{"i"}.}
 
@@ -66,10 +66,10 @@ Compute all pairwise comparisons for the full network, all direct comparisons, o
 dat <- msc_sample_data()
 bssamp <- get_bs_samples(dat, id, cohort, outcome, n.samples = 10, a, b, c, d, e)
 perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
-agg <- aggregate_performance(perf)
-msc_indirect(agg, mtype = "inconsistency")
-msc_direct(agg, mtype = "inconsistency")
-full <- msc_full(agg, mtype = "inconsistency")
+msc_indirect(perf, mtype = "inconsistency")
+msc_direct(perf, mtype = "inconsistency")
+msc_network(perf, mtype = "inconsistency")
+full <- msc_full(perf, mtype = "inconsistency")
 plot(full)
 
 }
