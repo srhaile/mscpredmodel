@@ -66,3 +66,4 @@ inconsistency <- function(x, ...){
     modI$performance <- x$lbl
     return(modI)
 }
+
