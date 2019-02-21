@@ -10,7 +10,7 @@
 #' \describe{
 #'   \item{\code{\link{msc_sample_data}}}{Produces a simulated dataset in order to try out the package}
 #'   \item{\code{\link{get_bs_samples}}}{Generate bootstrap samples, stratified by cohort}
-#'   \item{\code{\link{compute_performance}}}{Compute a performance measure for each of the scores, stratified by cohort, in each of the bootstrap samples. Once such performance measure would be, for example, \code{\link{calibration_slope}}}
+#'   \item{\code{\link{compute_performance}}}{Compute a performance measure for each of the scores, stratified by cohort, in each of the bootstrap samples. One such performance measure would be, for example, \code{\link{calibration_slope}}}
 #'   \item{\code{\link{aggregate_performance}}}{Produces the aggregated performance and its empirically estimated variance-covariance matrix for each cohort, to be used in the (in)consistency models.}
 #' }
 #'
