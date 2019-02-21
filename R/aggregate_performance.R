@@ -66,7 +66,7 @@ aggregate_performance <- function(perf.estimates, reference = NULL,
     vis <- tmp %>% 
         filter(type != "apparent") %>% 
         select(vi)
-    vi <- bldiag(lapply(vis$vi, as.matrix))
+    vi <- metafor::bldiag(lapply(vis$vi, as.matrix))
     
     y <- yi$yi
     v <- vi
