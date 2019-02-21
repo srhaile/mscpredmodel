@@ -32,7 +32,7 @@
 #' agg.c <- aggregate_performance(perf, "c")
 #' consistency(agg.c)
 consistency <- function(x, ...){
-    if(class(x) != "msc_agg") stop("Requires aggregated data of class(x) = 'mscagg' (created using the aggregate_performance function)")
+    if(class(x) != "mscagg") stop("Requires aggregated data of class(x) = 'mscagg' (created using the aggregate_performance function)")
     require(metafor)
     if(length(x$yi) > 1){
         modC <- with(x, rma.mv(yi, vi, mods = design.matrix, slab = cohorts, 
@@ -50,7 +50,7 @@ consistency <- function(x, ...){
 #' @describeIn consistency Estimate differences in score performance using inconsistency model
 #' @export
 inconsistency <- function(x, ...){
-    if(class(x) != "msc_agg") stop("Requires aggregated data of class(x) = 'mscagg' (created using the aggregate_performance function)")
+    if(class(x) != "mscagg") stop("Requires aggregated data of class(x) = 'mscagg' (created using the aggregate_performance function)")
     require(metafor)
     if(length(x$yi) > 1){
         modI <- with(x, rma.mv(yi, vi, mods = design.matrix, slab = cohorts, 
