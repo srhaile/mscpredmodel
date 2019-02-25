@@ -11,7 +11,7 @@ Description: Set of functions to facilitate the comparison and external
     patient data (IPD). The package has functions to estimate performance estimates
     (and corresponding variances) for both calibration and discrimination endpoints, 
     and perform appropriate network meta-analysis, and compute all direct and
-    indirect comparisons.
+    indirect pairwise comparisons.
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
