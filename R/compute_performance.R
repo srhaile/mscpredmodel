@@ -40,8 +40,6 @@ compute_performance <- function(bs.sample,
     if (!requireNamespace("rsample", quietly = TRUE)) {
       stop("Package \"rsample\" needed for this function to work. Please install it.",
            call. = FALSE)
-    } else {
-      require(rsample)
     }
 
     if(is.null(lbl)) lbl <- paste(head(fn), collapse = "")
@@ -116,7 +114,6 @@ points.mscraw <- function(perf.estimates){
     stop("Package \"ggplot2\" needed for this function to work. Please install it.",
          call. = FALSE)
   }
-  require(ggplot2)
   working.estimates <- perf.estimates$working.estimates
   scores <- perf.estimates$scores
   lbl <- perf.estimates$lbl
@@ -150,7 +147,6 @@ lines.mscraw <- function(perf.estimates) {
       call. = FALSE
     )
   }
-  require(ggplot2)
   working.estimates <- perf.estimates$working.estimates
   scores <- perf.estimates$scores
   lbl <- perf.estimates$lbl
