@@ -2,9 +2,21 @@
 % Please edit documentation in R/calibration_slope.R
 \name{calibration_slope}
 \alias{calibration_slope}
-\title{Compute calibration slope}
+\alias{calibration_large}
+\alias{c_statistic}
+\alias{oe_ratio}
+\alias{brier_score}
+\title{Compute performance in terms of various typical calibration and discrimination measures.}
 \usage{
 calibration_slope(bss, fm)
+
+calibration_large(bss, fm)
+
+c_statistic(bss, fm)
+
+oe_ratio(bss, fm)
+
+brier_score(bss, fm)
 }
 \arguments{
 \item{bss}{A set of bootstrap samples, stratified by cohort, as computed by \code{\link{get_bs_samples}}. The full bootstrap data is called within the function as \code{analysis(bss)}. See \code{\link{?rsample::bootstraps}} for more details.}
@@ -12,8 +24,23 @@ calibration_slope(bss, fm)
 \item{fm}{The formula that will be called by the model, of the form \code{outcome ~ score} (character).}
 }
 \value{
-A single calibration slope (numeric)
+A single performance measure (numeric).
 }
 \description{
-Compute calibration slope
+Here we provide several functions to compute some typical performance measures 
+for calibration and discrimination. This is however not intended to be an 
+exhaustive set of performance measures.
 }
+\section{Functions}{
+\itemize{
+\item \code{calibration_slope}: Estimate calibration slope
+
+\item \code{calibration_large}: Estimate calibration-in-the-large
+
+\item \code{c_statistic}: Estimate c-Statistics / Area under the ROC curve
+
+\item \code{oe_ratio}: Estimate ratio of observed to expected number of events
+
+\item \code{brier_score}: Estimate Brier score
+}}
+
