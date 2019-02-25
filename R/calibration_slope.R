@@ -31,7 +31,10 @@ calibration_large <- function(bss, fm){
 #' @describeIn calibration_slope Estimate c-Statistics / Area under the ROC curve
 #' @export
 c_statistic <- function(bss, fm){
-    require(pROC)
+    if (!requireNamespace("pROC", quietly = TRUE)) {
+        stop("Package \"pROC\" needed for this function to work. Please install it.",
+             call. = FALSE)
+    }
     fm <- as.formula(fm)
     m <- roc(fm, analysis(bss))
     auc(m)
