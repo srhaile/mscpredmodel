@@ -21,9 +21,13 @@ Depends:
     dplyr,
     forcats,
     purrr,
+    rsample,
     tibble,
     tidyr
 Suggests:
-    rsample,
-    ggplot2
+    ggplot2,
+    knitr,
+    rmarkdown,
+    pROC
 RoxygenNote: 6.1.1
+VignetteBuilder: knitr
