@@ -3,6 +3,8 @@
 #' Here we provide several functions to compute some typical performance measures 
 #' for calibration and discrimination. This is however not intended to be an 
 #' exhaustive set of performance measures.
+#' 
+#' Please note that \code{\link{compute_performance}} will use \code{\link[purrr]{possibly}} to return \code{NA_real_} if the function has an error. Of the potentially large number of cohort, score and bootstrap sample, this was a straightforward way to prevent \code{\link{compute_performance}} from returning an error for the whole dataset. However, if the function to compute performance generally does not work (for example, if the package \code{\link{pROC}} is required but not loaded), this behavior also prevents 
 #'
 #' @param bss A set of bootstrap samples, stratified by cohort, as computed by \code{\link{get_bs_samples}}. The full bootstrap data is called within the function as \code{analysis(bss)}. See \code{\link{?rsample::bootstraps}} for more details.
 #' @param fm The formula that will be called by the model, of the form \code{outcome ~ score} (character).
