@@ -33,7 +33,10 @@
 #' consistency(agg.c)
 consistency <- function(x, ...){
     if(class(x) != "mscagg") stop("Requires aggregated data of class(x) = 'mscagg' (created using the aggregate_performance function)")
-    require(metafor)
+    if (!requireNamespace("metafor", quietly = TRUE)) {
+        stop("Package \"metafor\" needed for this function to work. Please install it.",
+             call. = FALSE)
+    }
     if(length(x$yi) > 1){
         modC <- with(x, rma.mv(yi, vi, mods = design.matrix, slab = cohorts, 
                                intercept = FALSE, 
@@ -51,7 +54,10 @@ consistency <- function(x, ...){
 #' @export
 inconsistency <- function(x, ...){
     if(class(x) != "mscagg") stop("Requires aggregated data of class(x) = 'mscagg' (created using the aggregate_performance function)")
-    require(metafor)
+    if (!requireNamespace("metafor", quietly = TRUE)) {
+        stop("Package \"metafor\" needed for this function to work. Please install it.",
+             call. = FALSE)
+    }
     if(length(x$yi) > 1){
         modI <- with(x, rma.mv(yi, vi, mods = design.matrix, slab = cohorts, 
                                intercept = FALSE, 
