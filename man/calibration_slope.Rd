@@ -31,6 +31,9 @@ Here we provide several functions to compute some typical performance measures
 for calibration and discrimination. This is however not intended to be an 
 exhaustive set of performance measures.
 }
+\details{
+Please note that \code{\link{compute_performance}} will use \code{\link[purrr]{possibly}} to return \code{NA_real_} if the function has an error. Of the potentially large number of cohort, score and bootstrap sample, this was a straightforward way to prevent \code{\link{compute_performance}} from returning an error for the whole dataset. However, if the function to compute performance generally does not work (for example, if the package \code{\link{pROC}} is required but not loaded), this behavior also prevents warning message for, say, unloaded R packages from being printed.
+}
 \section{Functions}{
 \itemize{
 \item \code{calibration_slope}: Estimate calibration slope
