@@ -26,20 +26,23 @@ devtools::install_github("srhaile/mscpredmodel")
 
 ## Example
 
-This is a basic example which shows you a typical analysis for a dataset having individual patient data for 30 cohorts, each with some combination of scores a, b, c, e, and g. The example here has only 100 bootstrap samples to speed up the runtime, but an actual analysis should use more.
+This is a basic example which shows you a typical analysis for a dataset having individual patient data for 30 cohorts, each with some combination of scores a, b, c, e, and g. The example here has only 25 bootstrap samples to speed up the runtime, but an actual analysis should use more.
 
 ```{r example}
 library(mscpredmodel)
 dat <- msc_sample_data()
 dat
-M <- 100
+M <- 25
 bs.example <- get_bs_samples(data = dat, id = id, cohorts = cohort, 
                              outcome = outcome, n.samples = M, 
                              a, b, c, e, g)
 ps <- compute_performance(bs.example, fn = calibration_large, lbl = "calibration-in-the-large")
-agg <- aggregate_performance(ps, reference = "a", design.levels = c("a", "b", "c", "e", "g"))
-# modc <- consistency(agg)
-# modi <- inconsistency(agg)
-# modi
+agg <- aggregate_performance(ps, reference = "b")
+modc <- consistency(agg)
+modi <- inconsistency(agg)
+modi
+
+fullres <- msc_full(ps)
+plot(fullres, compare_to = "b")
 ```
 

@@ -17,7 +17,7 @@ devtools::install_github("srhaile/mscpredmodel")
 Example
 -------
 
-This is a basic example which shows you a typical analysis for a dataset having individual patient data for 30 cohorts, each with some combination of scores a, b, c, e, and g. The example here has only 100 bootstrap samples to speed up the runtime, but an actual analysis should use more.
+This is a basic example which shows you a typical analysis for a dataset having individual patient data for 30 cohorts, each with some combination of scores a, b, c, e, and g. The example here has only 25 bootstrap samples to speed up the runtime, but an actual analysis should use more.
 
 ``` r
 library(mscpredmodel)
@@ -51,13 +51,57 @@ dat
 #>  9      1     9       0 0.120    NA NA        NA  0.209    NA  0.159    NA
 #> 10      1    10       0 0.211    NA NA        NA  0.293    NA  0.250    NA
 #> # … with 17,755 more rows, and 1 more variable: i <dbl>
-M <- 100
+M <- 25
 bs.example <- get_bs_samples(data = dat, id = id, cohorts = cohort, 
                              outcome = outcome, n.samples = M, 
                              a, b, c, e, g)
 ps <- compute_performance(bs.example, fn = calibration_large, lbl = "calibration-in-the-large")
-agg <- aggregate_performance(ps, reference = "a", design.levels = c("a", "b", "c", "e", "g"))
-# modc <- consistency(agg)
-# modi <- inconsistency(agg)
-# modi
+agg <- aggregate_performance(ps, reference = "b")
+modc <- consistency(agg)
+modi <- inconsistency(agg)
+modi
+#> 
+#> Multivariate Meta-Analysis Model (k = 85; method: REML)
+#> 
+#> Variance Components: 
+#> 
+#> outer factor: cohorts (nlvls = 30)
+#> inner factor: contr   (nlvls = 4)
+#> 
+#>             estim    sqrt  fixed
+#> tau^2      0.0073  0.0853     no
+#> rho        0.5000            yes
+#> 
+#> outer factor: design (nlvls = 11)
+#> inner factor: contr  (nlvls = 4)
+#> 
+#>             estim    sqrt  fixed
+#> gamma^2    0.0000  0.0000     no
+#> phi        0.5000            yes
+#> 
+#> Test for Residual Heterogeneity: 
+#> QE(df = 81) = 274.8546, p-val < .0001
+#> 
+#> Test of Moderators (coefficient(s) 1:4): 
+#> QM(df = 4) = 1358.7369, p-val < .0001
+#> 
+#> Model Results:
+#> 
+#>    estimate      se      zval    pval    ci.lb    ci.ub     
+#> a   -0.5058  0.0228  -22.1706  <.0001  -0.5505  -0.4611  ***
+#> c   -1.0120  0.0275  -36.7345  <.0001  -1.0660  -0.9580  ***
+#> e   -0.5876  0.0297  -19.8069  <.0001  -0.6458  -0.5295  ***
+#> g   -0.5728  0.0262  -21.8420  <.0001  -0.6242  -0.5214  ***
+#> 
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+fullres <- msc_full(ps)
+#> ....................
+plot(fullres, compare_to = "b")
+#> Loading required package: ggplot2
+#> Warning: Removed 1 rows containing missing values (geom_point).
+#> Warning: Removed 1 rows containing missing values (geom_linerange).
 ```
+
+<img src="man/figures/README-example-1.png" width="100%" />
