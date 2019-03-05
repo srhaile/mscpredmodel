@@ -24,6 +24,8 @@ Depends:
     rsample,
     tibble,
     tidyr
+Imports:
+    metafor
 Suggests:
     ggplot2,
     knitr,
