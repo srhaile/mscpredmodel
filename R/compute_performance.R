@@ -52,10 +52,10 @@ compute_performance <- function(bs.sample,
       mutate(cohort = as.character(cohort))
     working.data <- full_join(bs.sample, fm.dat, by = c("cohort", "id")) %>%
         mutate(fm = as.character(fm))
-    # we test the function to make sure it works in at least one case...
-    test.fn.data <- working.data %>% 
-        filter(id == "Apparent" & cohort == cohort[1]) %>%
-        mutate(est = map2_dbl(splits, fm, fn))
+    # # we test the function to make sure it works in at least one case...
+    # test.fn.data <- working.data %>% 
+    #     filter(id == "Apparent" & cohort == cohort[1]) %>%
+    #     mutate(est = map2_dbl(splits, fm, fn))
     # then we try it on the whole dataset
     working.estimates <- working.data %>%
         mutate(type = ifelse(id == "Apparent", "apparent", "bootstrap"),
