@@ -18,14 +18,14 @@ LazyData: true
 URL: http://github.com/srhaile/mscpredmodel
 BugReports: http://github.com/srhaile/mscpredmodel/issues
 Depends: 
-    R (>= 3.0)
-Imports:
+    R (>= 3.0),
     dplyr,
     forcats,
     purrr,
     rsample,
     tibble,
-    tidyr,
+    tidyr
+Imports:
     metafor
 Suggests:
     ggplot2,
