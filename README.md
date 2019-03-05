@@ -17,7 +17,7 @@ devtools::install_github("srhaile/mscpredmodel")
 Example
 -------
 
-This is a basic example which shows you how to solve a common problem:
+This is a basic example which shows you a typical analysis for a dataset having individual patient data for 30 cohorts, each with some combination of scores a, b, c, e, and g. The example here has only 100 bootstrap samples to speed up the runtime, but an actual analysis should use more.
 
 ``` r
 library(mscpredmodel)
@@ -51,29 +51,13 @@ dat
 #>  9      1     9       0 0.120    NA NA        NA  0.209    NA  0.159    NA
 #> 10      1    10       0 0.211    NA NA        NA  0.293    NA  0.250    NA
 #> # … with 17,755 more rows, and 1 more variable: i <dbl>
-M <- 1000
+M <- 100
 bs.example <- get_bs_samples(data = dat, id = id, cohorts = cohort, 
                              outcome = outcome, n.samples = M, 
                              a, b, c, e, g)
+ps <- compute_performance(bs.example, fn = calibration_large, lbl = "calibration-in-the-large")
+agg <- aggregate_performance(ps, reference = "a", design.levels = c("a", "b", "c", "e", "g"))
+# modc <- consistency(agg)
+# modi <- inconsistency(agg)
+# modi
 ```
-
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
-
-``` r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
-```
-
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date.
-
-You can also embed plots, for example:
-
-<img src="man/figures/README-pressure-1.png" width="100%" />
-
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub!

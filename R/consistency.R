@@ -38,11 +38,11 @@ consistency <- function(x, ...){
              call. = FALSE)
     }
     if(length(x$yi) > 1){
-        modC <- with(x, rma.mv(yi, vi, mods = design.matrix, slab = cohorts, 
+        modC <- with(x, metafor::rma.mv(yi, vi, mods = design.matrix, slab = cohorts, 
                                intercept = FALSE, 
                                random = ~ contr | cohorts, rho = 0.5, ...))
     } else if(length(x$yi) == 1){
-        modC <-  with(x, rma(yi, vi, mods = design.matrix, slab = cohorts, intercept = FALSE, ...))
+        modC <-  with(x, metafor::rma(yi, vi, mods = design.matrix, slab = cohorts, intercept = FALSE, ...))
     }
     modC$reference <- x$ref
     modC$scores <- x$scores
@@ -59,12 +59,12 @@ inconsistency <- function(x, ...){
              call. = FALSE)
     }
     if(length(x$yi) > 1){
-        modI <- with(x, rma.mv(yi, vi, mods = design.matrix, slab = cohorts, 
+        modI <- with(x, metafor::rma.mv(yi, vi, mods = design.matrix, slab = cohorts, 
                                intercept = FALSE, 
                                random = list(~ contr | cohorts, ~ contr | design), 
                                rho = 0.5, phi = 0.5, ...))
     } else if(length(x$yi) == 1){
-        modI <-  with(x, rma(yi, vi, mods = design.matrix, slab = cohorts, intercept = FALSE, ...))
+        modI <-  with(x, metafor::rma(yi, vi, mods = design.matrix, slab = cohorts, intercept = FALSE, ...))
     }
     modI$reference <- x$ref
     modI$scores <- x$scores
