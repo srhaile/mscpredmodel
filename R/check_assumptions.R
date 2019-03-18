@@ -25,12 +25,13 @@ aggm <- with(agg, tibble(cohorts, yi,
 transitivity_model <- function(contr, moderator){
     this.fm <- paste("yi ~", moderator)
     this.lm <- lm(as.formula(this.fm), data = aggm, weights = wt)
-    this.lm
+    broom::tidy(this.lm, conf.int = TRUE)
 }
-
-
 
 x <- c("age", "female", "x1")
 res <- crossing(contr = unique(aggm$contr),
                 moderator = x) %>%
-    mutate(fit = map2(contr, moderator, transitivity_model))
+    mutate(fit = map2(contr, moderator, transitivity_model)) %>%
+    unnest %>%
+    filter(term != "(Intercept)") %>%
+    select(-term)
