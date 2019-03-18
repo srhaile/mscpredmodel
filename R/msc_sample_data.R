@@ -36,17 +36,35 @@ msc_sample_data <- function(n.cohorts = 30){
       spread(score, p.pred)
     d
   }
+  
+  sim_moderators <- function(n, mean.age, sd.age, pct.female, 
+                             mean.x1, sd.x1){
+      d <- tibble(id = 1:n,
+                  age = rnorm(n, mean.age, sd.age), 
+                  female = rbinom(n, 1, pct.female),
+                  x1 = rnorm(n, mean.x1, sd.x1))
+      d
+  }
+  
 
-  msc_sample_data <- tibble(cohort = 1:n.cohorts,
-                            n.subjects = round(runif(n.cohorts, 100, 1000)),
-                            p.outcome = runif(n.cohorts, 0.2, 0.6)) %>%
-    mutate(dat = map2(n.subjects, p.outcome, make_data)) %>%
+  sample_data <- tibble(cohort = 1:n.cohorts,
+                        n.subjects = round(runif(n.cohorts, 100, 1000)),
+                        p.outcome = runif(n.cohorts, 0.2, 0.6),
+                        mean.age = round(runif(n.cohorts, 40, 60)),
+                        sd.age = round(runif(n.cohorts, 5, 15)),
+                        pct.female = round(runif(n.cohorts), 2),
+                        mean.x1 = round(rnorm(n.cohorts), 1),
+                        sd.x1 = round(rexp(n.cohorts, 1), 2)) %>%
+    mutate(dat = map2(n.subjects, p.outcome, make_data),
+           datm = pmap(list(n.subjects, mean.age, sd.age,
+                pct.female, mean.x1, sd.x1), sim_moderators)) %>%
     unnest() %>%
-    select(-p.outcome, -n.subjects)
+    select(-p.outcome, -n.subjects, -mean.age, -sd.age, -pct.female,
+           -mean.x1, -sd.x1, -id1)
 
   # add in structural missing (by cohort)
 
-  msc_sample_data <- msc_sample_data %>%
+  sample_data <- sample_data %>%
       mutate(b = ifelse(cohort %% 2 == 0, b, NA),
              c = ifelse(cohort %% 3 == 0, NA, c),
              d = ifelse(cohort %% 4 == 0, d, NA),
@@ -61,7 +79,7 @@ msc_sample_data <- function(n.cohorts = 30){
       is.missing <- rbinom(length(x), 1, p = p)
       ifelse(is.missing == 1, NA, x)
   }
-  msc_sample_data  <- msc_sample_data %>%
+  msc_sample_data  <- sample_data %>%
       mutate(b = random_missing(b, 0.1),
              c = random_missing(c, 0.2),
              d = random_missing(d, 0.3),
