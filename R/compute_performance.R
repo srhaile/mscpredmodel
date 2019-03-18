@@ -25,7 +25,7 @@
 #'
 #' @examples
 #' dat <- msc_sample_data()
-#' bssamp <- get_bs_samples(dat, id, cohort, outcome, n.samples = 10, a, b, c, d, e)
+#' bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 10, scores = c("a", "b", "c", "d", "e", "f"), moderators = c("age", "female", "x1"))
 #' perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
 #' print(perf)
 #' summary(perf)
@@ -35,6 +35,7 @@ compute_performance <- function(bs.sample,
                                 fn = calibration_slope,
                                 lbl = NULL){
     scores <- bs.sample$scores
+    mods <- bs.sample$mods
     formulas <- bs.sample$formulas
     bs.sample <- bs.sample$bs.sample
     if (!requireNamespace("rsample", quietly = TRUE)) {
@@ -67,15 +68,25 @@ compute_performance <- function(bs.sample,
                measure = lbl) %>%
         select(-splits, -fm) %>%
         spread(scores, est)  %>%
-        # next line seems redundant, but otherwise, the scores go in alphabetical order!
+        # next line seems redundant, but else, the scores go in alphabetical order!
         select(cohort, id, type, measure, scores) %>%
         unite(scores, col = est.all, sep = ":", remove = FALSE) %>%
         mutate(ref = map_dbl(est.all, get_ref),
                k = map_dbl(est.all, get_k)) %>%
         select(-est.all)
 
+    dat.mods <- bs.sample %>% 
+        filter(id == "Apparent") %>% 
+        mutate(dat = map(splits, analysis)) %>%
+        select(-id, -splits) %>%
+        unnest() %>%
+        select(cohort, id, mods)
+        
+    
     out <- list("working.estimates" = working.estimates,
-                scores = scores, formulas = formulas, fn = fn, lbl = lbl)
+                moderators = dat.mods,
+                scores = scores, mods = mods, 
+                formulas = formulas, fn = fn, lbl = lbl)
     class(out) <- "mscraw"
     out
 }
@@ -86,7 +97,16 @@ compute_performance <- function(bs.sample,
 print.mscraw <- function(x, ...){
   x.apparent <- x$working.estimates %>%
     filter(id == "Apparent")
-  print(x.apparent, ...)
+  if(!is.null(x$mods)){
+  x.mods <- x$moderators %>% 
+      select(-id) %>%
+      group_by(cohort) %>%
+      summarize_all(mean, na.rm = TRUE)
+  out <- full_join(x.apparent, x.mods, by = "cohort") %>% select(-id, -type)
+  } else {
+      out <- x.apparent
+  }
+  print(out, ...)
 }
 
 #' @describeIn compute_performance Print summary of raw performance estimates

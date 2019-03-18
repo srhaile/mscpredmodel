@@ -89,6 +89,7 @@ msc_sample_data <- function(n.cohorts = 30){
              h = random_missing(h, 0.1),
              i = random_missing(i, 0.3))
 
-  msc_sample_data
+  msc_sample_data %>% 
+      rename(study = cohort)
 }
 

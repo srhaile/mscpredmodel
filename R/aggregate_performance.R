@@ -21,13 +21,16 @@
 #'
 #' @examples
 #' dat <- msc_sample_data()
-#' bssamp <- get_bs_samples(dat, id, cohort, outcome, n.samples = 10, a, b, c, d, e)
+#' bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 10, scores = c("a", "b", "c", "d", "e", "f"), moderators = c("age", "female", "x1"))
 #' perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
 #' agg <- aggregate_performance(perf)
 #' agg
 aggregate_performance <- function(perf.estimates, reference = NULL, 
-                                  design.levels = LETTERS){
+                                  design.levels = LETTERS,
+                                  fn.mods = NULL){
     scores <- perf.estimates$scores
+    mods <- perf.estimates$mods
+    moderators <- perf.estimates$moderators
     formulas <- perf.estimates$formulas
     fn <- perf.estimates$fn
     lbl <- perf.estimates$lbl
@@ -39,6 +42,19 @@ aggregate_performance <- function(perf.estimates, reference = NULL,
         warning("reference score was not one of the scores. The reference has been changed to", scores[1])
         reference <- scores[1]
     }
+    
+    if(is.null(fn.mods) & !is.null(mods)){
+        warning("Since fn.mods was not specified, moderators will be aggregated with mean(x, na.rm = TRUE).")
+        fn.mods <- partial(mean, na.rm = TRUE)
+    } else if(!length(fn.mods) %in% c(1, length(mods))){
+        warning("There should be", length(mods), "or 1 function to aggregate the moderators defined. Reverting to mean(x, na.rm = TRUE)")
+        fn.mods <- partial(mean, na.rm = TRUE)
+    }
+    
+    modagg <- moderators %>%
+        group_by(cohort) %>%
+        summarize_at(mods, fn.mods) %>%
+        mutate(cohort = factor(cohort))
     
     tmp <- working.estimates %>% 
         group_by(cohort, type) %>%
@@ -87,9 +103,10 @@ aggregate_performance <- function(perf.estimates, reference = NULL,
         select(design) %>%
         unlist
     
-    out <- list(cohort, y, v, contr, design, dmat, lbl, fn, scores, reference)
-    names(out) <- c("cohorts", "yi", "vi", "contr", "design", 
-                    "design.matrix", "lbl", "fn", "scores", "ref")
+    out <- list(cohort, y, v, contr, design, dmat, lbl, fn, scores, reference, mods, modagg)
+    names(out) <- c("cohort", "yi", "vi", "contr", "design", 
+                    "design.matrix", "lbl", "fn", "scores", "ref",
+                    "mods", "moderators")
     class(out) <- "mscagg"
     return(out)
 }
@@ -97,6 +114,8 @@ aggregate_performance <- function(perf.estimates, reference = NULL,
 #' @describeIn aggregate_performance Print basic aggregated performance measures
 #' @export
 print.mscagg <- function(x, ...){
-    aggdat <- with(x, tibble(cohorts, yi, vi = diag(vi), contr, design, lbl))
+    aggdat <- with(x, tibble(cohort, yi, vi = diag(vi), 
+            contr, design, lbl)) %>% 
+        full_join(x$moderators, by = "cohort")
     print(aggdat, ...)
 }
