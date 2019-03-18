@@ -24,25 +24,36 @@
 #'
 #' @examples
 #' dat <- msc_sample_data()
-#' bssamp <- get_bs_samples(dat, id, cohort, outcome, n.samples = 10, a, b, c, d, e)
+#' bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 10, scores = c("a", "b", "c", "d", "e", "f"), moderators = c("age", "female", "x1"))
 #' perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
 #' agg <- aggregate_performance(perf)
 #' consistency(agg)
 #' inconsistency(agg)
 #' agg.c <- aggregate_performance(perf, "c")
 #' consistency(agg.c)
-consistency <- function(x, ...){
+consistency <- function(x, mods = NULL, ...){
     if(class(x) != "mscagg") stop("Requires aggregated data of class(x) = 'mscagg' (created using the aggregate_performance function)")
     if (!requireNamespace("metafor", quietly = TRUE)) {
         stop("Package \"metafor\" needed for this function to work. Please install it.",
              call. = FALSE)
     }
+    if(!is.null(mods)){
+        mods.to.keep <- mods[mods %in% x$mods]
+        mods.to.drop <- mods[!mods %in% x$mods]
+        if(length(mods.to.drop) > 0) warning("Dropping moderators because not in aggregated dataset:", mods.to.drop)
+    }
+    
+    ### STOPPED HERE....
+    
+    
+    
     if(length(x$yi) > 1){
-        modC <- with(x, metafor::rma.mv(yi, vi, mods = design.matrix, slab = cohorts, 
+        modC <- with(x, metafor::rma.mv(yi, vi, mods =  ~ design.matrix, 
+                                        slab = cohort, 
                                intercept = FALSE, 
-                               random = ~ contr | cohorts, rho = 0.5, ...))
+                               random = ~ contr | cohort, rho = 0.5, ...))
     } else if(length(x$yi) == 1){
-        modC <-  with(x, metafor::rma(yi, vi, mods = design.matrix, slab = cohorts, intercept = FALSE, ...))
+        modC <-  with(x, metafor::rma(yi, vi, mods = ~ design.matrix, slab = cohort, intercept = FALSE, ...))
     }
     modC$reference <- x$ref
     modC$scores <- x$scores
