@@ -18,7 +18,7 @@
 #' contrmat(letters[c(1, 1, 2, 2, 3)], letters[c(2, 3, 4, 5, 6)], "a", sc = letters[1:6])
 #' contrmat(letters[c(1, 1, 2, 2, 3)], letters[c(2, 3, 4, 5, 6)], "a", sc = letters[6:1])
 #' contrmat(letters[c(1, 1, 2, 2, 3)], letters[c(2, 3, 4, 5, 6)], "c", sc = letters[6:1])
-contrmat <- function(trt1, trt2, ref, sc = NULL) {
+contrmat <- function(trt1, trt2, ref, sc = NULL){
     all.lvls <- unique(c(levels(factor(trt1)), levels(factor(trt2))))
     if(is.null(sc)) sc <- all.lvls
     all.lvls <- factor(all.lvls, sc)
