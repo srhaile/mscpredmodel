@@ -17,7 +17,7 @@
 calibration_slope <- function(bss, fm){
     fm <- as.formula(fm)
     fm <- update(fm, . ~ qlogis(.))
-    m <- glm(fm, analysis(bss), family = binomial)
+    m <- glm(fm, analysis(bss), family = binomial, na.action = na.omit)
     coef(m)[2]
 }
 
@@ -26,7 +26,7 @@ calibration_slope <- function(bss, fm){
 calibration_large <- function(bss, fm){
     fm <- as.formula(fm)
     fm <- update(fm, . ~ offset(qlogis(.)))
-    m <- glm(fm, analysis(bss), family = binomial)
+    m <- glm(fm, analysis(bss), family = binomial, na.action = na.omit)
     coef(m)
 }
 
