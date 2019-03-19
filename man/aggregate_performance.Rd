@@ -6,7 +6,7 @@
 \title{Aggregate performance measures by cohort}
 \usage{
 aggregate_performance(perf.estimates, reference = NULL,
-  design.levels = LETTERS)
+  design.levels = LETTERS, fn.mods = NULL)
 
 \method{print}{mscagg}(x, ...)
 }
@@ -16,20 +16,24 @@ aggregate_performance(perf.estimates, reference = NULL,
 \item{reference}{The name of the reference score (default NULL, the first score is the reference). This will be the reference level of the scores in any later models.}
 
 \item{design.levels}{A character vector of alternate short names for the scores, to be used in naming the designs. Default is \code{\link{LETTERS}}, so that a possible design would be \code{AB} or \code{ACD}, instead of \code{score1score2} or \code{score1score3score4}. The design variable is used in the definition of the random effects. See \code{\link{consistency}}.}
+
+\item{fn.mods}{A function used to summarize the moderators within cohorts. If NULL, the default mean(x, na.rm = TRUE) is used.}
 }
 \value{
 A list with the following elements, of class \code{mscagg}
 \describe{
-  \item{cohorts}{First item}
-  \item{yi}{Second item}
-  \item{vi}{First item}
-  \item{contr}{Second item}
-  \item{design}{First item}
-  \item{design.matrix}{First item}
-  \item{lbl}{Second item}
-  \item{fn}{First item}
-  \item{scores}{Second item}
+  \item{cohorts}{List of cohorts}
+  \item{yi}{Differences in score performance}
+  \item{vi}{Variance-covariance matrix for yi}
+  \item{contr}{Score contrasts}
+  \item{design}{"Design" of the study (that is, which scores could be calculated)}
+  \item{design.matrix}{Design matrix, corresponding to \code{contr}}
+  \item{lbl}{A label for the analysis, which shows up in plots and output datasets}
+  \item{fn}{The function used to compute performance, for example \code{\link{calibration_slope}}}
+  \item{scores}{A vector of the scores used}
   \item{ref}{The reference score}
+  \item{mods}{A vector of names of the moderators}
+  \item{moderators}{A dataframe containing aggregated moderators}
 }
 }
 \description{
@@ -42,7 +46,7 @@ Aggregate performance measures by cohort
 
 \examples{
 dat <- msc_sample_data()
-bssamp <- get_bs_samples(dat, id, cohort, outcome, n.samples = 10, a, b, c, d, e)
+bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 10, scores = c("a", "b", "c", "d", "e", "f"), moderators = c("age", "female", "x1"))
 perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
 agg <- aggregate_performance(perf)
 agg

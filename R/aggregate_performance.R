@@ -3,19 +3,22 @@
 #' @param perf.estimates A set of performance estimates of class \code{mscraw}, as computed by \code{\link{compute_performance}}
 #' @param reference The name of the reference score (default NULL, the first score is the reference). This will be the reference level of the scores in any later models.
 #' @param design.levels A character vector of alternate short names for the scores, to be used in naming the designs. Default is \code{\link{LETTERS}}, so that a possible design would be \code{AB} or \code{ACD}, instead of \code{score1score2} or \code{score1score3score4}. The design variable is used in the definition of the random effects. See \code{\link{consistency}}.
+#' @param fn.mods A function used to summarize the moderators within cohorts. If NULL, the default mean(x, na.rm = TRUE) is used.
 #'
 #' @return A list with the following elements, of class \code{mscagg}
 #' \describe{
-#'   \item{cohorts}{First item}
-#'   \item{yi}{Second item}
-#'   \item{vi}{First item}
-#'   \item{contr}{Second item}
-#'   \item{design}{First item}
-#'   \item{design.matrix}{First item}
-#'   \item{lbl}{Second item}
-#'   \item{fn}{First item}
-#'   \item{scores}{Second item}
+#'   \item{cohorts}{List of cohorts}
+#'   \item{yi}{Differences in score performance}
+#'   \item{vi}{Variance-covariance matrix for yi}
+#'   \item{contr}{Score contrasts}
+#'   \item{design}{"Design" of the study (that is, which scores could be calculated)}
+#'   \item{design.matrix}{Design matrix, corresponding to \code{contr}}
+#'   \item{lbl}{A label for the analysis, which shows up in plots and output datasets}
+#'   \item{fn}{The function used to compute performance, for example \code{\link{calibration_slope}}}
+#'   \item{scores}{A vector of the scores used}
 #'   \item{ref}{The reference score}
+#'   \item{mods}{A vector of names of the moderators}
+#'   \item{moderators}{A dataframe containing aggregated moderators}
 #' }
 #' @export
 #'
@@ -44,17 +47,12 @@ aggregate_performance <- function(perf.estimates, reference = NULL,
     }
     
     if(is.null(fn.mods) & !is.null(mods)){
-        warning("Since fn.mods was not specified, moderators will be aggregated with mean(x, na.rm = TRUE).")
+        #message("Since fn.mods was not specified, moderators will be aggregated with mean(x, na.rm = TRUE).")
         fn.mods <- partial(mean, na.rm = TRUE)
     } else if(!length(fn.mods) %in% c(1, length(mods))){
         warning("There should be", length(mods), "or 1 function to aggregate the moderators defined. Reverting to mean(x, na.rm = TRUE)")
         fn.mods <- partial(mean, na.rm = TRUE)
     }
-    
-    modagg <- moderators %>%
-        group_by(cohort) %>%
-        summarize_at(mods, fn.mods) %>%
-        mutate(cohort = factor(cohort))
     
     tmp <- working.estimates %>% 
         group_by(cohort, type) %>%
@@ -87,6 +85,13 @@ aggregate_performance <- function(perf.estimates, reference = NULL,
     y <- yi$yi
     v <- vi
     cohort <- factor(yi$cohort)
+    cohortd <- tibble("cohort" = as.character(cohort))
+    
+    modagg <- moderators %>%
+        group_by(cohort) %>%
+        summarize_at(mods, fn.mods) 
+    modagg <- left_join(cohortd, modagg, by = "cohort")
+    
     dmat <- contrmat(scores[yi$ref], scores[yi$score], reference, scores)
     contr <- yi %>% 
         mutate(ref = scores[ref], 
@@ -116,6 +121,8 @@ aggregate_performance <- function(perf.estimates, reference = NULL,
 print.mscagg <- function(x, ...){
     aggdat <- with(x, tibble(cohort, yi, vi = diag(vi), 
             contr, design, lbl)) %>% 
+        mutate(cohort = as.character(cohort)) %>%
         full_join(x$moderators, by = "cohort")
     print(aggdat, ...)
 }
+
