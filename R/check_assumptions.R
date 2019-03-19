@@ -44,9 +44,13 @@ check_transitivity <- function(ag, graph = FALSE){
         this.lm <- with(dat.ag, lm(as.formula(this.fm), weights = wt))
         broom::tidy(this.lm, conf.int = TRUE)
     }  
+    NA_tbl <- tibble(term = NA, estimate = NA, std.error = NA, 
+                     statistic = NA, p.value = NA, 
+                     conf.low = NA, conf.high = NA)
+    possibly_transitivity <- possibly(transitivity_model, NA_tbl)
     res <- crossing(contr = unique(ag$contr),
                     moderator = ag$mods) %>%
-        mutate(fit = map2(contr, moderator, transitivity_model)) %>%
+        mutate(fit = map2(contr, moderator, possibly_transitivity)) %>%
         unnest %>%
         filter(term != "(Intercept)") %>%
         select(-term)
