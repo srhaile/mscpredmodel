@@ -34,9 +34,9 @@ get_bs_samples <- function(data, id, cohort, outcome, n.samples = 1000,
     if(is.null(scores)){
         stop("Please specify some scores to be compared.")
     }
-    scores.to.keep <- scores[scores %in% names(data)]
+    scores.to.keep <- unique(scores[scores %in% names(data)])
     scores.to.drop <- scores[!scores %in% names(data)]
-    mods.to.keep <- moderators[moderators %in% names(data)]
+    mods.to.keep <- unique(moderators[moderators %in% names(data)])
     mods.to.drop <- moderators[!moderators %in% names(data)]
     if(!all(scores %in% names(data))){
         warning("Some scores are not in the dataset!\nKeeping: ", 
