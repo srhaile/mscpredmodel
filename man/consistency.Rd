@@ -5,9 +5,9 @@
 \alias{inconsistency}
 \title{MSC network meta-analysis models}
 \usage{
-consistency(x, ...)
+consistency(x, mods = NULL, ...)
 
-inconsistency(x, ...)
+inconsistency(x, mods = NULL, ...)
 }
 \arguments{
 \item{x}{A set of aggregated performance score data, as computed with the \code{\link{aggregate_performance}} function.}
@@ -44,7 +44,7 @@ Specifically, we fit one of two models using "Jackson's Model", as described in 
 
 \examples{
 dat <- msc_sample_data()
-bssamp <- get_bs_samples(dat, id, cohort, outcome, n.samples = 10, a, b, c, d, e)
+bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 10, scores = c("a", "b", "c", "d", "e", "f"), moderators = c("age", "female", "x1"))
 perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
 agg <- aggregate_performance(perf)
 consistency(agg)

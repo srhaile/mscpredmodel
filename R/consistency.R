@@ -40,45 +40,58 @@ consistency <- function(x, mods = NULL, ...){
     if(!is.null(mods)){
         mods.to.keep <- mods[mods %in% x$mods]
         mods.to.drop <- mods[!mods %in% x$mods]
-        if(length(mods.to.drop) > 0) warning("Dropping moderators because not in aggregated dataset:", mods.to.drop)
+        mods <- mods.to.keep
+        if(length(mods.to.drop) > 0) warning("Dropping moderators because not in aggregated dataset: ", mods.to.drop)
+        x$dm <- cbind(x$design.matrix, as.matrix(x$moderators[, mods.to.keep]))
+        if(colnames(x$dm)[1] == "") colnames(x$dm)[1] <- "intrcpt"
+    } else {
+        x$dm <- x$design.matrix
     }
     
-    ### STOPPED HERE....
-    
-    
-    
     if(length(x$yi) > 1){
-        modC <- with(x, metafor::rma.mv(yi, vi, mods =  ~ design.matrix, 
+        modC <- with(x, metafor::rma.mv(yi, vi, mods =  dm, 
                                         slab = cohort, 
                                intercept = FALSE, 
                                random = ~ contr | cohort, rho = 0.5, ...))
     } else if(length(x$yi) == 1){
-        modC <-  with(x, metafor::rma(yi, vi, mods = ~ design.matrix, slab = cohort, intercept = FALSE, ...))
+        modC <-  with(x, metafor::rma(yi, vi, mods = dm, slab = cohort, intercept = FALSE, ...))
     }
     modC$reference <- x$ref
     modC$scores <- x$scores
+    modC$mods <- mods
     modC$model <- "consistency"
     modC$performance <- x$lbl
     return(modC)
 }
+
 #' @describeIn consistency Estimate differences in score performance using inconsistency model
 #' @export
-inconsistency <- function(x, ...){
+inconsistency <- function(x, mods = NULL, ...){
     if(class(x) != "mscagg") stop("Requires aggregated data of class(x) = 'mscagg' (created using the aggregate_performance function)")
     if (!requireNamespace("metafor", quietly = TRUE)) {
         stop("Package \"metafor\" needed for this function to work. Please install it.",
              call. = FALSE)
     }
+    if(!is.null(mods)){
+        mods.to.keep <- mods[mods %in% x$mods]
+        mods.to.drop <- mods[!mods %in% x$mods]
+        if(length(mods.to.drop) > 0) warning("Dropping moderators because not in aggregated dataset: ", mods.to.drop)
+        x$dm <- cbind(x$design.matrix, as.matrix(x$moderators[, mods.to.keep]))
+        if(colnames(x$dm)[1] == "") colnames(x$dm)[1] <- "intrcpt"
+    } else {
+        x$dm <- x$design.matrix
+    }
     if(length(x$yi) > 1){
-        modI <- with(x, metafor::rma.mv(yi, vi, mods = design.matrix, slab = cohorts, 
+        modI <- with(x, metafor::rma.mv(yi, vi, mods = dm, slab = cohort, 
                                intercept = FALSE, 
-                               random = list(~ contr | cohorts, ~ contr | design), 
+                               random = list(~ contr | cohort, ~ contr | design), 
                                rho = 0.5, phi = 0.5, ...))
     } else if(length(x$yi) == 1){
-        modI <-  with(x, metafor::rma(yi, vi, mods = design.matrix, slab = cohorts, intercept = FALSE, ...))
+        modI <-  with(x, metafor::rma(yi, vi, mods = dm, slab = cohort, intercept = FALSE, ...))
     }
     modI$reference <- x$ref
     modI$scores <- x$scores
+    modI$mods <- mods
     modI$model <- "inconsistency"
     modI$performance <- x$lbl
     return(modI)
