@@ -5,7 +5,8 @@
 #' @param cohorts name of variable containing cohorts (the stratification factor, can be a factor, character or numeric)
 #' @param outcome name of outcome variable (binomial)
 #' @param n.samples Number of bootstrap samples to be generated within each cohort (default 1000)
-#' @param ... Any other arguments are taken to be the names of the variables containinng the scores. The order the scores are here is used in all other functions.
+#' @param scores A vector of variable names that are scores (or their predicted probabilities). The order the scores are here is used in all other functions.
+#' @param moderators A vector of variable names that are moderators, that is, covariates which could affect the differences in score performance. We save these variables here, to be aggregated later in \code{\link{aggregate_perfomance}}. They can then be entered as covariates in \code{\link{msc}} or \code{\link{consistency}} models.
 #'
 #' @return A list with 3 elements:
 #' \describe{
@@ -38,13 +39,17 @@ get_bs_samples <- function(data, id, cohort, outcome, n.samples = 1000,
     mods.to.keep <- moderators[moderators %in% names(data)]
     mods.to.drop <- moderators[!moderators %in% names(data)]
     if(!all(scores %in% names(data))){
-        warning("Some or all scores are not in the dataset!\nKeeping:", scores.to.keep,
-                "\nDropping:", scores.to.drop)
+        warning("Some scores are not in the dataset!\nKeeping: ", 
+                paste(scores.to.keep, collapse = ", "),
+                "\nDropping: ", paste(scores.to.drop, collapse = ", "))
     }
     if(!all(moderators %in% names(data)) & !is.null(moderators)){
-        warning("Some or all moderators are not in the dataset!\nKeeping:", 
-                mods.to.keep, "\nDropping:", mods.to.drop)
+        warning("Some moderators are not in the dataset!\nKeeping:", 
+                paste(mods.to.keep, collapse = ", "), 
+                "\nDropping: ", paste(mods.to.drop, collapse = ", "))
     }
+    scores <- scores.to.keep
+    mods <- mods.to.keep
     
     bs.sample <- data %>%
         select(!!id_enq, !!cohort_enq, !!outcome_enq, scores, moderators) %>%

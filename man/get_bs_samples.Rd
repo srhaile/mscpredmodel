@@ -4,20 +4,23 @@
 \alias{get_bs_samples}
 \title{Generates bootstrap samples}
 \usage{
-get_bs_samples(data, id, cohorts, outcome, n.samples = 1000, ...)
+get_bs_samples(data, id, cohort, outcome, n.samples = 1000,
+  scores = NULL, moderators = NULL)
 }
 \arguments{
 \item{data}{Dataset containing subject identifiers, names of cohorts, outcome, and each of the scores}
 
 \item{id}{name of variable with subject identifiers}
 
-\item{cohorts}{name of variable containing cohorts (the stratification factor, can be a factor, character or numeric)}
-
 \item{outcome}{name of outcome variable (binomial)}
 
 \item{n.samples}{Number of bootstrap samples to be generated within each cohort (default 1000)}
 
-\item{...}{Any other arguments are taken to be the names of the variables containinng the scores. The order the scores are here is used in all other functions.}
+\item{scores}{A vector of variable names that are scores (or their predicted probabilities). The order the scores are here is used in all other functions.}
+
+\item{moderators}{A vector of variable names that are moderators, that is, covariates which could affect the differences in score performance. We save these variables here, to be aggregated later in \code{\link{aggregate_perfomance}}. They can then be entered as covariates in \code{\link{msc}} or \code{\link{consistency}} models.}
+
+\item{cohorts}{name of variable containing cohorts (the stratification factor, can be a factor, character or numeric)}
 }
 \value{
 A list with 3 elements:
@@ -32,5 +35,5 @@ Generates bootstrap samples
 }
 \examples{
 dat <- msc_sample_data()
-get_bs_samples(dat, id, cohort, outcome, n.samples = 10, a, b, d, e, f)
+get_bs_samples(dat, id, study, outcome, n.samples = 10, scores = c("a", "b", "c", "d", "e", "f"), moderators = c("age", "female", "x1"))
 }
