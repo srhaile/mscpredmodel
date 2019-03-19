@@ -3,6 +3,7 @@
 #' @description Compute all pairwise comparisons for the full network, all direct comparisons, or all indirect.
 #'
 #' @param ps A set of raw performance estimates, see \code{\link{compute_performance}}. Since we have to compute a range of different aggregated performance measures, we start here with the raw performance estimates.
+#' @param mods A vector of variable names that are moderators, that is, covariates which could affect the differences in score performance. See also \code{\link{aggregate_perfomance}}. The main model in an analysis should probably not include any moderators, but they may be interesting when examining transitivity.
 #' @param mtype Type of model (default "consistency", else "inconsistency"). It is sufficient to write \code{"c"} or \code{"i"}.
 #' @param verbose If TRUE, results of each model will be printed (default FALSE)
 #' @param ... Other arguments to be passed to \code{\link[metafor]{rma.mv}}. See also \code{\link{consistency}}.
@@ -17,22 +18,27 @@
 #'
 #' @examples
 #' dat <- msc_sample_data()
-#' bssamp <- get_bs_samples(dat, id, cohort, outcome, n.samples = 10, a, b, c, d, e)
+#' bssamp <- get_bs_samples(dat, id, cohort, outcome, n.samples = 10, 
+#' scores = c("a", "b", "c", "d", "e", "f"), moderators = c("age", "x1", "female"))
 #' perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
 #' msc_indirect(perf, mtype = "inconsistency")
 #' msc_direct(perf, mtype = "inconsistency")
+#' msc_direct(perf, mods = "age", mtype = "inconsistency")
 #' msc_network(perf, mtype = "inconsistency")
 #' full <- msc_full(perf, mtype = "inconsistency")
 #' plot(full)
 #' 
 #' @export
 #' @describeIn msc Compute all pairwise comparisons in full network of evidence, as well as direct and indirect comparisons
-msc_full <- function(ps, mtype = c("consistency", "inconsistency")[1], verbose = FALSE, ...){
+msc_full <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency")[1], verbose = FALSE, ...){
     if(class(ps) != "mscraw") warning("A set of *raw* performance estimates is needed (class(ps) == 'mscraw'), from compute_performance().")
     mt <- match.arg(mtype, c("consistency", "inconsistency"))
-    res.nw <- msc_network(ps, mtype = mt, ...)
-    res.d <- msc_direct(ps, mtype = mt, verbose = verbose, ...)
-    res.i <- msc_indirect(ps, mtype = mt, verbose = verbose, ...)
+    if(verbose) cat("Calculating network estimates...\n")
+    res.nw <- msc_network(ps, mods = mods, mtype = mt, ...)
+    if(verbose) cat("Calculating direct estimates...\n")
+    res.d <- msc_direct(ps, mods = mods, mtype = mt, verbose = verbose, ...)
+    if(verbose) cat("Calculating indirect estimates...\n")
+    res.i <- msc_indirect(ps, mods = mods, mtype = mt, verbose = verbose, ...)
     outtab <- bind_rows(res.nw$table, res.d$table, res.i$table) %>%
         mutate(type = factor(type, c("network", "direct", "indirect"))) %>% 
         arrange(s1, s2, type) %>%
@@ -48,7 +54,7 @@ msc_full <- function(ps, mtype = c("consistency", "inconsistency")[1], verbose =
 
 #' @describeIn msc Compute all pairwise comparisons in the full network of evidence
 #' @export
-msc_network <- function(ps, mtype = c("consistency", "inconsistency")[1], ...){
+msc_network <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency")[1], ...){
     if(class(ps) != "mscraw") warning("A set of *raw* performance estimates is needed (class(ps) == 'mscraw'), from compute_performance().")
     scores <- ps$scores
     mt <- match.arg(mtype, c("consistency", "inconsistency"))
@@ -56,7 +62,7 @@ msc_network <- function(ps, mtype = c("consistency", "inconsistency")[1], ...){
                       consistency = consistency,
                       inconsistency = inconsistency)
     this.ss <- aggregate_performance(ps, reference = ps$scores[1])
-    x <- modelfn(this.ss, ...)
+    x <- modelfn(this.ss, mods = mods, ...)
     #print(coeftable(x))
     scorepairs <- expand.grid(x1 = scores, x2 = scores)
     scorepairs$x1 <- factor(scorepairs$x1, scores)
@@ -67,8 +73,9 @@ msc_network <- function(ps, mtype = c("consistency", "inconsistency")[1], ...){
     colnames(pairmat) <- scores[-1]
     rownames(pairmat) <- with(scorepairs, paste(x2, x1, sep = "-"))
     
-    est <- as.vector(pairmat %*% x$beta)
-    var.est <- pairmat %*% x$vb %*% t(pairmat)
+    pick.betas <- 1:(length(scores) - 1)
+    est <- as.vector(pairmat %*% x$beta[pick.betas])
+    var.est <- pairmat %*% x$vb[pick.betas, pick.betas] %*% t(pairmat)
     ci.lb <- as.vector(est - qnorm(1 - 0.05 / 2) * sqrt(diag(var.est)))
     ci.ub <- as.vector(est + qnorm(1 - 0.05 / 2) * sqrt(diag(var.est)))
     pval <- as.vector(pnorm(-abs(est / sqrt(diag(var.est)))) * 2)
@@ -80,13 +87,16 @@ msc_network <- function(ps, mtype = c("consistency", "inconsistency")[1], ...){
                   estimate = est,
                   ci.lb = ci.lb,
                   ci.ub = ci.ub,
-                  pval = pval, measure = ps$lbl) %>%
+                  pval = pval, 
+                  measure = ps$lbl,
+                  mods = paste(mods, collapse = ", ")) %>%
         mutate(s1 = factor(s1, scores),
                s2 = factor(s2, scores))
     out <- list("table" = out,
                 "models" = list("network" = x),
                 "type" = "network", 
-                "performance" = ps$lbl)
+                "performance" = ps$lbl,
+                "mods" = mods)
     class(out) <- "msc"
     out
 }
@@ -94,7 +104,7 @@ msc_network <- function(ps, mtype = c("consistency", "inconsistency")[1], ...){
 
 #' @describeIn msc Compute all pairwise indirect comparisons
 #' @export
-msc_indirect <- function(ps, mtype = c("consistency", "inconsistency")[1], verbose = FALSE, ...){
+msc_indirect <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency")[1], verbose = FALSE, ...){
     if(class(ps) != "mscraw") warning("A set of *raw* performance estimates is needed (class(ps) == 'mscraw'), from compute_performance().")
     # node splitting approach to estimating direct and indirect differences
     # takes result of compute_performance as argument
@@ -121,13 +131,15 @@ msc_indirect <- function(ps, mtype = c("consistency", "inconsistency")[1], verbo
                      ci.lb = NA,
                      ci.ub = NA,
                      pval = NA, 
-                     measure = ps$lbl)
+                     measure = ps$lbl,
+                     mods = paste(mods, collapse = ", "))
     modelresults <- vector("list", ncol(listpairs))
     names(modelresults) <- paste(apply(listpairs, 2, paste, collapse = "-"), "indirect")
     
     # for each comparison...
+    if(verbose) cat("Number of pairs to compare: ", ncol(listpairs))
     for(i in 1:ncol(listpairs)){
-        if(!verbose) cat(".")
+        if(verbose) cat(".")
         #https://edwinth.github.io/blog/dplyr-recipes/
         s1 <- rlang::sym(s1c <- listpairs[1, i])
         s2 <- rlang::sym(s2c <- listpairs[2, i])
@@ -160,7 +172,8 @@ msc_indirect <- function(ps, mtype = c("consistency", "inconsistency")[1], verbo
             ),
             k = ifelse(has1 & has2 & !has.others, 0, k)) %>%
             select(-has1, -has2, -has.others, -design)
-        
+        this.moderators <- ps$moderators %>%
+            filter(cohort %in% this.we$cohort)
         indirect_evidence <- (nrow(this.we) > 0) & 
             (mean(!is.na(this.we[, s1c])) > 0) & 
             (mean(!is.na(this.we[, s2c])) > 0)
@@ -168,12 +181,13 @@ msc_indirect <- function(ps, mtype = c("consistency", "inconsistency")[1], verbo
         if(indirect_evidence){
             this.ps <- ps
             this.ps$working.estimates <- this.we
+            this.ps$moderators <- this.moderators
             this.ps$scores <- scores
             this.ss <- aggregate_performance(this.ps, reference = s1c)
             # 2. estimate model with [in]consistency()
-            this.model <- try(modelfn(this.ss, ...), silent = TRUE)
+            this.model <- try(modelfn(this.ss, mods = mods, ...), silent = TRUE)
             modelresults[[i]] <- this.model
-            if(verbose) print(coeftable(this.model))
+            if(verbose) print(this.model)
             # 3. save results
             if(any(class(this.model) == "try-error")){
                 datout[i, 5:8] <- NA 
@@ -195,14 +209,15 @@ msc_indirect <- function(ps, mtype = c("consistency", "inconsistency")[1], verbo
                            s2 = factor(s2, scores)),
                 "models" = modelresults, 
                 "type" = "indirect", 
-                "performance" = ps$lbl)
+                "performance" = ps$lbl,
+                "mods" = mods)
     class(out) <- c("msc")
     out
 }
 
 #' @describeIn msc Compute all pairwise indirect comparisons
 #' @export
-msc_direct <- function(ps, mtype = c("consistency", "inconsistency")[1], verbose = FALSE, ...){
+msc_direct <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency")[1], verbose = FALSE, ...){
     if(class(ps) != "mscraw") warning("A set of *raw* performance estimates is needed (class(ps) == 'mscraw'), from compute_performance().")
     # keep only if (pair %in% design)
     scores <- ps$scores
@@ -223,13 +238,15 @@ msc_direct <- function(ps, mtype = c("consistency", "inconsistency")[1], verbose
                      ci.lb = NA,
                      ci.ub = NA,
                      pval = NA, 
-                     measure = ps$lbl)
+                     measure = ps$lbl,
+                     mods = paste(mods, collapse = ", "))
     modelresults <- vector("list", ncol(listpairs))
     names(modelresults) <- paste(apply(listpairs, 2, paste, collapse = "-"), "direct")
     
     # for each comparison...
+    if(verbose) cat("Number of pairs to compare: ", ncol(listpairs))
     for(i in 1:ncol(listpairs)){
-        if(!verbose) cat(".")
+        if(verbose) cat(".")
         #https://edwinth.github.io/blog/dplyr-recipes/
         s1 <- rlang::sym(s1c <- listpairs[1, i])
         s2 <- rlang::sym(s2c <- listpairs[2, i])
@@ -256,21 +273,24 @@ msc_direct <- function(ps, mtype = c("consistency", "inconsistency")[1], verbose
             mutate_at(other.scores, ~ NA) %>%
             select(-has1, -has2, -has.others, -design) %>%
             filter(k == 2)
+        this.moderators <- ps$moderators %>%
+            filter(cohort %in% this.we$cohort)
         if(nrow(this.we) > 0){
             this.ps <- ps
             this.ps$working.estimates <- this.we
             this.ps$scores <- scores
+            this.ps$moderators <- this.moderators
             this.ss <- aggregate_performance(this.ps, reference = s1c)
             # 2. estimate model with [in]consistency()
-            this.model <- try(modelfn(this.ss, ...), silent = TRUE)
+            this.model <- try(modelfn(this.ss, mods = mods, ...), silent = TRUE)
             modelresults[[i]] <- this.model
-            if(verbose) print(coeftable(this.model))
+            if(verbose) print(this.model)
             # 3. save results
             if(any(class(this.model) == "try-error")){
                 datout[i, 5:8] <- NA 
             } else {
-                this.out <- with(this.model, c(beta, ci.lb, ci.ub, pval))
-                datout[i, 5:8] <- this.out
+                this.out <- with(this.model, cbind(beta, ci.lb, ci.ub, pval))
+                datout[i, 5:8] <- this.out[1, ]
             }
         } else {
             datout[i, 5:8] <- NA 

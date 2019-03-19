@@ -9,16 +9,17 @@
 \alias{plot.msc}
 \title{Full, direct and indirect network results for MSC}
 \usage{
-msc_full(ps, mtype = c("consistency", "inconsistency")[1],
+msc_full(ps, mods = NULL, mtype = c("consistency", "inconsistency")[1],
   verbose = FALSE, ...)
 
-msc_network(ps, mtype = c("consistency", "inconsistency")[1], ...)
+msc_network(ps, mods = NULL, mtype = c("consistency",
+  "inconsistency")[1], ...)
 
-msc_indirect(ps, mtype = c("consistency", "inconsistency")[1],
-  verbose = FALSE, ...)
+msc_indirect(ps, mods = NULL, mtype = c("consistency",
+  "inconsistency")[1], verbose = FALSE, ...)
 
-msc_direct(ps, mtype = c("consistency", "inconsistency")[1],
-  verbose = FALSE, ...)
+msc_direct(ps, mods = NULL, mtype = c("consistency",
+  "inconsistency")[1], verbose = FALSE, ...)
 
 \method{print}{msc}(x, ...)
 
@@ -26,6 +27,8 @@ msc_direct(ps, mtype = c("consistency", "inconsistency")[1],
 }
 \arguments{
 \item{ps}{A set of raw performance estimates, see \code{\link{compute_performance}}. Since we have to compute a range of different aggregated performance measures, we start here with the raw performance estimates.}
+
+\item{mods}{A vector of variable names that are moderators, that is, covariates which could affect the differences in score performance. See also \code{\link{aggregate_perfomance}}. The main model in an analysis should probably not include any moderators, but they may be interesting when examining transitivity.}
 
 \item{mtype}{Type of model (default "consistency", else "inconsistency"). It is sufficient to write \code{"c"} or \code{"i"}.}
 
@@ -64,10 +67,12 @@ Compute all pairwise comparisons for the full network, all direct comparisons, o
 
 \examples{
 dat <- msc_sample_data()
-bssamp <- get_bs_samples(dat, id, cohort, outcome, n.samples = 10, a, b, c, d, e)
+bssamp <- get_bs_samples(dat, id, cohort, outcome, n.samples = 10, 
+scores = c("a", "b", "c", "d", "e", "f"), moderators = c("age", "x1", "female"))
 perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
 msc_indirect(perf, mtype = "inconsistency")
 msc_direct(perf, mtype = "inconsistency")
+msc_direct(perf, mods = "age", mtype = "inconsistency")
 msc_network(perf, mtype = "inconsistency")
 full <- msc_full(perf, mtype = "inconsistency")
 plot(full)
