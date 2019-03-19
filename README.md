@@ -17,7 +17,7 @@ devtools::install_github("srhaile/mscpredmodel")
 Example
 -------
 
-This is a basic example which shows you a typical analysis for a dataset having individual patient data for 30 cohorts, each with some combination of scores a, b, c, e, and g. The example here has only 25 bootstrap samples to speed up the runtime, but an actual analysis should use more.
+This is a basic example which shows you a typical analysis for a dataset having individual patient data for 30 cohorts, each with some combination of scores a, b, c, e, and g. The example here has only 100 bootstrap samples to speed up the runtime, but an actual analysis should use more.
 
 ``` r
 library(mscpredmodel)
@@ -35,73 +35,111 @@ library(mscpredmodel)
 #> Loading required package: rsample
 #> Loading required package: tidyr
 #> Loading required package: tibble
+library(ggplot2)
+theme_set(theme_bw())
 dat <- msc_sample_data()
 dat
-#> # A tibble: 17,765 x 12
-#>    cohort    id outcome     a     b      c     d      e     f      g     h
-#>     <int> <int>   <dbl> <dbl> <dbl>  <dbl> <dbl>  <dbl> <dbl>  <dbl> <dbl>
-#>  1      1     1       0 0.186    NA NA        NA  0.272    NA  0.226    NA
-#>  2      1     2       0 0.298    NA  0.412    NA NA        NA  0.329    NA
-#>  3      1     3       0 0.119    NA  0.182    NA  0.208    NA  0.158    NA
-#>  4      1     4       0 0.163    NA NA        NA NA        NA  0.203    NA
-#>  5      1     5       0 0.184    NA  0.272    NA NA        NA  0.225    NA
-#>  6      1     6       0 0.132    NA  0.200    NA  0.221    NA  0.172    NA
-#>  7      1     7       0 0.196    NA NA        NA  0.280    NA NA        NA
-#>  8      1     8       0 0.245    NA  0.349    NA  0.321    NA  0.281    NA
-#>  9      1     9       0 0.120    NA NA        NA  0.209    NA  0.159    NA
-#> 10      1    10       0 0.211    NA NA        NA  0.293    NA  0.250    NA
-#> # … with 17,755 more rows, and 1 more variable: i <dbl>
-M <- 25
-bs.example <- get_bs_samples(data = dat, id = id, cohorts = cohort, 
+#> # A tibble: 8,894 x 15
+#>    study    id outcome     a     b      c     d      e     f      g     h
+#>    <int> <int>   <dbl> <dbl> <dbl>  <dbl> <dbl>  <dbl> <dbl>  <dbl> <dbl>
+#>  1     1     1       0 0.245    NA  0.348    NA  0.320    NA  0.281    NA
+#>  2     1     2       0 0.300    NA  0.414    NA  0.362    NA  0.331    NA
+#>  3     1     3       0 0.317    NA  0.433    NA NA        NA  0.345    NA
+#>  4     1     4       0 0.269    NA  0.377    NA NA        NA  0.303    NA
+#>  5     1     5       1 0.354    NA  0.475    NA NA        NA  0.377    NA
+#>  6     1     6       0 0.359    NA NA        NA NA        NA  0.382    NA
+#>  7     1     7       0 0.265    NA  0.373    NA NA        NA  0.299    NA
+#>  8     1     8       0 0.222    NA  0.320    NA  0.302    NA  0.260    NA
+#>  9     1     9       0 0.166    NA NA        NA NA        NA NA        NA
+#> 10     1    10       0 0.258    NA  0.365    NA  0.331    NA  0.294    NA
+#> # … with 8,884 more rows, and 4 more variables: i <dbl>, age <dbl>,
+#> #   female <int>, x1 <dbl>
+M <- 100
+bs.example <- get_bs_samples(data = dat, id = id, cohort = study, 
                              outcome = outcome, n.samples = M, 
-                             a, b, c, e, g)
+                             scores = c("a", "b", "c", "e", "g"), 
+                             moderators = c("age", "female"))
 ps <- compute_performance(bs.example, fn = calibration_large, lbl = "calibration-in-the-large")
+lines(ps)
+#> Warning: Removed 1800 rows containing non-finite values (stat_density).
+```
+
+<img src="man/figures/README-example-1.png" width="100%" />
+
+``` r
+
 agg <- aggregate_performance(ps, reference = "b")
-modc <- consistency(agg)
-modi <- inconsistency(agg)
-modi
-#> 
-#> Multivariate Meta-Analysis Model (k = 85; method: REML)
-#> 
-#> Variance Components: 
-#> 
-#> outer factor: cohorts (nlvls = 30)
-#> inner factor: contr   (nlvls = 4)
-#> 
-#>             estim    sqrt  fixed
-#> tau^2      0.0073  0.0853     no
-#> rho        0.5000            yes
-#> 
-#> outer factor: design (nlvls = 11)
-#> inner factor: contr  (nlvls = 4)
-#> 
-#>             estim    sqrt  fixed
-#> gamma^2    0.0000  0.0000     no
-#> phi        0.5000            yes
-#> 
-#> Test for Residual Heterogeneity: 
-#> QE(df = 81) = 274.8546, p-val < .0001
-#> 
-#> Test of Moderators (coefficient(s) 1:4): 
-#> QM(df = 4) = 1358.7369, p-val < .0001
-#> 
-#> Model Results:
-#> 
-#>    estimate      se      zval    pval    ci.lb    ci.ub     
-#> a   -0.5058  0.0228  -22.1706  <.0001  -0.5505  -0.4611  ***
-#> c   -1.0120  0.0275  -36.7345  <.0001  -1.0660  -0.9580  ***
-#> e   -0.5876  0.0297  -19.8069  <.0001  -0.6458  -0.5295  ***
-#> g   -0.5728  0.0262  -21.8420  <.0001  -0.6242  -0.5214  ***
-#> 
-#> ---
-#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+check_transitivity(agg, graph = TRUE)
+```
+
+<img src="man/figures/README-example-2.png" width="100%" />
+
+    #> # A tibble: 8 x 8
+    #>   contr moderator  estimate std.error statistic p.value  conf.low conf.high
+    #>   <chr> <chr>         <dbl>     <dbl>     <dbl>   <dbl>     <dbl>     <dbl>
+    #> 1 b-a   age        0.00429    0.00169     2.54   0.0521  -5.75e-5   0.00864
+    #> 2 c-a   age       -0.000713   0.00190    -0.375  0.718   -5.10e-3   0.00368
+    #> 3 e-a   age        0.00945    0.00587     1.61   0.139   -3.63e-3   0.0225 
+    #> 4 g-a   age        0.00204    0.00342     0.596  0.563   -5.49e-3   0.00957
+    #> 5 b-a   female     0.0454     0.0556      0.817  0.451   -9.75e-2   0.188  
+    #> 6 c-a   female    -0.0950     0.0505     -1.88   0.0971  -2.12e-1   0.0216 
+    #> 7 e-a   female     0.267      0.128       2.09   0.0632  -1.77e-2   0.551  
+    #> 8 g-a   female     0.121      0.0667      1.82   0.0961  -2.54e-2   0.268
+
+    modc <- consistency(agg)
+    modi <- inconsistency(agg)
+    modi
+    #> 
+    #> Multivariate Meta-Analysis Model (k = 42; method: REML)
+    #> 
+    #> Variance Components: 
+    #> 
+    #> outer factor: cohort (nlvls = 15)
+    #> inner factor: contr  (nlvls = 4)
+    #> 
+    #>             estim    sqrt  fixed
+    #> tau^2      0.0028  0.0533     no
+    #> rho        0.5000            yes
+    #> 
+    #> outer factor: design (nlvls = 9)
+    #> inner factor: contr  (nlvls = 4)
+    #> 
+    #>             estim    sqrt  fixed
+    #> gamma^2    0.0011  0.0333     no
+    #> phi        0.5000            yes
+    #> 
+    #> Test for Residual Heterogeneity: 
+    #> QE(df = 38) = 88.4727, p-val < .0001
+    #> 
+    #> Test of Moderators (coefficient(s) 1:4): 
+    #> QM(df = 4) = 743.8152, p-val < .0001
+    #> 
+    #> Model Results:
+    #> 
+    #>    estimate      se      zval    pval    ci.lb    ci.ub     
+    #> a   -0.4571  0.0308  -14.8198  <.0001  -0.5175  -0.3966  ***
+    #> c   -0.9796  0.0368  -26.6531  <.0001  -1.0517  -0.9076  ***
+    #> e   -0.5556  0.0393  -14.1273  <.0001  -0.6327  -0.4785  ***
+    #> g   -0.5373  0.0345  -15.5757  <.0001  -0.6049  -0.4697  ***
+    #> 
+    #> ---
+    #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+    check_homogeneity(modi)
+    #>      tau2         Q        df   p-value 
+    #>   "0.003"  "88.473"      "38" "<0.0001"
+    check_consistency(ps)
+    #> Warning: Removed 4 rows containing missing values (geom_point).
+    #> Warning: Removed 4 rows containing missing values (geom_linerange).
+
+<img src="man/figures/README-example-3.png" width="100%" />
+
+``` r
 
 fullres <- msc_full(ps)
-#> ....................
-plot(fullres, compare_to = "b")
-#> Loading required package: ggplot2
+plot(fullres, compare_to = "c")
 #> Warning: Removed 1 rows containing missing values (geom_point).
 #> Warning: Removed 1 rows containing missing values (geom_linerange).
 ```
 
-<img src="man/figures/README-example-1.png" width="100%" />
+<img src="man/figures/README-example-4.png" width="100%" />
