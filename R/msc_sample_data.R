@@ -12,7 +12,7 @@
 #'
 #' @examples
 #' dat <- msc_sample_data(n.cohorts = 30)
-msc_sample_data <- function(n.cohorts = 30){
+msc_sample_data <- function(n.cohorts = 15){
   set.seed(20190218)
 
   scores_setup <- tibble(score = letters[1:9],
@@ -79,7 +79,7 @@ msc_sample_data <- function(n.cohorts = 30){
       is.missing <- rbinom(length(x), 1, p = p)
       ifelse(is.missing == 1, NA, x)
   }
-  msc_sample_data  <- sample_data %>%
+  sample_data  <- sample_data %>%
       mutate(b = random_missing(b, 0.1),
              c = random_missing(c, 0.2),
              d = random_missing(d, 0.3),
@@ -89,7 +89,7 @@ msc_sample_data <- function(n.cohorts = 30){
              h = random_missing(h, 0.1),
              i = random_missing(i, 0.3))
 
-  msc_sample_data %>% 
+  sample_data %>% 
       rename(study = cohort)
 }
 
