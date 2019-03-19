@@ -66,7 +66,7 @@ and outputs a single numeric value. Using \code{\link{possibly}}, \code{\link{co
 
 \examples{
 dat <- msc_sample_data()
-bssamp <- get_bs_samples(dat, id, cohort, outcome, n.samples = 10, a, b, c, d, e)
+bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 10, scores = c("a", "b", "c", "d", "e", "f"), moderators = c("age", "female", "x1"))
 perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
 print(perf)
 summary(perf)
