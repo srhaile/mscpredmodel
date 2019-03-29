@@ -16,50 +16,62 @@ knitr::opts_chunk$set(
 )
 ```
 
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
+# Typical analysis
 
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
+This is a basic example which shows you a typical analysis for a dataset having individual patient data for 30 cohorts, each with some combination of scores a, b, c, e, and g. The example here has only 25 bootstrap samples to speed up the runtime, but an actual analysis should use more.
 
-## Vignette Info
+```{r msc_setup}
+library(mscpredmodel)
+library(ggplot2)
+theme_set(theme_bw())
 
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
-
-## Styles
-
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
-
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
-
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+dat <- msc_sample_data()
+dat
+M <- 25
+bs.example <- get_bs_samples(data = dat, id = id, cohort = study, 
+                             outcome = outcome, n.samples = M, 
+                             scores = c("a", "b", "c", "e", "g"), 
+                             moderators = c("age", "female"))
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
+We want to examine performance of the 5 scores according to calibration-in-the-large. We show a basic analysis for calibration-in-the-large, and then repeat the analysis with calibration slope. Note that we use the same set of bootstrap samples for each of the performance measures, so that any differences in variability are due only to the performance measures themselves, and not because of differing bootstrap samples.
 
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
+## Calibration-in-the-large
+```{r example1}
+ps <- compute_performance(bs.example, fn = calibration_large, lbl = "calibration-in-the-large")
+lines(ps)
 
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
+agg <- aggregate_performance(ps, reference = "b")
+check_transitivity(agg, graph = TRUE)
 
-## More Examples
+modc <- consistency(agg)
+modi <- inconsistency(agg)
+modi
 
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
+check_homogeneity(modi)
+check_consistency(ps)
 
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+allpairs <- msc_network(ps)
+plot(allpairs)
 ```
 
-Also a quote using `>`:
+## Calibration slope
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
+```{r example2}
+ps2 <- compute_performance(bs.example, fn = calibration_slope, lbl = "calibration slope")
+lines(ps2)
+
+agg2 <- aggregate_performance(ps, reference = "b")
+check_transitivity(agg2, graph = TRUE)
+
+mod2c <- consistency(agg2)
+mod2i <- inconsistency(agg2)
+mod2i
+
+check_homogeneity(mod2i)
+check_consistency(ps2)
+
+allpairs2 <- msc_network(ps2)
+plot(allpairs2, compare_to = "c")
+```
+
