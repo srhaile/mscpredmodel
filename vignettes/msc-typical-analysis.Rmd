@@ -7,6 +7,7 @@ vignette: >
   %\VignetteIndexEntry{Multiple Score Comparison with mscpredmodel - a typical analysis workflow}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  \usepackage[utf8]{inputenc}
 ---
 
 ```{r setup, include = FALSE}
