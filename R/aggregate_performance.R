@@ -87,10 +87,14 @@ aggregate_performance <- function(perf.estimates, reference = NULL,
     cohort <- factor(yi$cohort)
     cohortd <- tibble("cohort" = as.character(cohort))
     
+    if(!is.null(mods)){
     modagg <- moderators %>%
         group_by(cohort) %>%
         summarize_at(mods, fn.mods) 
     modagg <- left_join(cohortd, modagg, by = "cohort")
+    } else {
+        modagg <- NULL
+    }
     
     dmat <- contrmat(scores[yi$ref], scores[yi$score], reference, scores)
     contr <- yi %>% 
