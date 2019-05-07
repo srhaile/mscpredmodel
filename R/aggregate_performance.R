@@ -4,7 +4,7 @@
 #' @importFrom stats model.matrix
 #' @import dplyr
 #' @importFrom tidyr spread gather unite nest
-#' @importFrom purrr map map2 map2_dbl map_int possibly
+#' @importFrom purrr map map2 map2_dbl map_int map2_chr possibly
 #' 
 #' @param perf.estimates A set of performance estimates of class \code{mscraw}, as computed by \code{\link{compute_performance}}
 #' @param reference The name of the reference score (default NULL, the first score is the reference). This will be the reference level of the scores in any later models.
