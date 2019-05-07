@@ -12,6 +12,8 @@ get_bs_samples(data, id, cohort, outcome, n.samples = 1000,
 
 \item{id}{name of variable with subject identifiers}
 
+\item{cohort}{name of variable containing cohorts (the stratification factor, can be a factor, character or numeric)}
+
 \item{outcome}{name of outcome variable (binomial)}
 
 \item{n.samples}{Number of bootstrap samples to be generated within each cohort (default 1000)}
@@ -19,8 +21,6 @@ get_bs_samples(data, id, cohort, outcome, n.samples = 1000,
 \item{scores}{A vector of variable names that are scores (or their predicted probabilities). The order the scores are here is used in all other functions.}
 
 \item{moderators}{A vector of variable names that are moderators, that is, covariates which could affect the differences in score performance. We save these variables here, to be aggregated later in \code{\link{aggregate_performance}}. They can then be entered as covariates in \code{\link{msc_direct}}, \code{\link{consistency}}, or any other models.}
-
-\item{cohorts}{name of variable containing cohorts (the stratification factor, can be a factor, character or numeric)}
 }
 \value{
 A list with 3 elements:

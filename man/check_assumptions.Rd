@@ -19,6 +19,8 @@ check_consistency(ps, mtype = c("consistency", "inconsistency")[1])
 
 \item{mod}{A \code{\link{consistency}} or \code{inconsistency} model.}
 
+\item{dig}{Number of digits to be printed, see \code{\link{format.pval}}.}
+
 \item{ps}{A set of raw performance estimates, from \code{\link{compute_performance}}}
 
 \item{mtype}{Type of model (default "consistency", else "inconsistency"). It is sufficient to write \code{"c"} or \code{"i"}.}

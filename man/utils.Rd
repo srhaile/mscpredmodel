@@ -27,8 +27,6 @@ get_ref(x)
 \item{d}{A structured dataset, as calculated with \code{\link{aggregate_performance}}}
 
 \item{x}{A string of scores, pasted together with \code{:}.}
-
-\item{x}{A set of scores, pasted together.}
 }
 \value{
 A design matrix

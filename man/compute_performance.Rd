@@ -32,6 +32,8 @@ compute_performance(bs.sample, fn = calibration_slope, lbl = NULL)
 \item{nonpar}{Should nonparametric summary statistics (median [IQR]) be reported? (TRUE)}
 
 \item{NArm}{Should NAs be removed before calculated summary statistics? (TRUE)}
+
+\item{perf.estimates}{An object of class \code{mscraw}, as obtained from \code{\link{compute_performance}}}
 }
 \value{
 A list with 3 elements, of class \code{msc_raw}:

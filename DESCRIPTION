@@ -18,19 +18,20 @@ LazyData: true
 URL: http://github.com/srhaile/mscpredmodel
 BugReports: http://github.com/srhaile/mscpredmodel/issues
 Depends: 
-    R (>= 3.0),
+    R (>= 3.0)
+Imports:
     dplyr,
     forcats,
+    ggplot2,
+    metafor,
+    magrittr,
     purrr,
+    pROC,
     rsample,
     tibble,
     tidyr
-Imports:
-    metafor
 Suggests:
-    ggplot2,
     knitr,
-    rmarkdown,
-    pROC
+    rmarkdown
 RoxygenNote: 6.1.1
 VignetteBuilder: knitr

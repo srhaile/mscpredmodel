@@ -22,6 +22,12 @@
 #' and outputs a single numeric value. Using \code{\link{possibly}}, \code{\link{compute_performance}} assigns a value of \code{NA} if there is an error.
 #'
 #' @export
+#' 
+#' @importFrom magrittr %>%
+#' @importFrom stats model.matrix
+#' @import dplyr
+#' @importFrom tidyr spread gather unite nest
+#' @importFrom purrr map map2 map2_dbl possibly partial
 #'
 #' @examples
 #' dat <- msc_sample_data()
@@ -43,7 +49,7 @@ compute_performance <- function(bs.sample,
            call. = FALSE)
     }
 
-    if(is.null(lbl)) lbl <- paste(head(fn), collapse = "")
+    if(is.null(lbl)) lbl <- paste(head(utils::fn), collapse = "")
     # data steps
     fm.dat <- expand.grid(cohort = unique(bs.sample$cohort),
                           id = unique(bs.sample$id),
@@ -137,6 +143,7 @@ summary.mscraw <- function(x, nonpar = TRUE, NArm = TRUE){
 
 #' @describeIn compute_performance Plot variability of raw performance estimates across bootstrap samples using points
 #' @inheritParams print.mscraw
+#' @param perf.estimates An object of class \code{mscraw}, as obtained from \code{\link{compute_performance}}
 #' @export
 points.mscraw <- function(perf.estimates){
   if (!requireNamespace("ggplot2", quietly = TRUE)) {

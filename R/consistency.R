@@ -1,6 +1,7 @@
 #' MSC network meta-analysis models
 #'
 #' @param x A set of aggregated performance score data, as computed with the \code{\link{aggregate_performance}} function.
+#' @param mods Which moderators should be included in the model? These can be any of the same moderators included in \code{\link{get_bs_samples}}, all others will be ignored.
 #' @param ... Any other arguments will be passed directly to \code{\link[metafor]{rma.mv}}
 #'
 #' @return The results of an \code{\link[metafor]{rma.mv}} multivariate/multilevel Linear (mixed-effects) model (class "rma.mv"), with the following additional components, which can be passed along to other functions:

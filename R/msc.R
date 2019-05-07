@@ -1,12 +1,20 @@
 #' @title Full, direct and indirect network results for MSC
 #' 
+#' @importFrom magrittr %>%
+#' @importFrom stats model.matrix pnorm qnorm
+#' @import dplyr
+#' @importFrom tidyr spread gather unite nest
+#' @importFrom purrr map map2 possibly
+#' @importFrom tibble tibble
+#' @import ggplot2
+#' 
 #' @description Compute all pairwise comparisons for the full network, all direct comparisons, or all indirect.
 #'
 #' @param ps A set of raw performance estimates, see \code{\link{compute_performance}}. Since we have to compute a range of different aggregated performance measures, we start here with the raw performance estimates.
 #' @param mods A vector of variable names that are moderators, that is, covariates which could affect the differences in score performance. See also \code{\link{aggregate_performance}}. The main model in an analysis should probably not include any moderators, but they may be interesting when examining transitivity.
 #' @param mtype Type of model (default "consistency", else "inconsistency"). It is sufficient to write \code{"c"} or \code{"i"}.
 #' @param verbose If TRUE, results of each model will be printed (default FALSE)
-#' @param ... Other arguments to be passed to \code{\link[metafor]{rma.mv}}. See also \code{\link{consistency}}.
+#' @param ... In the \code{msc} functions, any other arguments are passed to \code{\link[metafor]{rma.mv}}. See also \code{\link{consistency}}. In the print function, other options are passed to \code{\link[tibble]{print.tbl}}.
 #'
 #' @return A list of class \code{msc}, with the following components:
 #' \describe{
@@ -122,7 +130,7 @@ msc_indirect <- function(ps, mods = NULL, mtype = c("consistency", "inconsistenc
                       inconsistency = inconsistency)
     
     # make list of pairwise comparisons
-    listpairs <- combn(scores, 2)
+    listpairs <- utils::combn(scores, 2)
     datout <- tibble(s1 = listpairs[1, ], 
                      s2 = listpairs[2, ],
                      model = mt,
@@ -229,7 +237,7 @@ msc_direct <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency"
                       inconsistency = inconsistency)
     
     # make list of pairwise comparisons
-    listpairs <- combn(scores, 2)
+    listpairs <- utils::combn(scores, 2)
     datout <- tibble(s1 = listpairs[1, ],
                      s2 = listpairs[2, ],
                      model = mt,
@@ -310,7 +318,7 @@ msc_direct <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency"
 
 #' @rdname msc
 #' @title Print MSC results
-#' @param ... In the print function, other options may be specified. These are passed to \code{\link[tibble]{print.tbl}}.
+#' @param x An object of class \code{msc}, from any of \code{msc_{full, direct, indirect, network}}.
 #' @export
 print.msc <- function(x,  ...){
     print(x$table, ...)

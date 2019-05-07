@@ -1,5 +1,5 @@
 #' Check assumptions of transitivity, consistency and homogeneity
-#'
+#' 
 #' @examples
 #' dat <- msc_sample_data()
 #' bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 10, scores = letters[1:5], mod = c("x1", "age", "female"))
@@ -14,8 +14,15 @@
 #' @param ag A set of aggregated performance scores
 #' @param graph Should a graph of outcomes versus moderators be printed?
 #' @return A tibble containing results of linear regression models of the effect size (outcome) against the cohort-specific average moderator value.
-#' @export
+#' 
+#' @importFrom magrittr %>%
+#' @importFrom stats model.matrix
+#' @import dplyr
+#' @importFrom tidyr spread gather unite nest
+#' @importFrom purrr map map2 possibly
 #'
+#' 
+#' @export
 check_transitivity <- function(ag, graph = FALSE){
     if(class(ag) != "mscagg") stop("ag should be the results of `aggregate_performance`!")
     if(is.null(ag$mods)) stop("ag should contain some moderators. Add these when you run get_bs_samples().")
@@ -83,9 +90,10 @@ check_transitivity <- function(ag, graph = FALSE){
 
 #' @describeIn check_assumptions Check assumption of homogeneity
 #' @param mod A \code{\link{consistency}} or \code{inconsistency} model.
+#' @param dig Number of digits to be printed, see \code{\link{format.pval}}.
 #' @return A vector containing tau-square, the Q likelihood ratio statistic, its degrees of freedom and its p-value.
+#' 
 #' @export
-#'
 check_homogeneity <- function(mod, dig = 3){
     if(!any(class(mod) == "rma.mv")){
         stop("Input should be from `[in]consistency()`!")
@@ -101,6 +109,7 @@ check_homogeneity <- function(mod, dig = 3){
     invisible(out)
 }
 
+
 #' @describeIn check_assumptions Check assumption of consistency
 #' @param ps A set of raw performance estimates, from \code{\link{compute_performance}}
 #' @param mtype Type of model (default "consistency", else "inconsistency"). It is sufficient to write \code{"c"} or \code{"i"}.
@@ -110,6 +119,6 @@ check_homogeneity <- function(mod, dig = 3){
 check_consistency <- function(ps, mtype = c("consistency", "inconsistency")[1]){
     if(class(ps) != "mscraw") stop("ag should be the results of `compute_performance`!")
     fullres <- msc_full(ps, mtype = mtype)
-    return(plot(fullres))
+    return(plot.msc(fullres))
 }
 

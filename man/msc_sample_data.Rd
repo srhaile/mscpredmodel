@@ -16,6 +16,7 @@ A sample data set (tibble)
 Creates a sample data set to test out the \code{\link{mscpredmodel}} package.
 As the dataset is randomly generated, and it may be desired to make other
 sample datasets (for example, with more missing observations, or different
+characteristics), the code given here could be adapted to other situations.
 }
 \examples{
 dat <- msc_sample_data(n.cohorts = 30)

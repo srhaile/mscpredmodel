@@ -3,7 +3,13 @@
 #' Creates a sample data set to test out the \code{\link{mscpredmodel}} package.
 #' As the dataset is randomly generated, and it may be desired to make other
 #' sample datasets (for example, with more missing observations, or different
-# characteristics), the code given here could be adapted to other situations.
+#' characteristics), the code given here could be adapted to other situations.
+#'
+#' @importFrom magrittr %>%
+#' @importFrom stats model.matrix runif rnorm plogis rbinom runif rexp
+#' @import dplyr
+#' @importFrom tidyr spread gather unite nest unnest crossing
+#' @importFrom purrr map map2 pmap possibly
 #'
 #' @param n.cohorts Number of cohorts in the data set (default 30)
 #'

@@ -12,8 +12,11 @@
 #' 
 #'
 #' @return A design matrix
-#' @export
-#'
+#' 
+#' @importFrom magrittr %>%
+#' @importFrom stats model.matrix
+#' @import dplyr
+#' @importFrom tidyr spread gather unite
 #' @examples
 #' contrmat(letters[c(1, 1, 2, 2, 3)], letters[c(2, 3, 4, 5, 6)], "a", sc = letters[1:6])
 #' contrmat(letters[c(1, 1, 2, 2, 3)], letters[c(2, 3, 4, 5, 6)], "a", sc = letters[6:1])
@@ -35,7 +38,6 @@ contrmat <- function(trt1, trt2, ref, sc = NULL){
 #' @describeIn utils Calculate differences between performance measures
 #' @param d A structured dataset, as calculated with \code{\link{aggregate_performance}}
 #' @return A new dataset with differences calculated
-#' @export
 #'
 get_diff <- function(d){
     # see character to name section : https://edwinth.github.io/blog/dplyr-recipes/
@@ -82,7 +84,6 @@ get_diff <- function(d){
 #' @describeIn utils Get number of scores
 #' @param x A string of scores, pasted together with \code{:}.
 #' @return Number of non-missing scores
-#' @export
 #'
 get_k <- function(x){
     x <- strsplit(x, split = ":")[[1]]
@@ -96,9 +97,7 @@ get_k <- function(x){
 }
 
 #' @describeIn utils Get reference score
-#' @param x A set of scores, pasted together.
 #' @return The number of the reference score
-#' @export
 #'
 #'@examples
 #' x <- paste(c(0.025, 0.05, NA, 0.1), sep = ":")

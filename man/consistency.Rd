@@ -12,6 +12,8 @@ inconsistency(x, mods = NULL, ...)
 \arguments{
 \item{x}{A set of aggregated performance score data, as computed with the \code{\link{aggregate_performance}} function.}
 
+\item{mods}{Which moderators should be included in the model? These can be any of the same moderators included in \code{\link{get_bs_samples}}, all others will be ignored.}
+
 \item{...}{Any other arguments will be passed directly to \code{\link[metafor]{rma.mv}}}
 }
 \value{

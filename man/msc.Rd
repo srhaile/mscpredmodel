@@ -34,13 +34,13 @@ msc_direct(ps, mods = NULL, mtype = c("consistency",
 
 \item{verbose}{If TRUE, results of each model will be printed (default FALSE)}
 
-\item{...}{Other arguments to be passed to \code{\link[metafor]{rma.mv}}. See also \code{\link{consistency}}.}
+\item{...}{In the \code{msc} functions, any other arguments are passed to \code{\link[metafor]{rma.mv}}. See also \code{\link{consistency}}. In the print function, other options are passed to \code{\link[tibble]{print.tbl}}.}
+
+\item{x}{An object of class \code{msc}, from any of \code{msc_{full, direct, indirect, network}}.}
 
 \item{compare_to}{If specified, only comparisons to \code{compare_to} are plotted.}
 
 \item{newlabels}{A new vector of labels (character) for the scores can be used instead of the current vector of score names.}
-
-\item{...}{In the print function, other options may be specified. These are passed to \code{\link[tibble]{print.tbl}}.}
 }
 \value{
 A list of class \code{msc}, with the following components:
