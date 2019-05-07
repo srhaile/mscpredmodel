@@ -24,7 +24,9 @@
 #'
 #' @examples
 #' dat <- msc_sample_data()
-#' get_bs_samples(dat, id, study, outcome, n.samples = 10, scores = c("a", "b", "c", "d", "e", "f"), moderators = c("age", "female", "x1"))
+#' get_bs_samples(dat, id, study, outcome, n.samples = 10, 
+#'                   scores = c("a", "b", "c", "d", "e", "f"), 
+#'                   moderators = c("age", "female", "x1"))
 get_bs_samples <- function(data, id, cohort, outcome, n.samples = 1000, 
                            scores = NULL, moderators = NULL){
     # for some of these tricks: https://edwinth.github.io/blog/dplyr-recipes/

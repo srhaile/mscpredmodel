@@ -4,7 +4,7 @@
 #' @importFrom stats model.matrix
 #' @import dplyr
 #' @importFrom tidyr spread gather unite nest
-#' @importFrom purrr map map2 possibly
+#' @importFrom purrr map map2 map2_dbl possibly
 #' 
 #' @param perf.estimates A set of performance estimates of class \code{mscraw}, as computed by \code{\link{compute_performance}}
 #' @param reference The name of the reference score (default NULL, the first score is the reference). This will be the reference level of the scores in any later models.
@@ -32,7 +32,9 @@
 #'
 #' @examples
 #' dat <- msc_sample_data()
-#' bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 10, scores = c("a", "b", "c", "d", "e", "f"), moderators = c("age", "female", "x1"))
+#' bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 10, 
+#'                   scores = c("a", "b", "c", "d", "e", "f"), 
+#'                   moderators = c("age", "female", "x1"))
 #' perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
 #' agg <- aggregate_performance(perf)
 #' agg

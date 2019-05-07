@@ -2,7 +2,9 @@
 #' 
 #' @examples
 #' dat <- msc_sample_data()
-#' bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 10, scores = letters[1:5], mod = c("x1", "age", "female"))
+#' bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 10, 
+#'                   scores = c("a", "b", "c", "d", "e", "f"), 
+#'                   moderators = c("age", "female", "x1"))
 #' perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
 #' agg <- aggregate_performance(perf)
 #' check_transitivity(agg, graph = TRUE)

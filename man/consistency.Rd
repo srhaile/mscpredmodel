@@ -46,7 +46,9 @@ Specifically, we fit one of two models using "Jackson's Model", as described in 
 
 \examples{
 dat <- msc_sample_data()
-bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 10, scores = c("a", "b", "c", "d", "e", "f"), moderators = c("age", "female", "x1"))
+bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 10, 
+                  scores = c("a", "b", "c", "d", "e", "f"), 
+                  moderators = c("age", "female", "x1"))
 perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
 agg <- aggregate_performance(perf)
 consistency(agg)

@@ -68,7 +68,8 @@ Compute all pairwise comparisons for the full network, all direct comparisons, o
 \examples{
 dat <- msc_sample_data()
 bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 10, 
-scores = c("a", "b", "c", "d", "e", "f"), moderators = c("age", "x1", "female"))
+                  scores = c("a", "b", "c", "d", "e", "f"), 
+                  moderators = c("age", "female", "x1"))
 perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
 msc_indirect(perf, mtype = "inconsistency")
 msc_direct(perf, mtype = "inconsistency")

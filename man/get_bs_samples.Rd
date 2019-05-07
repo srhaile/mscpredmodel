@@ -35,5 +35,7 @@ Generates bootstrap samples
 }
 \examples{
 dat <- msc_sample_data()
-get_bs_samples(dat, id, study, outcome, n.samples = 10, scores = c("a", "b", "c", "d", "e", "f"), moderators = c("age", "female", "x1"))
+get_bs_samples(dat, id, study, outcome, n.samples = 10, 
+                  scores = c("a", "b", "c", "d", "e", "f"), 
+                  moderators = c("age", "female", "x1"))
 }
