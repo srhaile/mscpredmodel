@@ -33,6 +33,8 @@ exhaustive set of performance measures.
 }
 \details{
 Please note that \code{\link{compute_performance}} will use \code{\link[purrr]{possibly}} to return \code{NA_real_} if the function has an error. Of the potentially large number of cohort, score and bootstrap sample, this was a straightforward way to prevent \code{\link{compute_performance}} from returning an error for the whole dataset. However, if the function to compute performance generally does not work (for example, if the package \code{\link{pROC}} is required but not loaded), this behavior also prevents warning message for, say, unloaded R packages from being printed.
+
+It may be that you 1) prefer some transformation of these performance measures (e.g. log, or logit), or 2) would like to use another performance measure entirely. In the case of using a transformation, consider using \code{\link[purrr]{compose}}. For example, to obtain logit AUC, use the function \code{compose(qlogis, c_statistic)}, or for log O:E ratio, try \code{compose(log, oe_ratio)}. You may of course also define your own function, using these 5 as a template.
 }
 \section{Functions}{
 \itemize{
