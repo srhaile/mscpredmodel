@@ -6,7 +6,7 @@
 #' @param outcome name of outcome variable (binomial)
 #' @param n.samples Number of bootstrap samples to be generated within each cohort (default 1000)
 #' @param scores A vector of variable names that are scores (or their predicted probabilities). The order the scores are here is used in all other functions.
-#' @param moderators A vector of variable names that are moderators, that is, covariates which could affect the differences in score performance. We save these variables here, to be aggregated later in \code{\link{aggregate_perfomance}}. They can then be entered as covariates in \code{\link{msc}} or \code{\link{consistency}} models.
+#' @param moderators A vector of variable names that are moderators, that is, covariates which could affect the differences in score performance. We save these variables here, to be aggregated later in \code{\link{aggregate_performance}}. They can then be entered as covariates in \code{\link{msc_direct}}, \code{\link{consistency}}, or any other models.
 #'
 #' @return A list with 3 elements:
 #' \describe{

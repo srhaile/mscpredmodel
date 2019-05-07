@@ -8,7 +8,7 @@
 #' 
 #' It may be that you 1) prefer some transformation of these performance measures (e.g. log, or logit), or 2) would like to use another performance measure entirely. In the case of using a transformation, consider using \code{\link[purrr]{compose}}. For example, to obtain logit AUC, use the function \code{compose(qlogis, c_statistic)}, or for log O:E ratio, try \code{compose(log, oe_ratio)}. You may of course also define your own function, using these 5 as a template.
 #'
-#' @param bss A set of bootstrap samples, stratified by cohort, as computed by \code{\link{get_bs_samples}}. The full bootstrap data is called within the function as \code{analysis(bss)}. See \code{\link[rsample::bootstraps]{bootstraps} for more details.
+#' @param bss A set of bootstrap samples, stratified by cohort, as computed by \code{\link{get_bs_samples}}. The full bootstrap data is called within the function as \code{analysis(bss)}. See \code{\link[rsample]{bootstraps}} for more details.
 #' @param fm The formula that will be called by the model, of the form \code{outcome ~ score} (character).
 #'
 #' @return A single performance measure (numeric). 

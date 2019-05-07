@@ -28,7 +28,7 @@ msc_direct(ps, mods = NULL, mtype = c("consistency",
 \arguments{
 \item{ps}{A set of raw performance estimates, see \code{\link{compute_performance}}. Since we have to compute a range of different aggregated performance measures, we start here with the raw performance estimates.}
 
-\item{mods}{A vector of variable names that are moderators, that is, covariates which could affect the differences in score performance. See also \code{\link{aggregate_perfomance}}. The main model in an analysis should probably not include any moderators, but they may be interesting when examining transitivity.}
+\item{mods}{A vector of variable names that are moderators, that is, covariates which could affect the differences in score performance. See also \code{\link{aggregate_performance}}. The main model in an analysis should probably not include any moderators, but they may be interesting when examining transitivity.}
 
 \item{mtype}{Type of model (default "consistency", else "inconsistency"). It is sufficient to write \code{"c"} or \code{"i"}.}
 

@@ -12,7 +12,7 @@ compute_performance(bs.sample, fn = calibration_slope, lbl = NULL)
 
 \method{print}{mscraw}(x, ...)
 
-\method{summary}{mscraw}(x, nonpar = TRUE, NArm = TRUE, ...)
+\method{summary}{mscraw}(x, nonpar = TRUE, NArm = TRUE)
 
 \method{points}{mscraw}(perf.estimates)
 
@@ -25,7 +25,9 @@ compute_performance(bs.sample, fn = calibration_slope, lbl = NULL)
 
 \item{lbl}{A label to describe the performance measure computed. For example \code{"calibration slope"}. This label is used in subsequent plot functions, and appears in tables of regression coefficients of. Useful if you want to compute several performance measures, or the same performance measure on different subsets of data.}
 
-\item{x}{Set of performance estimates calculated with \code{\link{copute_performance}}}
+\item{x}{Set of performance estimates calculated with \code{\link{compute_performance}}}
+
+\item{...}{Other arguments to be passed to \code{\link{print}}.}
 
 \item{nonpar}{Should nonparametric summary statistics (median [IQR]) be reported? (TRUE)}
 
@@ -48,7 +50,7 @@ Computes performance measures for prognostic scores on a set of bootstrap sample
 \details{
 The function to compute performance measures, \code{fn} requires two arguments:
 \describe{ 
-\item{bss}{The name of the bootstrap sample. The full bootstrap data is called within the function as \code{analysis(bss)}. See \code{\link{?rsample::bootstraps}} for more details.}
+\item{bss}{The name of the bootstrap sample. The full bootstrap data is called within the function as \code{analysis(bss)}. See  \code{\link[rsample]{bootstraps}} for more details.}
   \item{fn}{The formula that will be called by the model, of the form \code{outcome ~ score} (character).}
 }
 and outputs a single numeric value. Using \code{\link{possibly}}, \code{\link{compute_performance}} assigns a value of \code{NA} if there is an error.

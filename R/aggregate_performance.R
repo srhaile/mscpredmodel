@@ -4,6 +4,8 @@
 #' @param reference The name of the reference score (default NULL, the first score is the reference). This will be the reference level of the scores in any later models.
 #' @param design.levels A character vector of alternate short names for the scores, to be used in naming the designs. Default is \code{\link{LETTERS}}, so that a possible design would be \code{AB} or \code{ACD}, instead of \code{score1score2} or \code{score1score3score4}. The design variable is used in the definition of the random effects. See \code{\link{consistency}}.
 #' @param fn.mods A function used to summarize the moderators within cohorts. If NULL, the default mean(x, na.rm = TRUE) is used.
+#' @param x An object of class \code{mscagg}, returned from \code{\link{aggregate_performance}}.
+#' @param ... Other arguments to be passed to \code{\link{print}}.
 #'
 #' @return A list with the following elements, of class \code{mscagg}
 #' \describe{

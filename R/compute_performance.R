@@ -16,7 +16,7 @@
 #'
 #' @details The function to compute performance measures, \code{fn} requires two arguments:
 #' \describe{ 
-#' \item{bss}{The name of the bootstrap sample. The full bootstrap data is called within the function as \code{analysis(bss)}. See \code{\link{?rsample::bootstraps}} for more details.}
+#' \item{bss}{The name of the bootstrap sample. The full bootstrap data is called within the function as \code{analysis(bss)}. See  \code{\link[rsample]{bootstraps}} for more details.}
 #'   \item{fn}{The formula that will be called by the model, of the form \code{outcome ~ score} (character).}
 #' }
 #' and outputs a single numeric value. Using \code{\link{possibly}}, \code{\link{compute_performance}} assigns a value of \code{NA} if there is an error.
@@ -92,7 +92,8 @@ compute_performance <- function(bs.sample,
 }
 
 #' @describeIn compute_performance Print raw performance estimates
-#' @param x Set of performance estimates calculated with \code{\link{copute_performance}}
+#' @param x Set of performance estimates calculated with \code{\link{compute_performance}}
+#' @param ... Other arguments to be passed to \code{\link{print}}.
 #' @export
 print.mscraw <- function(x, ...){
   x.apparent <- x$working.estimates %>%
@@ -113,7 +114,7 @@ print.mscraw <- function(x, ...){
 #' @param nonpar  Should nonparametric summary statistics (median [IQR]) be reported? (TRUE)
 #' @param NArm Should NAs be removed before calculated summary statistics? (TRUE)
 #' @export
-summary.mscraw <- function(x, nonpar = TRUE, NArm = TRUE, ...){
+summary.mscraw <- function(x, nonpar = TRUE, NArm = TRUE){
   sc <- x$scores
   x.apparent <- x$working.estimates %>%
     filter(id == "Apparent") %>%
