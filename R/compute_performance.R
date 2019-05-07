@@ -27,7 +27,7 @@
 #' @importFrom stats model.matrix
 #' @import dplyr
 #' @importFrom tidyr spread gather unite nest
-#' @importFrom purrr map map2 map2_dbl possibly partial
+#' @importFrom purrr map map2 map2_dbl map_dbl possibly partial
 #'
 #' @examples
 #' dat <- msc_sample_data()
