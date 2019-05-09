@@ -1,6 +1,6 @@
 #' @title Various utility functions
 #'
-#' @describeIn utils Make design matrix
+#' @describeIn util Make design matrix
 #' @param trt1 vector of the 1st treatment / score in the contrast
 #' @param trt2 vector of the 2nd treatment / score in the contrast
 #' @param ref The name of the reference treatment / score (character)
@@ -17,10 +17,6 @@
 #' @importFrom stats model.matrix
 #' @import dplyr
 #' @importFrom tidyr spread gather unite
-#' @examples
-#' contrmat(letters[c(1, 1, 2, 2, 3)], letters[c(2, 3, 4, 5, 6)], "a", sc = letters[1:6])
-#' contrmat(letters[c(1, 1, 2, 2, 3)], letters[c(2, 3, 4, 5, 6)], "a", sc = letters[6:1])
-#' contrmat(letters[c(1, 1, 2, 2, 3)], letters[c(2, 3, 4, 5, 6)], "c", sc = letters[6:1])
 contrmat <- function(trt1, trt2, ref, sc = NULL){
     all.lvls <- unique(c(levels(factor(trt1)), levels(factor(trt2))))
     if(is.null(sc)) sc <- all.lvls
@@ -35,10 +31,9 @@ contrmat <- function(trt1, trt2, ref, sc = NULL){
     X[, colnames(X) != ref]
 }
 
-#' @describeIn utils Calculate differences between performance measures
+#' @describeIn util Calculate differences between performance measures
 #' @param d A structured dataset, as calculated with \code{\link{aggregate_performance}}
 #' @return A new dataset with differences calculated
-#'
 get_diff <- function(d){
     # see character to name section : https://edwinth.github.io/blog/dplyr-recipes/
     nams <- names(d)
@@ -46,7 +41,7 @@ get_diff <- function(d){
     this.ref <- max(c(d$ref[d$ref > 0], 0))
     if(this.ref > 0){
         ref.name <- nams[this.ref]
-        ref.var <- rlang::sym(ref.name)
+        ref.var <- sym(ref.name)
     } else {
         ref.name <- ref.var <- NA
     }
@@ -81,10 +76,9 @@ get_diff <- function(d){
     d
 }
 
-#' @describeIn utils Get number of scores
+#' @describeIn util Get number of scores
 #' @param x A string of scores, pasted together with \code{:}.
 #' @return Number of non-missing scores
-#'
 get_k <- function(x){
     x <- strsplit(x, split = ":")[[1]]
     x[x == "NA"] <- NA
@@ -96,15 +90,9 @@ get_k <- function(x){
     }
 }
 
-#' @describeIn utils Get reference score
+#' @describeIn util Get reference score
 #' @return The number of the reference score
 #'
-#'@examples
-#' x <- paste(c(0.025, 0.05, NA, 0.1), sep = ":")
-#' y <- paste(c(NA, 0.01, 0.02, 0.05), sep = ":")
-#' get_ref(x)
-#' get_ref(y)
-
 get_ref <- function(x){
     x <- strsplit(x, split = ":")[[1]]
     x[x == "NA"] <- NA

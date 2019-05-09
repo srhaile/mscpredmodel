@@ -22,7 +22,7 @@
 #' @import dplyr
 #' @importFrom tidyr spread gather unite nest
 #' @importFrom purrr map map2 possibly
-#'
+#' @import broom
 #' 
 #' @export
 check_transitivity <- function(ag, graph = FALSE){
@@ -51,7 +51,7 @@ check_transitivity <- function(ag, graph = FALSE){
                                           moderators, by = "cohort"))
         this.fm <- paste("yi ~", moderator)
         this.lm <- with(dat.ag, lm(as.formula(this.fm), weights = wt))
-        broom::tidy(this.lm, conf.int = TRUE)
+        tidy(this.lm, conf.int = TRUE)
     }  
     NA_tbl <- tibble(term = NA, estimate = NA, std.error = NA, 
                      statistic = NA, p.value = NA, 
@@ -69,7 +69,7 @@ check_transitivity <- function(ag, graph = FALSE){
             stop("Package \"ggplot2\" needed for this function to work. Please install it.",
                  call. = FALSE)
         }
-        require(ggplot2)
+        #require(ggplot2)
         
         dat1 <- with(ag, tibble(cohort = as.character(cohort), yi, 
                                 contr, wt = diag(wt)))

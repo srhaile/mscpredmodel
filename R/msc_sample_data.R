@@ -82,7 +82,7 @@ msc_sample_data <- function(n.cohorts = 15){
 
   # ... and some random missings
   random_missing <- function(x, p = 0.2){
-      is.missing <- rbinom(length(x), 1, p = p)
+      is.missing <- rbinom(length(x), 1, prob = p)
       ifelse(is.missing == 1, NA, x)
   }
   sample_data  <- sample_data %>%

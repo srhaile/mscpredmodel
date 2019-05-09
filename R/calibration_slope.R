@@ -9,12 +9,12 @@
 #' It may be that you 1) prefer some transformation of these performance measures (e.g. log, or logit), or 2) would like to use another performance measure entirely. In the case of using a transformation, consider using \code{\link[purrr]{compose}}. For example, to obtain logit AUC, use the function \code{compose(qlogis, c_statistic)}, or for log O:E ratio, try \code{compose(log, oe_ratio)}. You may of course also define your own function, using these 5 as a template.
 #' 
 #' @importFrom magrittr %>%
-#' @importFrom stats model.matrix pnorm qnorm glm qlogis offset update na.omit
+#' @importFrom stats model.matrix pnorm qnorm glm qlogis offset update na.omit as.formula coef
 #' @import dplyr
 #' @importFrom tidyr spread gather unite nest drop_na
 #' @importFrom purrr map map2 possibly
 #' @importFrom tibble tibble
-#' @importFrom pROC roc
+#' @importFrom pROC roc auc
 #' @importFrom rsample analysis
 #' 
 #' @param bss A set of bootstrap samples, stratified by cohort, as computed by \code{\link{get_bs_samples}}. The full bootstrap data is called within the function as \code{analysis(bss)}. See \code{\link[rsample]{bootstraps}} for more details.

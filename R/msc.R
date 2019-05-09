@@ -6,6 +6,7 @@
 #' @importFrom tidyr spread gather unite nest
 #' @importFrom purrr map map2 possibly
 #' @importFrom tibble tibble
+#' @importFrom utils combn
 #' @import ggplot2
 #' 
 #' @description Compute all pairwise comparisons for the full network, all direct comparisons, or all indirect.
@@ -131,7 +132,7 @@ msc_indirect <- function(ps, mods = NULL, mtype = c("consistency", "inconsistenc
                       inconsistency = inconsistency)
     
     # make list of pairwise comparisons
-    listpairs <- utils::combn(scores, 2)
+    listpairs <- combn(scores, 2)
     datout <- tibble(s1 = listpairs[1, ], 
                      s2 = listpairs[2, ],
                      model = mt,
@@ -150,8 +151,8 @@ msc_indirect <- function(ps, mods = NULL, mtype = c("consistency", "inconsistenc
     for(i in 1:ncol(listpairs)){
         if(verbose) cat(".")
         #https://edwinth.github.io/blog/dplyr-recipes/
-        s1 <- rlang::sym(s1c <- listpairs[1, i])
-        s2 <- rlang::sym(s2c <- listpairs[2, i])
+        s1 <- sym(s1c <- listpairs[1, i])
+        s2 <- sym(s2c <- listpairs[2, i])
         if(verbose) print(c(s1c, s2c))
         other.scores <- scores[!grepl(paste(c(s1c, s2c), collapse = "|"), scores)]
         # 1. keep only "working.estimates" with both s1 and s2, drop other scores% 
@@ -238,7 +239,7 @@ msc_direct <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency"
                       inconsistency = inconsistency)
     
     # make list of pairwise comparisons
-    listpairs <- utils::combn(scores, 2)
+    listpairs <- combn(scores, 2)
     datout <- tibble(s1 = listpairs[1, ],
                      s2 = listpairs[2, ],
                      model = mt,
@@ -257,8 +258,8 @@ msc_direct <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency"
     for(i in 1:ncol(listpairs)){
         if(verbose) cat(".")
         #https://edwinth.github.io/blog/dplyr-recipes/
-        s1 <- rlang::sym(s1c <- listpairs[1, i])
-        s2 <- rlang::sym(s2c <- listpairs[2, i])
+        s1 <- sym(s1c <- listpairs[1, i])
+        s2 <- sym(s2c <- listpairs[2, i])
         if(verbose) print(c(s1c, s2c))
         other.scores <- scores[!grepl(paste(c(s1c, s2c), collapse = "|"), scores)]
         # 1. keep only "working.estimates" with both s1 and s2, drop other scores% 
@@ -335,7 +336,7 @@ plot.msc <- function(x, compare_to = NULL, newlabels = NULL){
         stop("Package \"ggplot2\" needed for this function to work. Please install it.",
              call. = FALSE)
     }
-    require(ggplot2)
+    #require(ggplot2)
     x <- x$table
     
     if(!is.null(compare_to)){

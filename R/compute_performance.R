@@ -24,10 +24,11 @@
 #' @export
 #' 
 #' @importFrom magrittr %>%
-#' @importFrom stats model.matrix
+#' @importFrom stats model.matrix binomial median quantile sd
 #' @import dplyr
 #' @importFrom tidyr spread gather unite nest
 #' @importFrom purrr map map2 map2_dbl map_dbl possibly partial
+#' @importFrom utils head data
 #'
 #' @examples
 #' dat <- msc_sample_data()
@@ -51,7 +52,7 @@ compute_performance <- function(bs.sample,
            call. = FALSE)
     }
 
-    if(is.null(lbl)) lbl <- paste(head(utils::fn), collapse = "")
+    if(is.null(lbl)) lbl <- paste(head(fn), collapse = "")
     # data steps
     fm.dat <- expand.grid(cohort = unique(bs.sample$cohort),
                           id = unique(bs.sample$id),
