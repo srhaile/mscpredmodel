@@ -131,18 +131,20 @@ summary.mscraw <- function(object, nonpar = TRUE, NArm = TRUE, ...){
   object.apparent <- object$working.estimates %>%
     filter(id == "Apparent") %>%
     select(.data$cohort, sc)
-  q1 <- partial(quantile, probs = 0.25)
-  q3 <- partial(quantile, probs = 0.75)
-  nonmiss <- function(object, na.rm = TRUE) sum(!is.na(object))
+  q1 <- partial(quantile, probs = 0.25, na.rm = NArm)
+  q3 <- partial(quantile, probs = 0.75, na.rm = NArm)
+  nonmiss <- function(object) sum(!is.na(object))
   if(nonpar){
-    fns <- vars(nonmiss, median, q1, q3)
+    fns <- list("nonmiss" = nonmiss, "median" = partial(median, na.rm = NArm), 
+                "q1" = q1, "q3" = q3)
   } else {
-    fns <- vars(nonmiss, mean, sd)
+    fns <- list("nonmiss" = nonmiss, "mean" = partial(mean, na.rm = NArm), 
+                "sd" = partial(sd, na.rm = NArm))
   }
   object.apparent  %>%
     gather(sc, key = "score", value = "value") %>%
     group_by(.data$score) %>%
-    summarize_at("value", fns, na.rm = NArm) %>%
+    summarize_at("value", fns) %>%
     mutate(performance = object$lbl) %>%
     select(.data$score, .data$performance, everything())
 }
