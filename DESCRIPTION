@@ -28,6 +28,7 @@ Imports:
     magrittr,
     purrr,
     pROC,
+    rlang,
     rsample,
     tibble,
     tidyr

@@ -17,6 +17,7 @@
 #' @importFrom stats model.matrix
 #' @import dplyr
 #' @importFrom tidyr spread gather unite
+#' @importFrom rlang :=
 contrmat <- function(trt1, trt2, ref, sc = NULL){
     all.lvls <- unique(c(levels(factor(trt1)), levels(factor(trt2))))
     if(is.null(sc)) sc <- all.lvls
@@ -55,8 +56,8 @@ get_diff <- function(d){
         d <- d %>%
             mutate(ref.score = !! ref.var) %>%
             gather(nams, key = "score", value = "value", -ref.score) %>%
-            mutate(value = value - ref.score) %>%
-            mutate(value = ifelse(score == ref.name, NA, value)) %>%
+            mutate(value = .data$value - .data$ref.score) %>%
+            mutate(value = ifelse(.data$score == ref.name, NA, value)) %>%
             spread(score, value) %>%
             mutate(grp = this.grp,
                    ref = this.ref) %>%

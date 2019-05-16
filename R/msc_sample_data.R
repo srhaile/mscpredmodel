@@ -33,12 +33,12 @@ msc_sample_data <- function(n.cohorts = 15){
                 uncertainty = rnorm(n, mean = 0, sd = 0.75)) %>%
       crossing("score" = scores_setup$score) %>%
       full_join(scores_setup, by = "score") %>%
-      mutate(logit.p.true = qlogis(p.true)) %>%
-      mutate(logit.p.pred = (logit.p.true - intercept) / slope,
-             logit.p.outcome = logit.p.true + uncertainty) %>%
-      mutate(outcome = as.numeric(logit.p.outcome > 0),
-             p.pred = plogis(logit.p.pred)) %>%
-      select(id, outcome, score, p.pred) %>%
+      mutate(logit.p.true = qlogis(.data$p.true)) %>%
+      mutate(logit.p.pred = (.data$logit.p.true - .data$intercept) / .data$slope,
+             logit.p.outcome = .data$logit.p.true + .data$uncertainty) %>%
+      mutate(outcome = as.numeric(.data$logit.p.outcome > 0),
+             p.pred = plogis(.data$logit.p.pred)) %>%
+      select(id, .data$outcome, .data$score, .data$p.pred) %>%
       spread(score, p.pred)
     d
   }
@@ -61,9 +61,9 @@ msc_sample_data <- function(n.cohorts = 15){
                         pct.female = round(runif(n.cohorts), 2),
                         mean.x1 = round(rnorm(n.cohorts), 1),
                         sd.x1 = round(rexp(n.cohorts, 1), 2)) %>%
-    mutate(dat = map2(n.subjects, p.outcome, make_data),
-           datm = pmap(list(n.subjects, mean.age, sd.age,
-                pct.female, mean.x1, sd.x1), sim_moderators)) %>%
+    mutate(dat = map2(.data$n.subjects, .data$p.outcome, make_data),
+           datm = pmap(list(.data$n.subjects, .data$mean.age, .data$sd.age,
+                            .data$pct.female, .data$mean.x1, .data$sd.x1), sim_moderators)) %>%
     unnest() %>%
     select(-p.outcome, -n.subjects, -mean.age, -sd.age, -pct.female,
            -mean.x1, -sd.x1, -id1)
@@ -71,14 +71,14 @@ msc_sample_data <- function(n.cohorts = 15){
   # add in structural missing (by cohort)
 
   sample_data <- sample_data %>%
-      mutate(b = ifelse(cohort %% 2 == 0, b, NA),
-             c = ifelse(cohort %% 3 == 0, NA, c),
-             d = ifelse(cohort %% 4 == 0, d, NA),
-             e = ifelse(cohort %% 5 == 0, NA, e),
-             f = ifelse(cohort %% 6 == 0, f, NA),
-             g = ifelse(cohort %% 7 == 0, NA, g),
-             h = ifelse(cohort %% 8 == 0, h, NA),
-             i = ifelse(cohort %% 9 == 0, NA, i))
+      mutate(b = ifelse(cohort %% 2 == 0, .data$b, NA),
+             c = ifelse(cohort %% 3 == 0, NA, .data$c),
+             d = ifelse(cohort %% 4 == 0, .data$d, NA),
+             e = ifelse(cohort %% 5 == 0, NA, .data$e),
+             f = ifelse(cohort %% 6 == 0, .data$f, NA),
+             g = ifelse(cohort %% 7 == 0, NA, .data$g),
+             h = ifelse(cohort %% 8 == 0, .data$h, NA),
+             i = ifelse(cohort %% 9 == 0, NA, .data$i))
 
   # ... and some random missings
   random_missing <- function(x, p = 0.2){
@@ -86,14 +86,14 @@ msc_sample_data <- function(n.cohorts = 15){
       ifelse(is.missing == 1, NA, x)
   }
   sample_data  <- sample_data %>%
-      mutate(b = random_missing(b, 0.1),
-             c = random_missing(c, 0.2),
-             d = random_missing(d, 0.3),
-             e = random_missing(e, 0.4),
-             f = random_missing(f, 0.3),
-             g = random_missing(g, 0.2),
-             h = random_missing(h, 0.1),
-             i = random_missing(i, 0.3))
+      mutate(b = random_missing(.data$b, 0.1),
+             c = random_missing(.data$c, 0.2),
+             d = random_missing(.data$d, 0.3),
+             e = random_missing(.data$e, 0.4),
+             f = random_missing(.data$f, 0.3),
+             g = random_missing(.data$g, 0.2),
+             h = random_missing(.data$h, 0.1),
+             i = random_missing(.data$i, 0.3))
 
   sample_data %>% 
       rename(study = cohort)
