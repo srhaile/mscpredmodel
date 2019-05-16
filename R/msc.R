@@ -164,22 +164,20 @@ msc_indirect <- function(ps, mods = NULL, mtype = c("consistency", "inconsistenc
             mutate(score = factor(score, scores)) %>%
             arrange(cohort, score) %>%
             summarize(design = paste(score[!is.na(value)], collapse = "-"))
+        # see, for example, https://dplyr.tidyverse.org/articles/programming.html for !!var := ...
         this.we <- we %>%
             full_join(this.designs, by = "cohort") %>%
             mutate(has1 = grepl(s1c, design),
                    has2 = grepl(s2c, design),
                    has.others = grepl(paste(other.scores, collapse = "|"), design)) %>%
-            # see, for example, https://dplyr.tidyverse.org/articles/programming.html for !!var := ...
             mutate(!!s1 := case_when(
                 has1 & has2 & !has.others ~ NA_real_,
                 has1 & has2 & has.others ~ !!s1,
-                !(has1 & has2) ~ !!s1
-            ),
+                !(has1 & has2) ~ !!s1),
             !!s2 := case_when(
                 has1 & has2 & !has.others ~ NA_real_,
                 has1 & has2 & has.others ~ NA_real_,
-                !(has1 & has2) ~ !!s2
-            ),
+                !(has1 & has2) ~ !!s2),
             k = ifelse(has1 & has2 & !has.others, 0, k)) %>%
             select(-has1, -has2, -has.others, -design)
         this.moderators <- ps$moderators %>%
@@ -271,16 +269,16 @@ msc_direct <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency"
             mutate(score = factor(score, scores)) %>%
             arrange(cohort, score) %>%
             summarize(design = paste(score[!is.na(value)], collapse = "-"))
+        # see, for example, https://dplyr.tidyverse.org/articles/programming.html for !!var := ...
+        #filter(type == "apparent") %>%
         this.we <- we %>%
             full_join(this.designs, by = "cohort") %>%
-            #filter(type == "apparent") %>%
             mutate(has1 = grepl(s1c, design),
                    has2 = grepl(s2c, design),
                    has.others = grepl(paste(other.scores, collapse = "|"), design)) %>%
-            # see, for example, https://dplyr.tidyverse.org/articles/programming.html for !!var := ...
             mutate(k = has1 + has2,
                    ref = which(scores == s1c)) %>%
-            mutate_at(other.scores, ~ NA) %>%
+            mutate_at(other.scores, ~ ifelse(as.numeric(.), NA, NA)) %>%
             select(-has1, -has2, -has.others, -design) %>%
             filter(k == 2)
         this.moderators <- ps$moderators %>%
@@ -289,7 +287,7 @@ msc_direct <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency"
             this.ps <- ps
             this.ps$working.estimates <- this.we
             this.ps$scores <- scores
-            this.ps$moderators <- this.moderators
+            if(!is.null(mods)) this.ps$moderators <- this.moderators
             this.ss <- aggregate_performance(this.ps, reference = s1c)
             # 2. estimate model with [in]consistency()
             this.model <- try(modelfn(this.ss, mods = mods, ...), silent = TRUE)
