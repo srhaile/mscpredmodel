@@ -44,7 +44,7 @@ aggregate_performance <- function(perf.estimates, reference = NULL,
     scores <- perf.estimates$scores
     mods <- perf.estimates$mods
     moderators <- perf.estimates$moderators
-    formulas <- perf.estimates$formulas
+    #formulas <- perf.estimates$formulas
     fn <- perf.estimates$fn
     lbl <- perf.estimates$lbl
     working.estimates <- perf.estimates$working.estimates
@@ -65,30 +65,30 @@ aggregate_performance <- function(perf.estimates, reference = NULL,
     }
     
     tmp <- working.estimates %>% 
-        group_by(cohort, type) %>%
+        group_by(cohort, .data$type) %>%
         nest() %>%
         mutate(data = map(data, get_diff)) %>% 
         unnest %>% 
-        filter(k > 1) %>%
-        group_by(cohort, type, ref) %>%
+        filter(.data$k > 1) %>%
+        group_by(cohort, .data$type, .data$ref) %>%
         nest(scores) %>%
         mutate(yi = map(data, ~ apply(., 2, mean, na.rm = TRUE)),
                vi = map(data, ~ var(., use = "pairwise"))) %>%
         mutate(scores.eval = map(yi, ~ which(!is.na(.)))) %>%
-        mutate(num.scores = map_int(scores.eval, length)) %>%
-        filter(num.scores > 0) %>%
-        select(-num.scores) %>%
-        mutate(yi = map2(yi, scores.eval, function(x, k) x[k]),
-               vi = map2(vi, scores.eval, function(x, k) x[k, k]))
+        mutate(num.scores = map_int(.data$scores.eval, length)) %>%
+        filter(.data$num.scores > 0) %>%
+        select(-.data$num.scores) %>%
+        mutate(yi = map2(yi, .data$scores.eval, function(x, k) x[k]),
+               vi = map2(vi, .data$scores.eval, function(x, k) x[k, k]))
     
     yi <- tmp %>% 
-        filter(type == "apparent") %>% 
-        select(cohort, yi, scores.eval, ref) %>% 
+        filter(.data$type == "apparent") %>% 
+        select(cohort, yi, .data$scores.eval, .data$ref) %>% 
         unnest %>%
-        mutate(score = scores.eval) %>%
-        select(-scores.eval)
+        mutate(score = .data$scores.eval) %>%
+        select(-.data$scores.eval)
     vis <- tmp %>% 
-        filter(type != "apparent") %>% 
+        filter(.data$type != "apparent") %>% 
         select(vi)
     vi <- metafor::bldiag(lapply(vis$vi, as.matrix))
     
@@ -108,14 +108,15 @@ aggregate_performance <- function(perf.estimates, reference = NULL,
     
     dmat <- contrmat(scores[yi$ref], scores[yi$score], reference, scores)
     contr <- yi %>% 
-        mutate(ref = scores[ref], 
-               score = scores[score], 
-               contr = paste(score, ref, sep = "-")) %>%
+        mutate(ref = scores[.data$ref], 
+               score = scores[.data$score], 
+               contr = paste(.data$score, .data$ref, sep = "-")) %>%
         select(contr) %>%
         unlist
     design <- yi %>%
         group_by(cohort) %>%
-        mutate(design = map2_chr(ref, score, ~ paste(design.levels[unique(sort(c(ref, score)))], 
+        mutate(design = map2_chr(.data$ref, .data$score, 
+                    ~ paste(design.levels[unique(sort(c(.data$ref, .data$score)))], 
                                                      collapse = ""))) %>%
         mutate(design = gsub("slope", "", design)) %>%
         ungroup() %>%

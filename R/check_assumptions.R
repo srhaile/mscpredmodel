@@ -18,7 +18,7 @@
 #' @return A tibble containing results of linear regression models of the effect size (outcome) against the cohort-specific average moderator value.
 #' 
 #' @importFrom magrittr %>%
-#' @importFrom stats model.matrix
+#' @importFrom stats model.matrix lm
 #' @import dplyr
 #' @importFrom tidyr spread gather unite nest
 #' @importFrom purrr map map2 possibly
@@ -46,11 +46,15 @@ check_transitivity <- function(ag, graph = FALSE){
     
     transitivity_model <- function(contr, moderator){
         this.ag <- subset_agg(ag, contr)
-        dat.ag <- with(this.ag, 
-                       full_join(tibble(cohort, yi, contr, design, wt = diag(wt)), 
-                                          moderators, by = "cohort"))
+        dat.ag <- full_join(tibble("cohort" = this.ag$cohort,
+                                   "yi" = this.ag$yi, 
+                                   "contr" = this.ag$contr, 
+                                   "design" = this.ag$design, 
+                                   "wt" = diag(this.ag$wt)), 
+                                   this.ag$moderators, 
+                                    "by" = "cohort")
         this.fm <- paste("yi ~", moderator)
-        this.lm <- with(dat.ag, lm(as.formula(this.fm), weights = wt))
+        this.lm <- lm(as.formula(this.fm), weights = dat.ag$wt, data = dat.ag)
         tidy(this.lm, conf.int = TRUE)
     }  
     NA_tbl <- tibble(term = NA, estimate = NA, std.error = NA, 
@@ -59,10 +63,10 @@ check_transitivity <- function(ag, graph = FALSE){
     possibly_transitivity <- possibly(transitivity_model, NA_tbl)
     res <- crossing(contr = unique(ag$contr),
                     moderator = ag$mods) %>%
-        mutate(fit = map2(contr, moderator, possibly_transitivity)) %>%
+        mutate(fit = map2(.data$contr, .data$moderator, possibly_transitivity)) %>%
         unnest %>%
-        filter(term != "(Intercept)") %>%
-        select(-term)
+        filter(.data$term != "(Intercept)") %>%
+        select(-.data$term)
     
     if(graph){
         if (!requireNamespace("ggplot2", quietly = TRUE)) {
@@ -71,23 +75,25 @@ check_transitivity <- function(ag, graph = FALSE){
         }
         #require(ggplot2)
         
-        dat1 <- with(ag, tibble(cohort = as.character(cohort), yi, 
-                                contr, wt = diag(wt)))
+        dat1 <- tibble(cohort = as.character(ag$cohort), 
+                                yi = ag$yi, 
+                                contr = ag$contr, wt = diag(ag$wt))
         dat2 <- ag$moderators
         dat.ag <- full_join(dat1, dat2, by = "cohort") %>%
             mutate(id = 1:n()) %>%
             gather(ag$mods, key = "moderator", value = "value")
-        p <- ggplot(aes(value, yi, size = wt, color = contr, shape = contr), 
+        p <- ggplot(aes(.data$value, .data$yi, size = .data$wt, 
+                        color = .data$contr, shape = .data$contr), 
                data = dat.ag) + 
             geom_point() + 
             geom_smooth(method = "lm") + 
             guides(size = FALSE) + 
-            facet_wrap( ~ moderator, scales = "free_x")
+            facet_wrap( ~ .data$moderator, scales = "free_x")
         print(p)
     }
     
     res %>% 
-        arrange(moderator, contr)
+        arrange(.data$moderator, .data$contr)
 }
 
 #' @describeIn check_assumptions Check assumption of homogeneity
@@ -101,7 +107,8 @@ check_homogeneity <- function(mod, dig = 3){
         stop("Input should be from `[in]consistency()`!")
     }
     
-    out <- with(mod, c("tau2" = tau2, "Q" = QE, "df" = k - p, "p-value" = QEp))
+    out <- c("tau2" = mod$tau2, "Q" = mod$QE, "df" = mod$k - mod$p, 
+             "p-value" = mod$QEp)
     out.fmt <- rep(NA, 4)
     names(out.fmt) <- names(out)
     out.fmt[c(1, 2)] <- round(out[c(1, 2)], dig)

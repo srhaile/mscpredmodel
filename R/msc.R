@@ -15,7 +15,7 @@
 #' @param mods A vector of variable names that are moderators, that is, covariates which could affect the differences in score performance. See also \code{\link{aggregate_performance}}. The main model in an analysis should probably not include any moderators, but they may be interesting when examining transitivity.
 #' @param mtype Type of model (default "consistency", else "inconsistency"). It is sufficient to write \code{"c"} or \code{"i"}.
 #' @param verbose If TRUE, results of each model will be printed (default FALSE)
-#' @param ... In the \code{msc} functions, any other arguments are passed to \code{\link[metafor]{rma.mv}}. See also \code{\link{consistency}}. In the print function, other options are passed to \code{\link[tibble]{print.tbl}}.
+#' @param ... In the \code{msc} functions, any other arguments are passed to \code{\link[metafor]{rma.mv}}. See also \code{\link{consistency}}. In the print function, other options are passed to \code{\link[tibble]{print.tbl}}. Ignored in the plot function.
 #'
 #' @return A list of class \code{msc}, with the following components:
 #' \describe{
@@ -330,8 +330,9 @@ print.msc <- function(x,  ...){
 #' @title Simple plots for MSC network comparisons
 #' @param compare_to If specified, only comparisons to \code{compare_to} are plotted.
 #' @param newlabels A new vector of labels (character) for the scores can be used instead of the current vector of score names.
+#' @method plot msc
 #' @export
-plot.msc <- function(x, compare_to = NULL, newlabels = NULL){
+plot.msc <- function(x, compare_to = NULL, newlabels = NULL, ...){
     if (!requireNamespace("ggplot2", quietly = TRUE)) {
         stop("Package \"ggplot2\" needed for this function to work. Please install it.",
              call. = FALSE)

@@ -21,6 +21,8 @@
 #'   \item{consistency}{First item} random contrast within study
 #'   \item{inconsistency}{Second item} random contrast within study, and random contrast within design
 #' }
+#' @import dplyr
+#' @import metafor
 #' @export
 #'
 #' @examples
@@ -52,12 +54,12 @@ consistency <- function(x, mods = NULL, ...){
     }
     
     if(length(x$yi) > 1){
-        modC <- with(x, metafor::rma.mv(yi, vi, mods =  dm, 
-                                        slab = cohort, 
-                               intercept = FALSE, 
-                               random = ~ contr | cohort, rho = 0.5, ...))
+        modC <- metafor::rma.mv(yi, vi, mods =  dm, 
+                                slab = cohort, intercept = FALSE, 
+                                data = x,
+                               random = ~ contr | cohort, rho = 0.5, ...)
     } else if(length(x$yi) == 1){
-        modC <-  with(x, metafor::rma(yi, vi, mods = dm, slab = cohort, intercept = FALSE, ...))
+        modC <-  metafor::rma(x$yi, x$vi, mods = x$dm, slab = x$cohort, intercept = FALSE,  ...)
     }
     modC$reference <- x$ref
     modC$scores <- x$scores
@@ -85,12 +87,13 @@ inconsistency <- function(x, mods = NULL, ...){
         x$dm <- x$design.matrix
     }
     if(length(x$yi) > 1){
-        modI <- with(x, metafor::rma.mv(yi, vi, mods = dm, slab = cohort, 
+        modI <- metafor::rma.mv(x$yi, x$vi, mods = x$dm, slab = x$cohort, 
                                intercept = FALSE, 
-                               random = list(~ contr | cohort, ~ contr | design), 
-                               rho = 0.5, phi = 0.5, ...))
+                               random = list(~ x$contr | x$cohort, 
+                                             ~ x$contr | x$design), 
+                               rho = 0.5, phi = 0.5, ...)
     } else if(length(x$yi) == 1){
-        modI <-  with(x, metafor::rma(yi, vi, mods = dm, slab = cohort, intercept = FALSE, ...))
+        modI <-  metafor::rma(x$yi, x$vi, mods = x$dm, slab = x$cohort, intercept = FALSE, ...)
     }
     modI$reference <- x$ref
     modI$scores <- x$scores

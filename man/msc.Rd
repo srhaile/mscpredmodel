@@ -23,7 +23,7 @@ msc_direct(ps, mods = NULL, mtype = c("consistency",
 
 \method{print}{msc}(x, ...)
 
-\method{plot}{msc}(x, compare_to = NULL, newlabels = NULL)
+\method{plot}{msc}(x, compare_to = NULL, newlabels = NULL, ...)
 }
 \arguments{
 \item{ps}{A set of raw performance estimates, see \code{\link{compute_performance}}. Since we have to compute a range of different aggregated performance measures, we start here with the raw performance estimates.}
@@ -34,7 +34,7 @@ msc_direct(ps, mods = NULL, mtype = c("consistency",
 
 \item{verbose}{If TRUE, results of each model will be printed (default FALSE)}
 
-\item{...}{In the \code{msc} functions, any other arguments are passed to \code{\link[metafor]{rma.mv}}. See also \code{\link{consistency}}. In the print function, other options are passed to \code{\link[tibble]{print.tbl}}.}
+\item{...}{In the \code{msc} functions, any other arguments are passed to \code{\link[metafor]{rma.mv}}. See also \code{\link{consistency}}. In the print function, other options are passed to \code{\link[tibble]{print.tbl}}. Ignored in the plot function.}
 
 \item{x}{An object of class \code{msc}, from any of \code{msc_{full, direct, indirect, network}}.}
 

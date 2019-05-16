@@ -12,11 +12,11 @@ compute_performance(bs.sample, fn = calibration_slope, lbl = NULL)
 
 \method{print}{mscraw}(x, ...)
 
-\method{summary}{mscraw}(x, nonpar = TRUE, NArm = TRUE)
+\method{summary}{mscraw}(object, nonpar = TRUE, NArm = TRUE, ...)
 
-\method{points}{mscraw}(perf.estimates)
+\method{points}{mscraw}(x, ...)
 
-\method{lines}{mscraw}(perf.estimates)
+\method{lines}{mscraw}(x, ...)
 }
 \arguments{
 \item{bs.sample}{A set of cohort-stratified bootstrap samples, as generated with \code{\link{get_bs_samples}}}
@@ -27,13 +27,13 @@ compute_performance(bs.sample, fn = calibration_slope, lbl = NULL)
 
 \item{x}{Set of performance estimates calculated with \code{\link{compute_performance}}}
 
-\item{...}{Other arguments to be passed to \code{\link{print}}.}
+\item{...}{Other arguments to be passed to \code{\link{print}}. Ignored by summary, points and lines.}
+
+\item{object}{Set of performance estimates calculated with \code{\link{compute_performance}}}
 
 \item{nonpar}{Should nonparametric summary statistics (median [IQR]) be reported? (TRUE)}
 
 \item{NArm}{Should NAs be removed before calculated summary statistics? (TRUE)}
-
-\item{perf.estimates}{An object of class \code{mscraw}, as obtained from \code{\link{compute_performance}}}
 }
 \value{
 A list with 3 elements, of class \code{msc_raw}:

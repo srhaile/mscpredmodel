@@ -29,6 +29,7 @@
 #' @importFrom tidyr spread gather unite nest
 #' @importFrom purrr map map2 map2_dbl map_dbl possibly partial
 #' @importFrom utils head data
+#' @importFrom rsample analysis
 #'
 #' @examples
 #' dat <- msc_sample_data()
@@ -59,12 +60,12 @@ compute_performance <- function(bs.sample,
                           fm = formulas) %>%
         mutate_all(as.character)
     bs.sample <- bs.sample %>%
-      mutate(cohort = as.character(cohort))
+      mutate(cohort = as.character(.data$cohort))
     working.data <- full_join(bs.sample, fm.dat, by = c("cohort", "id")) %>%
-        mutate(fm = as.character(fm))
+        mutate(fm = as.character(.data$fm))
     # # we test the function to make sure it works in at least one case...
     test.fn.data <- working.data %>%
-        filter(id == "Apparent" & cohort == cohort[1])
+        filter(.data$id == "Apparent" & .data$cohort == .data$cohort[1])
     test.fn <- try(fn(test.fn.data$splits[[1]], test.fn.data$fm[1]), silent = TRUE)
     if(any(class(test.fn) == "try-error")){
         warning("possible error:", geterrmessage())
@@ -72,24 +73,24 @@ compute_performance <- function(bs.sample,
     # then we try it on the whole dataset
     working.estimates <- working.data %>%
         mutate(type = ifelse(id == "Apparent", "apparent", "bootstrap"),
-               est = map2_dbl(splits, fm, possibly(fn, otherwise = NA_real_)),
+               est = map2_dbl(.data$splits, .data$fm, possibly(fn, otherwise = NA_real_)),
                scores = rep_len(scores, length.out = nrow(working.data)),
                measure = lbl) %>%
-        select(-splits, -fm) %>%
-        spread(scores, est)  %>%
+        select(-.data$splits, -.data$fm) %>%
+        spread(scores, .data$est)  %>%
         # next line seems redundant, but else, the scores go in alphabetical order!
-        select(cohort, id, type, measure, scores) %>%
-        unite(scores, col = est.all, sep = ":", remove = FALSE) %>%
-        mutate(ref = map_dbl(est.all, get_ref),
-               k = map_dbl(est.all, get_k)) %>%
-        select(-est.all)
+        select(.data$cohort, id, .data$type, .data$measure, scores) %>%
+        unite(scores, col = "est.all", sep = ":", remove = FALSE) %>%
+        mutate(ref = map_dbl(.data$est.all, get_ref),
+               k = map_dbl(.data$est.all, get_k)) %>%
+        select(-.data$est.all)
 
     dat.mods <- bs.sample %>% 
         filter(id == "Apparent") %>% 
-        mutate(dat = map(splits, analysis)) %>%
-        select(-id, -splits) %>%
+        mutate(dat = map(.data$splits, analysis)) %>%
+        select(-id, -.data$splits) %>%
         unnest() %>%
-        select(cohort, id, mods)
+        select(.data$cohort, id, mods)
         
     
     out <- list("working.estimates" = working.estimates,
@@ -102,7 +103,7 @@ compute_performance <- function(bs.sample,
 
 #' @describeIn compute_performance Print raw performance estimates
 #' @param x Set of performance estimates calculated with \code{\link{compute_performance}}
-#' @param ... Other arguments to be passed to \code{\link{print}}.
+#' @param ... Other arguments to be passed to \code{\link{print}}. Ignored by summary, points and lines.
 #' @export
 print.mscraw <- function(x, ...){
   x.apparent <- x$working.estimates %>%
@@ -110,9 +111,10 @@ print.mscraw <- function(x, ...){
   if(!is.null(x$mods)){
   x.mods <- x$moderators %>% 
       select(-id) %>%
-      group_by(cohort) %>%
+      group_by(.data$cohort) %>%
       summarize_all(mean, na.rm = TRUE)
-  out <- full_join(x.apparent, x.mods, by = "cohort") %>% select(-id, -type)
+  out <- full_join(x.apparent, x.mods, by = "cohort") %>% 
+      select(-id, -.data$type)
   } else {
       out <- x.apparent
   }
@@ -120,45 +122,45 @@ print.mscraw <- function(x, ...){
 }
 
 #' @describeIn compute_performance Print summary of raw performance estimates
+#' @param object Set of performance estimates calculated with \code{\link{compute_performance}}
 #' @param nonpar  Should nonparametric summary statistics (median [IQR]) be reported? (TRUE)
 #' @param NArm Should NAs be removed before calculated summary statistics? (TRUE)
 #' @export
-summary.mscraw <- function(x, nonpar = TRUE, NArm = TRUE){
-  sc <- x$scores
-  x.apparent <- x$working.estimates %>%
+summary.mscraw <- function(object, nonpar = TRUE, NArm = TRUE, ...){
+  sc <- object$scores
+  object.apparent <- object$working.estimates %>%
     filter(id == "Apparent") %>%
-    select(cohort, sc)
+    select(.data$cohort, sc)
   q1 <- partial(quantile, probs = 0.25)
   q3 <- partial(quantile, probs = 0.75)
-  nonmiss <- function(x, na.rm = TRUE) sum(!is.na(x))
+  nonmiss <- function(object, na.rm = TRUE) sum(!is.na(object))
   if(nonpar){
     fns <- vars(nonmiss, median, q1, q3)
   } else {
     fns <- vars(nonmiss, mean, sd)
   }
-  x.apparent  %>%
+  object.apparent  %>%
     gather(sc, key = "score", value = "value") %>%
-    group_by(score) %>%
+    group_by(.data$score) %>%
     summarize_at("value", fns, na.rm = NArm) %>%
-    mutate(performance = x$lbl) %>%
-    select(score, performance, everything())
+    mutate(performance = object$lbl) %>%
+    select(.data$score, .data$performance, everything())
 }
 
 #' @describeIn compute_performance Plot variability of raw performance estimates across bootstrap samples using points
 #' @inheritParams print.mscraw
-#' @param perf.estimates An object of class \code{mscraw}, as obtained from \code{\link{compute_performance}}
 #' @export
-points.mscraw <- function(perf.estimates){
+points.mscraw <- function(x, ...){
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("Package \"ggplot2\" needed for this function to work. Please install it.",
          call. = FALSE)
   }
-  working.estimates <- perf.estimates$working.estimates
-  scores <- perf.estimates$scores
-  lbl <- perf.estimates$lbl
+  working.estimates <- x$working.estimates
+  scores <- x$scores
+  lbl <- x$lbl
   
   we <- working.estimates %>%
-    select(cohort, id, scores) %>%
+    select(.data$cohort, id, scores) %>%
     gather(scores, key = "score", value = "performance") %>%
     mutate(id = ifelse(id == "Apparent", "Apparent", "Bootstrap"))
   
@@ -168,33 +170,33 @@ points.mscraw <- function(perf.estimates){
     filter(id == "Apparent")
   
   
-  ggplot(aes(cohort, performance), data = bs) +
+  ggplot(aes(.data$cohort, .data$performance), data = bs) +
     geom_jitter(color = "gray", alpha = 0.5) +
     geom_point(data = ap) +
     facet_wrap( ~ score) +
     coord_flip() +
-    ylim(-2, 5)
+    ylim(-2, 5) + xlab(lbl)
 }
 
 #' @describeIn compute_performance Plot variability of raw performance estimates across bootstrap samples using lines (density plots)
 #' @inheritParams print.mscraw
 #' @export
-lines.mscraw <- function(perf.estimates) {
+lines.mscraw <- function(x, ...) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop(
       "Package \"ggplot2\" needed for this function to work. Please install it.",
       call. = FALSE
     )
   }
-  working.estimates <- perf.estimates$working.estimates
-  scores <- perf.estimates$scores
-  lbl <- perf.estimates$lbl
+  working.estimates <- x$working.estimates
+  scores <- x$scores
+  lbl <- x$lbl
   
   working.estimates %>%
-    select(-id, -measure, -ref, -k) %>%
+    select(-id, -.data$measure, -.data$ref, -.data$k) %>%
     gather(scores, key = "score", value = "value") %>%
-    filter(type != "apparent") %>%
-    ggplot(aes(value, group = cohort)) +
+    filter(.data$type != "apparent") %>%
+    ggplot(aes(.data$value, group = .data$cohort)) +
     geom_density() +
     xlab(lbl) +
     facet_wrap(~ score)
