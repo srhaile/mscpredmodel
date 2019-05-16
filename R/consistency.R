@@ -53,13 +53,14 @@ consistency <- function(x, mods = NULL, ...){
         x$dm <- x$design.matrix
     }
     
+    xdat <- data.frame(yi = x$yi, cohort = x$cohort, contr = x$contr)
+    
     if(length(x$yi) > 1){
-        modC <- metafor::rma.mv(yi, vi, mods =  dm, 
+        modC <- metafor::rma.mv(yi, x$vi, mods =  x$dm, data = xdat,
                                 slab = cohort, intercept = FALSE, 
-                                data = x,
                                random = ~ contr | cohort, rho = 0.5, ...)
     } else if(length(x$yi) == 1){
-        modC <-  metafor::rma(x$yi, x$vi, mods = x$dm, slab = x$cohort, intercept = FALSE,  ...)
+        modC <-  metafor::rma(yi, x$vi, mods = x$dm, slab = cohort, data = xdat, intercept = FALSE,  ...)
     }
     modC$reference <- x$ref
     modC$scores <- x$scores
@@ -86,14 +87,17 @@ inconsistency <- function(x, mods = NULL, ...){
     } else {
         x$dm <- x$design.matrix
     }
+    
+    xdat <- data.frame(yi = x$yi, cohort = x$cohort, contr = x$contr, design = x$design)
+    
     if(length(x$yi) > 1){
-        modI <- metafor::rma.mv(x$yi, x$vi, mods = x$dm, slab = x$cohort, 
-                               intercept = FALSE, 
-                               random = list(~ x$contr | x$cohort, 
-                                             ~ x$contr | x$design), 
+        modI <- metafor::rma.mv(yi, x$vi, mods = x$dm, slab = cohort, 
+                               intercept = FALSE, data = xdat,
+                               random = list(~ contr | cohort, 
+                                             ~ contr | design), 
                                rho = 0.5, phi = 0.5, ...)
     } else if(length(x$yi) == 1){
-        modI <-  metafor::rma(x$yi, x$vi, mods = x$dm, slab = x$cohort, intercept = FALSE, ...)
+        modI <-  metafor::rma(yi, x$vi, mods = x$dm, slab = cohort, intercept = FALSE, data = xdat, ...)
     }
     modI$reference <- x$ref
     modI$scores <- x$scores
