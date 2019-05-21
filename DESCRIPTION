@@ -1,14 +1,14 @@
 Package: mscpredmodel
 Type: Package
-Title: Multiple Score Comparison of Prediction Models with NMA
+Title: Multiple Score Comparison of Prediction Models with Network Meta-Analysis
 Version: 0.1.0
 Authors@R: person("Sarah", "Haile", email = "sarah.haile@uzh.ch",
     role = c("aut", "cre"))
 Maintainer: Sarah Haile <sarah.haile@uzh.ch>
 Description: Set of functions to facilitate the comparison and external 
     validation of prediction models and prognostic scores using a network meta-
-    analytic approach called multiple score comparison (MSC) from individual
-    patient data (IPD). The package has functions to estimate performance estimates
+    analytic approach called multiple score comparison from individual
+    patient data. The package has functions to estimate performance estimates
     (and corresponding variances) for both calibration and discrimination endpoints, 
     and perform appropriate network meta-analysis, and compute all direct and
     indirect pairwise comparisons.
