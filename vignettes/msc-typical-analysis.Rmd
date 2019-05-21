@@ -23,6 +23,7 @@ This is a basic example which shows you a typical analysis for a dataset having 
 
 ```{r msc_setup}
 library(mscpredmodel)
+library(tidyverse)
 library(ggplot2)
 theme_set(theme_bw())
 
