@@ -29,7 +29,7 @@ The results of an \code{\link[metafor]{rma.mv}} multivariate/multilevel Linear (
 MSC network meta-analysis models
 }
 \details{
-The consistency and inconsistency models are those found in \href{doi://10.1186/s12874-016-0184-5}{Law et al 2016}: 
+The consistency and inconsistency models are those found in \href{https://doi.org/10.1186/s12874-016-0184-5}{Law et al 2016}: 
 
 Law, M.; Jackson, D.; Turner, R.; Rhodes, K. & Viechtbauer, W. Two new methods to fit models for network meta-analysis with random inconsistency effects BMC Medical Research Methodology, 2016, 16, 87.
 
@@ -52,7 +52,6 @@ bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 10,
 perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
 agg <- aggregate_performance(perf)
 consistency(agg)
-inconsistency(agg)
 agg.c <- aggregate_performance(perf, "c")
 consistency(agg.c)
 }

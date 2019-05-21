@@ -33,7 +33,7 @@
 #'
 #' @examples
 #' dat <- msc_sample_data()
-#' bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 10, 
+#' bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 5, 
 #'                   scores = c("a", "b", "c", "d", "e", "f"), 
 #'                   moderators = c("age", "female", "x1"))
 #' perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
@@ -175,7 +175,7 @@ points.mscraw <- function(x, ...){
   ggplot(aes(.data$cohort, .data$performance), data = bs) +
     geom_jitter(color = "gray", alpha = 0.5) +
     geom_point(data = ap) +
-    facet_wrap( ~ score) +
+    facet_wrap(vars(.data$score)) +
     coord_flip() +
     ylim(-2, 5) + xlab(lbl)
 }
@@ -201,6 +201,6 @@ lines.mscraw <- function(x, ...) {
     ggplot(aes(.data$value, group = .data$cohort)) +
     geom_density() +
     xlab(lbl) +
-    facet_wrap(~ score)
+    facet_wrap(vars(.data$score))
 }
 

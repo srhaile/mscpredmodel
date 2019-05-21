@@ -39,7 +39,7 @@ msc_sample_data <- function(n.cohorts = 15){
       mutate(outcome = as.numeric(.data$logit.p.outcome > 0),
              p.pred = plogis(.data$logit.p.pred)) %>%
       select(id, .data$outcome, .data$score, .data$p.pred) %>%
-      spread(score, p.pred)
+      spread(.data$score, .data$p.pred)
     d
   }
   
@@ -65,20 +65,20 @@ msc_sample_data <- function(n.cohorts = 15){
            datm = pmap(list(.data$n.subjects, .data$mean.age, .data$sd.age,
                             .data$pct.female, .data$mean.x1, .data$sd.x1), sim_moderators)) %>%
     unnest() %>%
-    select(-p.outcome, -n.subjects, -mean.age, -sd.age, -pct.female,
-           -mean.x1, -sd.x1, -id1)
+    select(-.data$p.outcome, -.data$n.subjects, -.data$mean.age, -.data$sd.age, -.data$pct.female,
+           -.data$mean.x1, -.data$sd.x1, -.data$id1)
 
   # add in structural missing (by cohort)
 
   sample_data <- sample_data %>%
-      mutate(b = ifelse(cohort %% 2 == 0, .data$b, NA),
-             c = ifelse(cohort %% 3 == 0, NA, .data$c),
-             d = ifelse(cohort %% 4 == 0, .data$d, NA),
-             e = ifelse(cohort %% 5 == 0, NA, .data$e),
-             f = ifelse(cohort %% 6 == 0, .data$f, NA),
-             g = ifelse(cohort %% 7 == 0, NA, .data$g),
-             h = ifelse(cohort %% 8 == 0, .data$h, NA),
-             i = ifelse(cohort %% 9 == 0, NA, .data$i))
+      mutate(b = ifelse(.data$cohort %% 2 == 0, .data$b, NA),
+             c = ifelse(.data$cohort %% 3 == 0, NA, .data$c),
+             d = ifelse(.data$cohort %% 4 == 0, .data$d, NA),
+             e = ifelse(.data$cohort %% 5 == 0, NA, .data$e),
+             f = ifelse(.data$cohort %% 6 == 0, .data$f, NA),
+             g = ifelse(.data$cohort %% 7 == 0, NA, .data$g),
+             h = ifelse(.data$cohort %% 8 == 0, .data$h, NA),
+             i = ifelse(.data$cohort %% 9 == 0, NA, .data$i))
 
   # ... and some random missings
   random_missing <- function(x, p = 0.2){
@@ -96,6 +96,6 @@ msc_sample_data <- function(n.cohorts = 15){
              i = random_missing(.data$i, 0.3))
 
   sample_data %>% 
-      rename(study = cohort)
+      rename(study = .data$cohort)
 }
 

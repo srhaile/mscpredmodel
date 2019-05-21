@@ -6,7 +6,7 @@
 #' @param ref The name of the reference treatment / score (character)
 #' @param sc A vector containing the full list of scores considered, so that the scores are not put into alphabetical order. This keeps the order of the scores in later network meta-analysis models the same as in other places.
 #'
-#' @details  This function has been adapted slightly from the supplementary material of  \href{doi://10.1186/s12874-016-0184-5}{Law et al 2016}: 
+#' @details  This function has been adapted slightly from the supplementary material of  \href{https://doi.org/10.1186/s12874-016-0184-5}{Law et al 2016}: 
 #' 
 #' Law, M.; Jackson, D.; Turner, R.; Rhodes, K. & Viechtbauer, W. Two new methods to fit models for network meta-analysis with random inconsistency effects BMC Medical Research Methodology, 2016, 16, 87.
 #' 
@@ -55,22 +55,22 @@ get_diff <- function(d){
     if(most_common_number_scores > 1){
         d <- d %>%
             mutate(ref.score = !! ref.var) %>%
-            gather(nams, key = "score", value = "value", -ref.score) %>%
+            gather(nams, key = "score", value = "value", -.data$ref.score) %>%
             mutate(value = .data$value - .data$ref.score) %>%
-            mutate(value = ifelse(.data$score == ref.name, NA, value)) %>%
-            spread(score, value) %>%
+            mutate(value = ifelse(.data$score == ref.name, NA, .data$value)) %>%
+            spread(.data$score, .data$value) %>%
             mutate(grp = this.grp,
                    ref = this.ref) %>%
-            select(-ref.score) %>%
-            select(id, measure, ref, k, nams, grp)
+            select(-.data$ref.score) %>%
+            select(id, .data$measure, .data$ref, .data$k, nams, .data$grp)
     } else if(most_common_number_scores == 1){
         d <- d %>%
-            select(id, measure, ref, k, nams) %>%
+            select(id, .data$measure, .data$ref, .data$k, nams) %>%
             mutate_at(ref.name, function(x) ifelse(!is.na(x), 0, NA)) %>%
             mutate(grp = ref.name)
     } else {
         d <- d %>%
-            select(id, measure, ref, k, nams) %>%
+            select(id, .data$measure, .data$ref, .data$k, nams) %>%
             mutate(grp = "")
     }
     

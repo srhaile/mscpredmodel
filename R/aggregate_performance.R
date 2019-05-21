@@ -136,7 +136,7 @@ aggregate_performance <- function(perf.estimates, reference = NULL,
 print.mscagg <- function(x, ...){
     aggdat <- with(x, tibble(cohort, yi, vi = diag(vi), 
             contr, design, lbl)) %>% 
-        mutate(cohort = as.character(cohort)) %>%
+        mutate(cohort = as.character(.data$cohort)) %>%
         full_join(x$moderators, by = "cohort")
     print(aggdat, ...)
 }

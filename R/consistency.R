@@ -12,7 +12,7 @@
 #'   \item{performance}{Label of performance, as used in previous functions}
 #' }
 #' 
-#' @details The consistency and inconsistency models are those found in \href{doi://10.1186/s12874-016-0184-5}{Law et al 2016}: 
+#' @details The consistency and inconsistency models are those found in \href{https://doi.org/10.1186/s12874-016-0184-5}{Law et al 2016}: 
 #' 
 #' Law, M.; Jackson, D.; Turner, R.; Rhodes, K. & Viechtbauer, W. Two new methods to fit models for network meta-analysis with random inconsistency effects BMC Medical Research Methodology, 2016, 16, 87.
 #' 
@@ -33,7 +33,6 @@
 #' perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
 #' agg <- aggregate_performance(perf)
 #' consistency(agg)
-#' inconsistency(agg)
 #' agg.c <- aggregate_performance(perf, "c")
 #' consistency(agg.c)
 consistency <- function(x, mods = NULL, ...){
@@ -56,11 +55,12 @@ consistency <- function(x, mods = NULL, ...){
     xdat <- data.frame(yi = x$yi, cohort = x$cohort, contr = x$contr)
     
     if(length(x$yi) > 1){
-        modC <- metafor::rma.mv(yi, x$vi, mods =  x$dm, data = xdat,
-                                slab = cohort, intercept = FALSE, 
-                               random = ~ contr | cohort, rho = 0.5, ...)
+        modC <- metafor::rma.mv(xdat$yi, x$vi, mods =  x$dm, data = xdat,
+                                slab = xdat$cohort, intercept = FALSE, 
+                               random = list(~ contr | cohort), rho = 0.5, ...)
     } else if(length(x$yi) == 1){
-        modC <-  metafor::rma(yi, x$vi, mods = x$dm, slab = cohort, data = xdat, intercept = FALSE,  ...)
+        modC <-  metafor::rma(xdat$yi, x$vi, mods = x$dm, slab = xdat$cohort, 
+                              data = xdat, intercept = FALSE,  ...)
     }
     modC$reference <- x$ref
     modC$scores <- x$scores
@@ -88,16 +88,22 @@ inconsistency <- function(x, mods = NULL, ...){
         x$dm <- x$design.matrix
     }
     
-    xdat <- data.frame(yi = x$yi, cohort = x$cohort, contr = x$contr, design = x$design)
+    xdat <- data.frame(yi = x$yi, 
+                       cohort = x$cohort, 
+                       contr = x$contr, 
+                       design = x$design)
     
     if(length(x$yi) > 1){
-        modI <- metafor::rma.mv(yi, x$vi, mods = x$dm, slab = cohort, 
+        modI <- metafor::rma.mv(xdat$yi, x$vi, mods = x$dm, 
+                                slab = xdat$cohort, 
                                intercept = FALSE, data = xdat,
                                random = list(~ contr | cohort, 
                                              ~ contr | design), 
                                rho = 0.5, phi = 0.5, ...)
     } else if(length(x$yi) == 1){
-        modI <-  metafor::rma(yi, x$vi, mods = x$dm, slab = cohort, intercept = FALSE, data = xdat, ...)
+        modI <-  metafor::rma(xdat$yi, x$vi, mods = x$dm, 
+                              slab = xdat$cohort, 
+                              intercept = FALSE, data = xdat, ...)
     }
     modI$reference <- x$ref
     modI$scores <- x$scores

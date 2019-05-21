@@ -1,6 +1,7 @@
 #' @title Full, direct and indirect network results for MSC
 #' 
 #' @importFrom magrittr %>%
+#' @importFrom rlang :=
 #' @importFrom stats model.matrix pnorm qnorm
 #' @import dplyr
 #' @importFrom tidyr spread gather unite nest
@@ -31,12 +32,14 @@
 #'                   scores = c("a", "b", "c", "d", "e", "f"), 
 #'                   moderators = c("age", "female", "x1"))
 #' perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
+#' msc_network(perf, mods = "age", mtype = "inconsistency")
+#' \dontrun{
+#' msc_direct(perf, mods = "age", mtype = "inconsistency")
 #' msc_indirect(perf, mtype = "inconsistency")
 #' msc_direct(perf, mtype = "inconsistency")
-#' msc_direct(perf, mods = "age", mtype = "inconsistency")
-#' msc_network(perf, mtype = "inconsistency")
 #' full <- msc_full(perf, mtype = "inconsistency")
 #' plot(full)
+#' }
 #' 
 #' @export
 #' @describeIn msc Compute all pairwise comparisons in full network of evidence, as well as direct and indirect comparisons
@@ -50,8 +53,8 @@ msc_full <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency")[
     if(verbose) cat("Calculating indirect estimates...\n")
     res.i <- msc_indirect(ps, mods = mods, mtype = mt, verbose = verbose, ...)
     outtab <- bind_rows(res.nw$table, res.d$table, res.i$table) %>%
-        mutate(type = factor(type, c("network", "direct", "indirect"))) %>% 
-        arrange(s1, s2, type) %>%
+        mutate(type = factor(.data$type, c("network", "direct", "indirect"))) %>% 
+        arrange(.data$s1, .data$s2, .data$type) %>%
         mutate(measure = ps$lbl)
     modelresults <- c(res.nw$models, res.d$models, res.i$models)
     out <- list("table" = outtab,
@@ -100,8 +103,8 @@ msc_network <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency
                   pval = pval, 
                   measure = ps$lbl,
                   mods = paste(mods, collapse = ", ")) %>%
-        mutate(s1 = factor(s1, scores),
-               s2 = factor(s2, scores))
+        mutate(s1 = factor(.data$s1, scores),
+               s2 = factor(.data$s2, scores))
     out <- list("table" = out,
                 "models" = list("network" = x),
                 "type" = "network", 
@@ -158,30 +161,30 @@ msc_indirect <- function(ps, mods = NULL, mtype = c("consistency", "inconsistenc
         # 1. keep only "working.estimates" with both s1 and s2, drop other scores% 
         this.designs <- we %>%
             filter(id == "Apparent") %>%
-            select(-id, -type, -measure, -ref, -k) %>%
-            group_by(cohort) %>%
+            select(-id, -.data$type, -.data$measure, -.data$ref, -.data$k) %>%
+            group_by(.data$cohort) %>%
             gather(scores, key = "score", value = "value") %>%
-            mutate(score = factor(score, scores)) %>%
-            arrange(cohort, score) %>%
-            summarize(design = paste(score[!is.na(value)], collapse = "-"))
+            mutate(score = factor(.data$score, scores)) %>%
+            arrange(.data$cohort, .data$score) %>%
+            summarize(design = paste(.data$score[!is.na(.data$value)], collapse = "-"))
         # see, for example, https://dplyr.tidyverse.org/articles/programming.html for !!var := ...
         this.we <- we %>%
             full_join(this.designs, by = "cohort") %>%
-            mutate(has1 = grepl(s1c, design),
-                   has2 = grepl(s2c, design),
-                   has.others = grepl(paste(other.scores, collapse = "|"), design)) %>%
+            mutate(has1 = grepl(s1c, .data$design),
+                   has2 = grepl(s2c, .data$design),
+                   has.others = grepl(paste(other.scores, collapse = "|"), .data$design)) %>%
             mutate(!!s1 := case_when(
-                has1 & has2 & !has.others ~ NA_real_,
-                has1 & has2 & has.others ~ !!s1,
-                !(has1 & has2) ~ !!s1),
+                .data$has1 & .data$has2 & !.data$has.others ~ NA_real_,
+                .data$has1 & .data$has2 & .data$has.others ~ !!s1,
+                !(.data$has1 & .data$has2) ~ !!s1),
             !!s2 := case_when(
-                has1 & has2 & !has.others ~ NA_real_,
-                has1 & has2 & has.others ~ NA_real_,
-                !(has1 & has2) ~ !!s2),
-            k = ifelse(has1 & has2 & !has.others, 0, k)) %>%
-            select(-has1, -has2, -has.others, -design)
+                .data$has1 & .data$has2 & !.data$has.others ~ NA_real_,
+                .data$has1 & .data$has2 & .data$has.others ~ NA_real_,
+                !(.data$has1 & .data$has2) ~ !!s2),
+            k = ifelse(.data$has1 & .data$has2 & !.data$has.others, 0, .data$k)) %>%
+            select(-.data$has1, -.data$has2, -.data$has.others, -.data$design)
         this.moderators <- ps$moderators %>%
-            filter(cohort %in% this.we$cohort)
+            filter(.data$cohort %in% this.we$cohort)
         indirect_evidence <- (nrow(this.we) > 0) & 
             (mean(!is.na(this.we[, s1c])) > 0) & 
             (mean(!is.na(this.we[, s2c])) > 0)
@@ -263,26 +266,26 @@ msc_direct <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency"
         # 1. keep only "working.estimates" with both s1 and s2, drop other scores% 
         this.designs <- we %>%
             filter(id == "Apparent") %>%
-            select(-id, -type, -measure, -ref, -k) %>%
-            group_by(cohort) %>%
+            select(-id, -.data$type, -.data$measure, -.data$ref, -.data$k) %>%
+            group_by(.data$cohort) %>%
             gather(scores, key = "score", value = "value") %>%
-            mutate(score = factor(score, scores)) %>%
-            arrange(cohort, score) %>%
-            summarize(design = paste(score[!is.na(value)], collapse = "-"))
+            mutate(score = factor(.data$score, scores)) %>%
+            arrange(.data$cohort, .data$score) %>%
+            summarize(design = paste(.data$score[!is.na(.data$value)], collapse = "-"))
         # see, for example, https://dplyr.tidyverse.org/articles/programming.html for !!var := ...
         #filter(type == "apparent") %>%
         this.we <- we %>%
             full_join(this.designs, by = "cohort") %>%
-            mutate(has1 = grepl(s1c, design),
-                   has2 = grepl(s2c, design),
-                   has.others = grepl(paste(other.scores, collapse = "|"), design)) %>%
-            mutate(k = has1 + has2,
+            mutate(has1 = grepl(s1c, .data$design),
+                   has2 = grepl(s2c, .data$design),
+                   has.others = grepl(paste(other.scores, collapse = "|"), .data$design)) %>%
+            mutate(k = .data$has1 + .data$has2,
                    ref = which(scores == s1c)) %>%
             mutate_at(other.scores, ~ ifelse(as.numeric(.), NA, NA)) %>%
-            select(-has1, -has2, -has.others, -design) %>%
-            filter(k == 2)
+            select(-.data$has1, -.data$has2, -.data$has.others, -.data$design) %>%
+            filter(.data$k == 2)
         this.moderators <- ps$moderators %>%
-            filter(cohort %in% this.we$cohort)
+            filter(.data$cohort %in% this.we$cohort)
         if(nrow(this.we) > 0){
             this.ps <- ps
             this.ps$working.estimates <- this.we
@@ -344,9 +347,9 @@ plot.msc <- function(x, compare_to = NULL, newlabels = NULL, ...){
         check2 <- all((compare_to %in% levels(x$s1) | compare_to %in% levels(x$s2)))
         if(!check2) stop("compare_to should be one of the values found in s1 or s2, for example: ", x$s2[1])
         x1 <- x %>%
-            filter(s1 == compare_to)
+            filter(.data$s1 == compare_to)
         x2 <- x %>%
-            filter(s2 == compare_to)
+            filter(.data$s2 == compare_to)
         x2fix <- tibble(s1 = x2$s2,
                         s2 = x2$s1,
                         model = x2$model,
@@ -372,11 +375,12 @@ plot.msc <- function(x, compare_to = NULL, newlabels = NULL, ...){
         }
         
     }
-    qplot(s2, estimate, ymin = ci.lb, ymax = ci.ub,
-          data = x, color = type, geom = "blank") +
+    ggplot(aes(.data$s2, .data$estimate, 
+              ymin = .data$ci.lb, ymax = .data$ci.ub,
+              color = .data$type), data = x) + 
         geom_point(position = position_dodge(width = 0.2)) + 
         geom_linerange(position = position_dodge(width = 0.2)) + 
-        facet_wrap( ~ s1) +
+        facet_wrap(vars(.data$s1)) +
         guides(color = guide_legend("")) + 
         ggtitle(x$measure[1], subtitle = x$model[1])
 }

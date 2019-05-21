@@ -46,13 +46,12 @@ Check assumptions of transitivity, consistency and homogeneity
 
 \examples{
 dat <- msc_sample_data()
-bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 10, 
+bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 8, 
                   scores = c("a", "b", "c", "d", "e", "f"), 
                   moderators = c("age", "female", "x1"))
 perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
 agg <- aggregate_performance(perf)
-check_transitivity(agg, graph = TRUE)
-mod <- consistency(agg)
-check_homogeneity(mod)
-check_consistency(perf)
+check_transitivity(agg, graph = FALSE)
+check_homogeneity(consistency(agg))
+\dontrun{check_consistency(perf)}
 }

@@ -2,15 +2,14 @@
 #' 
 #' @examples
 #' dat <- msc_sample_data()
-#' bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 10, 
+#' bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 8, 
 #'                   scores = c("a", "b", "c", "d", "e", "f"), 
 #'                   moderators = c("age", "female", "x1"))
 #' perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
 #' agg <- aggregate_performance(perf)
-#' check_transitivity(agg, graph = TRUE)
-#' mod <- consistency(agg)
-#' check_homogeneity(mod)
-#' check_consistency(perf)
+#' check_transitivity(agg, graph = FALSE)
+#' check_homogeneity(consistency(agg))
+#' \dontrun{check_consistency(perf)}
 
 #' @describeIn check_assumptions Check assumption of transitivity
 #' @param ag A set of aggregated performance scores
@@ -19,6 +18,7 @@
 #' 
 #' @importFrom magrittr %>%
 #' @importFrom stats model.matrix lm
+#' @import tibble
 #' @import dplyr
 #' @importFrom tidyr spread gather unite nest
 #' @importFrom purrr map map2 possibly
@@ -26,8 +26,9 @@
 #' 
 #' @export
 check_transitivity <- function(ag, graph = FALSE){
-    if(class(ag) != "mscagg") stop("ag should be the results of `aggregate_performance`!")
-    if(is.null(ag$mods)) stop("ag should contain some moderators. Add these when you run get_bs_samples().")
+    # print(class(ag))
+    if(!identical(class(ag), "mscagg")) warning("ag should be the results of aggregate_performance()")
+    if(is.null(ag$mods)) warning("ag should contain some moderators. Add these when you run get_bs_samples().")
     ag$wt <- solve(ag$vi)
     
     subset_agg <- function(x, ctr){
@@ -46,7 +47,7 @@ check_transitivity <- function(ag, graph = FALSE){
     
     transitivity_model <- function(contr, moderator){
         this.ag <- subset_agg(ag, contr)
-        dat.ag <- full_join(tibble("cohort" = this.ag$cohort,
+        dat.ag <- full_join(dplyr::tibble("cohort" = this.ag$cohort,
                                    "yi" = this.ag$yi, 
                                    "contr" = this.ag$contr, 
                                    "design" = this.ag$design, 
@@ -57,7 +58,7 @@ check_transitivity <- function(ag, graph = FALSE){
         this.lm <- lm(as.formula(this.fm), weights = dat.ag$wt, data = dat.ag)
         tidy(this.lm, conf.int = TRUE)
     }  
-    NA_tbl <- tibble(term = NA, estimate = NA, std.error = NA, 
+    NA_tbl <- dplyr::tibble(term = NA, estimate = NA, std.error = NA, 
                      statistic = NA, p.value = NA, 
                      conf.low = NA, conf.high = NA)
     possibly_transitivity <- possibly(transitivity_model, NA_tbl)
@@ -75,7 +76,7 @@ check_transitivity <- function(ag, graph = FALSE){
         }
         #require(ggplot2)
         
-        dat1 <- tibble(cohort = as.character(ag$cohort), 
+        dat1 <- dplyr::tibble(cohort = as.character(ag$cohort), 
                                 yi = ag$yi, 
                                 contr = ag$contr, wt = diag(ag$wt))
         dat2 <- ag$moderators
@@ -87,7 +88,10 @@ check_transitivity <- function(ag, graph = FALSE){
                data = dat.ag) + 
             geom_point() + 
             geom_smooth(method = "lm") + 
-            guides(size = FALSE) + 
+            xlab("Value of Moderator") + ylab("Difference in Performance") + 
+            guides(size = FALSE, 
+                   color = guide_legend("Contrast"), 
+                   shape = guide_legend("Contrast")) + 
             facet_wrap( ~ .data$moderator, scales = "free_x")
         print(p)
     }
