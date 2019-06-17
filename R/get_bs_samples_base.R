@@ -27,8 +27,67 @@
 #' get_bs_samples(dat, id, study, outcome, n.samples = 10, 
 #'                   scores = c("a", "b", "c", "d", "e", "f"), 
 #'                   moderators = c("age", "female", "x1"))
-get_bs_samples_base <- function(data, id, cohort, outcome, n.samples = 1000, 
+get_bs_samples_base <- function(data, id, cohort, outcome, n.samples = 10, 
                            scores = NULL, moderators = NULL){
+    mf <- match.call()
+    print(mf)
+    id      <- as.character(mf[[match("id", names(mf))]])
+    cohort     <- as.character(mf[[match("cohort", names(mf))]])
+    outcome <- as.character(mf[[match("outcome", names(mf))]])
+    
+    if(is.null(scores)){
+        stop("Please specify some scores to be compared.")
+    }
+    scores.to.keep <- unique(scores[scores %in% names(data)])
+    scores.to.drop <- scores[!scores %in% names(data)]
+    mods.to.keep <- unique(moderators[moderators %in% names(data)])
+    mods.to.drop <- moderators[!moderators %in% names(data)]
+    if(!all(scores %in% names(data))){
+        warning("Some scores are not in the dataset!\nKeeping: ", 
+                paste(scores.to.keep, collapse = ", "),
+                "\nDropping: ", paste(scores.to.drop, collapse = ", "))
+    }
+    if(!all(moderators %in% names(data)) & !is.null(moderators)){
+        warning("Some moderators are not in the dataset!\nKeeping:", 
+                paste(mods.to.keep, collapse = ", "), 
+                "\nDropping: ", paste(mods.to.drop, collapse = ", "))
+    }
+    scores <- scores.to.keep
+    mods <- mods.to.keep
+    
+    sm <- dat[, c(id, cohort, outcome, scores, mods)]
+    names(sm)[1:3] <- c("id", "cohort", "outcome")
+    
+    fm <- as.list(paste(outcome, "~", scores))
+    fn <- function(dd, ii){
+        fm <- as.formula(fm)
+        fm <- update(fm, . ~ qlogis(.))
+        m <- glm(fm, dd[ii, ], family = binomial, na.action = na.omit)
+        coef(m)[2]
+    }
+    
+    fn2 <- function(dd, ii){
+        fm <- lapply(fm, as.formula)    
+        fm <- lapply(fm, update, new = . ~ qlogis(.))
+        m <- lapply(fm, glm, data = dd[ii, ],
+                    family = binomial, na.action = na.omit)
+        sapply(m, coef)[2, ]
+    }
+    
+    spl <- split(sm, sm$cohort)
+    res <- lapply(spl, boot, statistic = fn2, R = n.samples)
+    vals <- lapply(lapply(res, `[`, "t0"), `[[`, 1)
+    vars <- lapply(lapply(lapply(res, `[`, "t"), `[[`, 1), var)
+    #var.id <- as.character(mf.id)
+    list(id, cohort, outcome, scores, mods, fm, vals, vars)
+} 
+
+set.seed(12345)
+get_bs_samples_base(dat, id, study, outcome, scores = letters[1:4], moderators = "age")
+get_bs_samples_base(dat, id, "study", outcome, scores = letters[1:4], moderators = "age")
+
+
+
     # for some of these tricks: https://edwinth.github.io/blog/dplyr-recipes/
     if (!requireNamespace("rsample", quietly = TRUE)) {
         stop("Package \"rsample\" needed for this function to work. Please install it.",
