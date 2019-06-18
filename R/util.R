@@ -3,21 +3,20 @@
 #' @describeIn util Make design matrix
 #' @param trt1 vector of the 1st treatment / score in the contrast
 #' @param trt2 vector of the 2nd treatment / score in the contrast
+#' @param s1 vector of the 1st score in the contrast
+#' @param s2 vector of the 2nd score in the contrast
 #' @param ref The name of the reference treatment / score (character)
 #' @param sc A vector containing the full list of scores considered, so that the scores are not put into alphabetical order. This keeps the order of the scores in later network meta-analysis models the same as in other places.
+#' @param x A variety of possible inputs, depends on the function
+#' @param to.check Name of score to be checked
 #'
 #' @details  This function has been adapted slightly from the supplementary material of  \href{https://doi.org/10.1186/s12874-016-0184-5}{Law et al 2016}: 
 #' 
 #' Law, M.; Jackson, D.; Turner, R.; Rhodes, K. & Viechtbauer, W. Two new methods to fit models for network meta-analysis with random inconsistency effects BMC Medical Research Methodology, 2016, 16, 87.
 #' 
-#'
 #' @return A design matrix
 #' 
-#' @importFrom magrittr %>%
 #' @importFrom stats model.matrix
-#' @import dplyr
-#' @importFrom tidyr spread gather unite
-#' @importFrom rlang :=
 contrmat <- function(trt1, trt2, ref, sc = NULL){
     all.lvls <- unique(c(levels(factor(trt1)), levels(factor(trt2))))
     if(is.null(sc)) sc <- all.lvls
@@ -33,7 +32,6 @@ contrmat <- function(trt1, trt2, ref, sc = NULL){
 }
 
 #' @describeIn util Calculate differences between performance measures
-#' @param d A structured dataset, as calculated with \code{\link{aggregate_performance}}
 #' @return A new dataset with differences calculated
 #' 
 get_diff <- function(x){

@@ -42,7 +42,13 @@ check_combn(x, to.check = s1)
 
 \item{sc}{A vector containing the full list of scores considered, so that the scores are not put into alphabetical order. This keeps the order of the scores in later network meta-analysis models the same as in other places.}
 
-\item{d}{A structured dataset, as calculated with \code{\link{aggregate_performance}}}
+\item{x}{A variety of possible inputs, depends on the function}
+
+\item{s1}{vector of the 1st score in the contrast}
+
+\item{s2}{vector of the 2nd score in the contrast}
+
+\item{to.check}{Name of score to be checked}
 }
 \value{
 A design matrix
