@@ -3,17 +3,35 @@
 \name{contrmat}
 \alias{contrmat}
 \alias{get_diff}
-\alias{get_k}
 \alias{get_ref}
+\alias{get_scores}
+\alias{get_design}
+\alias{get_est}
+\alias{get_var}
+\alias{get_direct}
+\alias{get_indirect}
+\alias{check_combn}
 \title{Various utility functions}
 \usage{
 contrmat(trt1, trt2, ref, sc = NULL)
 
-get_diff(d)
-
-get_k(x)
+get_diff(x)
 
 get_ref(x)
+
+get_scores(x)
+
+get_design(x)
+
+get_est(x, s)
+
+get_var(x, s)
+
+get_direct(x, s1, s2)
+
+get_indirect(x, s1, s2)
+
+check_combn(x, to.check = s1)
 }
 \arguments{
 \item{trt1}{vector of the 1st treatment / score in the contrast}
@@ -25,17 +43,27 @@ get_ref(x)
 \item{sc}{A vector containing the full list of scores considered, so that the scores are not put into alphabetical order. This keeps the order of the scores in later network meta-analysis models the same as in other places.}
 
 \item{d}{A structured dataset, as calculated with \code{\link{aggregate_performance}}}
-
-\item{x}{A string of scores, pasted together with \code{:}.}
 }
 \value{
 A design matrix
 
 A new dataset with differences calculated
 
-Number of non-missing scores
-
 The number of the reference score
+
+The names of the observed scores
+
+A string of the design (combination of scores) of the cohort
+
+a vector of performance estimates
+
+a variance matrix
+
+a data.frame
+
+a data.frame
+
+TRUE/FALSE
 }
 \description{
 Various utility functions
@@ -51,8 +79,20 @@ Law, M.; Jackson, D.; Turner, R.; Rhodes, K. & Viechtbauer, W. Two new methods t
 
 \item \code{get_diff}: Calculate differences between performance measures
 
-\item \code{get_k}: Get number of scores
-
 \item \code{get_ref}: Get reference score
+
+\item \code{get_scores}: Get non-missing scores
+
+\item \code{get_design}: Get design of the cohort
+
+\item \code{get_est}: Get estimated performance
+
+\item \code{get_var}: Get variance estimated performance
+
+\item \code{get_direct}: Find direct (head-to-head) comparisons
+
+\item \code{get_indirect}: Find indirect comparisons
+
+\item \code{check_combn}: Check if score is still in any of the cohorts?
 }}
 

@@ -64,71 +64,12 @@ aggregate_performance <- function(perf.estimates, reference = NULL,
         fn.mods <- function(x) mean(x, na.rm = TRUE)
     }
     
-    get_ref <- function(x){
-        pick <- x$id == "Apparent"
-        sc <- x[pick, scores]
-        which.nonmiss <- which(!is.na(sc))
-        if(length(which.nonmiss) >= 1){
-            this.ref <- reference
-            if(is.na(sc[this.ref])) this.ref <- names(sc)[which.nonmiss[1]]
-        } else {
-            this.ref <- ""
-        }
-        this.ref
-    }
-    
-    get_scores <- function(x){
-        pick <- x$id == "Apparent"
-        sc <- x[pick, scores]
-        names(sc)[!is.na(sc)]
-    }
-    
-    get_design <- function(x){
-        new.labels <- design.levels[1:length(scores)]
-        relbl <- factor(x, scores, labels = new.labels)
-        paste(relbl, collapse = "")
-    }
-    
     refs <- sapply(working.estimates, get_ref)
     sc <- sapply(working.estimates, get_scores)
     designs <- sapply(sc, get_design)
     
     sc <- mapply(function(x, y) x[!x %in% y], sc, refs)
-    
-    get_diff <- function(x){
-        refs <- get_ref(x)
-        if(refs != ""){
-        x$ref <- x[, refs]
-        for(i in scores) x[, i] <- x[, i] - x$ref
-        x[, refs] <- NA
-        x <- x[, !names(x) %in% "ref"]
-        x
-        } else {
-            NULL
-        }
-    }
-    
     we <- lapply(working.estimates, get_diff)
-    
-    get_est <- function(x, s){
-        pick <- x$id == "Apparent"
-        out <- as.numeric(x[pick, s])
-        names(out) <- s
-        if(length(out) == 0) out <- numeric(0)
-        out
-    }
-
-    get_var <- function(x, s){
-        pick <- x$id != "Apparent"
-        if(any(dim(x[pick, s]) == 0)){
-            out <- matrix(nrow = 0, ncol = 0)
-        } else {
-            out <- var(x[pick, s], na.rm = TRUE, 
-                       use = "pairwise.complete.obs")
-        }
-        if(length(out) == 1)  out <- as.matrix(out)
-        out
-    }
 
     yi <- mapply(get_est, working.estimates, sc)
     vi <- mapply(get_var, working.estimates, sc)

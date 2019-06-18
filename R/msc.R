@@ -143,12 +143,6 @@ msc_direct <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency"
     modelresults <- vector("list", ncol(listpairs))
     names(modelresults) <- paste(apply(listpairs, 2, paste, collapse = "-"), "direct")
     
-    get_direct <- function(x, s1, s2){
-        out <- x[, c("id", s1, s2)]
-        to.keep <- !is.na(out[, s1]) & !is.na(out[, s2])
-        out[to.keep, ]
-    }
-    
     if(verbose) cat("Number of pairs to compare: ", ncol(listpairs))
     for(i in 1:ncol(listpairs)){
         if(verbose) cat(".")
@@ -216,39 +210,6 @@ msc_indirect <- function(ps, mods = NULL, mtype = c("consistency", "inconsistenc
                      mods = paste(mods, collapse = ", "))
     modelresults <- vector("list", ncol(listpairs))
     names(modelresults) <- paste(apply(listpairs, 2, paste, collapse = "-"), "indirect")
-    
-    # for indirect comparisons (node-splitting approach):
-    # if pair not in design --> leave it in as is
-    # if pair == design --> remove entire study
-    # if pair in design (but there are extra scores also) --> remove 2nd of pair
-    
-    get_indirect <- function(x, s1, s2){
-        ap <- x[x$id == "Apparent", scores]
-        nms <- names(ap)[!is.na(ap)]
-        has_s1 <- s1 %in% nms
-        has_s2 <- s2 %in% nms
-        others <- nms[!nms %in% c(s1, s2)]
-        has_others <- length(others) > 0
-        
-        if(has_s1 & has_s1){
-            if(has_others){
-                out <- x
-                out[, s2] <- NA
-            } else if (!has_others){
-                out <- x
-                out[, c(s1, s2)] <- NA
-            }
-        } else {
-            out <- x
-        }
-        out
-    }
-    
-    check_combn <- function(x, to.check = s1){
-        tmp <- as.numeric(x[x$id == "Apparent", to.check])
-        ((length(tmp) > 0) && !is.na(tmp))
-    }
-    
     
     if(verbose) cat("Number of pairs to compare: ", ncol(listpairs))
     for(i in 1:ncol(listpairs)){
