@@ -58,74 +58,113 @@ aggregate_performance <- function(perf.estimates, reference = NULL,
     
     if(is.null(fn.mods) & !is.null(mods)){
         #message("Since fn.mods was not specified, moderators will be aggregated with mean(x, na.rm = TRUE).")
-        fn.mods <- partial(mean, na.rm = TRUE)
+        fn.mods <- function(x) mean(x, na.rm = TRUE)
     } else if(!length(fn.mods) %in% c(1, length(mods))){
         warning("There should be", length(mods), "or 1 function to aggregate the moderators defined. Reverting to mean(x, na.rm = TRUE)")
-        fn.mods <- partial(mean, na.rm = TRUE)
+        fn.mods <- function(x) mean(x, na.rm = TRUE)
     }
     
-    tmp <- working.estimates %>% 
-        group_by(cohort, .data$type) %>%
-        nest() %>%
-        mutate(data = map(data, get_diff)) %>% 
-        unnest %>% 
-        filter(.data$k > 1) %>%
-        group_by(cohort, .data$type, .data$ref) %>%
-        nest(scores) %>%
-        mutate(yi = map(data, ~ apply(., 2, mean, na.rm = TRUE)),
-               vi = map(data, ~ var(., use = "pairwise"))) %>%
-        mutate(scores.eval = map(yi, ~ which(!is.na(.)))) %>%
-        mutate(num.scores = map_int(.data$scores.eval, length)) %>%
-        filter(.data$num.scores > 0) %>%
-        select(-.data$num.scores) %>%
-        mutate(yi = map2(yi, .data$scores.eval, function(x, k) x[k]),
-               vi = map2(vi, .data$scores.eval, function(x, k) x[k, k]))
+    get_ref <- function(x){
+        pick <- x$id == "Apparent"
+        sc <- x[pick, scores]
+        which.nonmiss <- which(!is.na(sc))
+        if(length(which.nonmiss) >= 1){
+            this.ref <- reference
+            if(is.na(sc[this.ref])) this.ref <- names(sc)[which.nonmiss[1]]
+        } else {
+            this.ref <- ""
+        }
+        this.ref
+    }
     
-    yi <- tmp %>% 
-        filter(.data$type == "apparent") %>% 
-        select(cohort, yi, .data$scores.eval, .data$ref) %>% 
-        unnest %>%
-        mutate(score = .data$scores.eval) %>%
-        select(-.data$scores.eval)
-    vis <- tmp %>% 
-        filter(.data$type != "apparent") %>% 
-        select(vi)
-    vi <- metafor::bldiag(lapply(vis$vi, as.matrix))
+    get_scores <- function(x){
+        pick <- x$id == "Apparent"
+        sc <- x[pick, scores]
+        names(sc)[!is.na(sc)]
+    }
     
-    y <- yi$yi
-    v <- vi
-    cohort <- factor(yi$cohort)
-    cohortd <- tibble("cohort" = as.character(cohort))
+    get_design <- function(x){
+        new.labels <- design.levels[1:length(scores)]
+        relbl <- factor(x, scores, labels = new.labels)
+        paste(relbl, collapse = "")
+    }
+    
+    refs <- sapply(working.estimates, get_ref)
+    sc <- sapply(working.estimates, get_scores)
+    designs <- sapply(sc, get_design)
+    
+    sc <- mapply(function(x, y) x[!x %in% y], sc, refs)
+    
+    get_diff <- function(x){
+        refs <- get_ref(x)
+        if(refs != ""){
+        x$ref <- x[, refs]
+        for(i in scores) x[, i] <- x[, i] - x$ref
+        x[, refs] <- NA
+        x <- x[, !names(x) %in% "ref"]
+        x
+        } else {
+            NULL
+        }
+    }
+    
+    we <- lapply(working.estimates, get_diff)
+    
+    get_est <- function(x, s){
+        pick <- x$id == "Apparent"
+        out <- as.numeric(x[pick, s])
+        names(out) <- s
+        if(length(out) == 0) out <- numeric(0)
+        out
+    }
+
+    get_var <- function(x, s){
+        pick <- x$id != "Apparent"
+        if(any(dim(x[pick, s]) == 0)){
+            out <- matrix(nrow = 0, ncol = 0)
+        } else {
+            out <- var(x[pick, s], na.rm = TRUE, 
+                       use = "pairwise.complete.obs")
+        }
+        if(length(out) == 1)  out <- as.matrix(out)
+        out
+    }
+
+    yi <- mapply(get_est, working.estimates, sc)
+    vi <- mapply(get_var, working.estimates, sc)
+    
+    k <- sapply(yi, length)
+    cohort <- factor(rep(names(yi), k))
+    design <- rep(designs, k)
+    yi <- unlist(yi)
+    sc <- unlist(sc)
+    refs <- unlist(rep(refs, k))
+    contr <- paste(sc, refs, sep = "-")
+    designmat <- contrmat(refs, sc, ref = reference, sc = scores)
+    to.keep <- lapply(vi, length) > 0
+    vi <- metafor::bldiag(lapply(vi[to.keep], as.matrix))
+
     
     if(!is.null(mods)){
-    modagg <- moderators %>%
-        group_by(cohort) %>%
-        summarize_at(mods, fn.mods) 
-    modagg <- left_join(cohortd, modagg, by = "cohort")
+        outmods <- data.frame("cohort" = names(moderators))
+        for(i in mods){
+            tmp <- lapply(moderators, function(x) as.vector(x[, i]))
+            outmods[, i] <- sapply(tmp, fn.mods)
+        }
+    # modagg <- moderators %>%
+    #     group_by(cohort) %>%
+    #     summarize_at(mods, fn.mods) 
+    # modagg <- left_join(cohortd, modagg, by = "cohort")
     } else {
-        modagg <- NULL
+        outmods <- NULL
     }
     
-    dmat <- contrmat(scores[yi$ref], scores[yi$score], reference, scores)
-    contr <- yi %>% 
-        mutate(ref = scores[.data$ref], 
-               score = scores[.data$score], 
-               contr = paste(.data$score, .data$ref, sep = "-")) %>%
-        select(contr) %>%
-        unlist
-    design <- yi %>%
-        group_by(cohort) %>%
-        mutate(design = map2_chr(.data$ref, .data$score, 
-                    ~ paste(design.levels[unique(sort(c(.data$ref, .data$score)))], 
-                                                     collapse = ""))) %>%
-        mutate(design = gsub("slope", "", design)) %>%
-        ungroup() %>%
-        select(design) %>%
-        unlist
+    outmods <- merge(data.frame(cohort = cohort), outmods, sort = FALSE)
     
-    out <- list(cohort, y, v, contr, design, dmat, lbl, fn, scores, reference, mods, modagg)
+    out <- list(cohort, yi, vi, contr, design, designmat, sc, refs,
+                lbl, fn, scores, reference, mods, outmods)
     names(out) <- c("cohort", "yi", "vi", "contr", "design", 
-                    "design.matrix", "lbl", "fn", "scores", "ref",
+                    "design.matrix", "s1", "s2" ,"lbl", "fn", "scores", "ref",
                     "mods", "moderators")
     class(out) <- "mscagg"
     return(out)
@@ -134,10 +173,10 @@ aggregate_performance <- function(perf.estimates, reference = NULL,
 #' @describeIn aggregate_performance Print basic aggregated performance measures
 #' @export
 print.mscagg <- function(x, ...){
-    aggdat <- with(x, tibble(cohort, yi, vi = diag(vi), 
-            contr, design, lbl)) %>% 
-        mutate(cohort = as.character(.data$cohort)) %>%
-        full_join(x$moderators, by = "cohort")
+    aggdat <- with(x, data.frame(cohort, yi, vi = diag(vi), 
+            contr, design, lbl))
+    aggdat$cohort <- as.character(aggdat$cohort)
+    aggdat <- merge(aggdat, x$moderators, by = "cohort")
     print(aggdat, ...)
 }
 

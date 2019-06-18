@@ -47,21 +47,21 @@ check_transitivity <- function(ag, graph = FALSE){
     
     transitivity_model <- function(contr, moderator){
         this.ag <- subset_agg(ag, contr)
-        dat.ag <- full_join(dplyr::tibble("cohort" = this.ag$cohort,
+        dat.ag <- merge(data.frame("cohort" = this.ag$cohort,
                                    "yi" = this.ag$yi, 
                                    "contr" = this.ag$contr, 
                                    "design" = this.ag$design, 
                                    "wt" = diag(this.ag$wt)), 
                                    this.ag$moderators, 
-                                    "by" = "cohort")
+                                    "by" = "cohort", all = TRUE)
         this.fm <- paste("yi ~", moderator)
         this.lm <- lm(as.formula(this.fm), weights = dat.ag$wt, data = dat.ag)
         tidy(this.lm, conf.int = TRUE)
     }  
-    NA_tbl <- dplyr::tibble(term = NA, estimate = NA, std.error = NA, 
+    NA_tbl <- data.frame(term = NA, estimate = NA, std.error = NA, 
                      statistic = NA, p.value = NA, 
                      conf.low = NA, conf.high = NA)
-    possibly_transitivity <- possibly(transitivity_model, NA_tbl)
+    possibly_transitivity <- purrr::possibly(transitivity_model, NA_tbl)
     res <- crossing(contr = unique(ag$contr),
                     moderator = ag$mods) %>%
         mutate(fit = map2(.data$contr, .data$moderator, possibly_transitivity)) %>%
@@ -76,13 +76,13 @@ check_transitivity <- function(ag, graph = FALSE){
         }
         #require(ggplot2)
         
-        dat1 <- dplyr::tibble(cohort = as.character(ag$cohort), 
+        dat1 <- data.frame(cohort = as.character(ag$cohort), 
                                 yi = ag$yi, 
                                 contr = ag$contr, wt = diag(ag$wt))
         dat2 <- ag$moderators
-        dat.ag <- full_join(dat1, dat2, by = "cohort") %>%
-            mutate(id = 1:n()) %>%
-            gather(ag$mods, key = "moderator", value = "value")
+        dat.ag <- merge(dat1, dat2, by = "cohort", all = TRUE) %>%
+        dat.ag$id = 1:nrow(dat.ag)
+            tidyr::gather(ag$mods, key = "moderator", value = "value")
         p <- ggplot(aes(.data$value, .data$yi, size = .data$wt, 
                         color = .data$contr, shape = .data$contr), 
                data = dat.ag) + 

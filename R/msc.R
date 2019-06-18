@@ -52,10 +52,11 @@ msc_full <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency")[
     res.d <- msc_direct(ps, mods = mods, mtype = mt, verbose = verbose, ...)
     if(verbose) cat("Calculating indirect estimates...\n")
     res.i <- msc_indirect(ps, mods = mods, mtype = mt, verbose = verbose, ...)
-    outtab <- bind_rows(res.nw$table, res.d$table, res.i$table) %>%
-        mutate(type = factor(.data$type, c("network", "direct", "indirect"))) %>% 
-        arrange(.data$s1, .data$s2, .data$type) %>%
-        mutate(measure = ps$lbl)
+    outtab <- rbind(res.nw$table, res.d$table, res.i$table)
+    outtab$type <- factor(outtab$type, c("network", "direct", "indirect"))
+    ord <- with(outtab, order(s1, s2, type))
+    outtab <- outtab[ord, ]
+    outtab$measure <- ps$lbl
     modelresults <- c(res.nw$models, res.d$models, res.i$models)
     out <- list("table" = outtab,
                 "models" = modelresults, 
@@ -76,7 +77,6 @@ msc_network <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency
                       inconsistency = inconsistency)
     this.ss <- aggregate_performance(ps, reference = ps$scores[1])
     x <- modelfn(this.ss, mods = mods, ...)
-    #print(coeftable(x))
     scorepairs <- expand.grid(x1 = scores, x2 = scores)
     scorepairs$x1 <- factor(scorepairs$x1, scores)
     scorepairs$x2 <- factor(scorepairs$x2, scores)
@@ -93,7 +93,7 @@ msc_network <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency
     ci.ub <- as.vector(est + qnorm(1 - 0.05 / 2) * sqrt(diag(var.est)))
     pval <- as.vector(pnorm(-abs(est / sqrt(diag(var.est)))) * 2)
     #list("estimate" = est, "ci.lb" = ci.lb, "ci.ub" = ci.ub, "var.estimate" = var.est)
-    out <- tibble(s1 = scorepairs$x1,
+    out <- data.frame(s1 = scorepairs$x1,
                   s2 = scorepairs$x2,
                   model = x$model,
                   type = "network",
@@ -102,127 +102,16 @@ msc_network <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency
                   ci.ub = ci.ub,
                   pval = pval, 
                   measure = ps$lbl,
-                  mods = paste(mods, collapse = ", ")) %>%
-        mutate(s1 = factor(.data$s1, scores),
-               s2 = factor(.data$s2, scores))
+                  mods = paste(mods, collapse = ", "))
+    
+    out$s1 = factor(out$s1, scores)
+    out$s2 = factor(out$s2, scores)
     out <- list("table" = out,
                 "models" = list("network" = x),
                 "type" = "network", 
                 "performance" = ps$lbl,
                 "mods" = mods)
     class(out) <- "msc"
-    out
-}
-
-
-#' @describeIn msc Compute all pairwise indirect comparisons
-#' @export
-msc_indirect <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency")[1], verbose = FALSE, ...){
-    if(class(ps) != "mscraw") warning("A set of *raw* performance estimates is needed (class(ps) == 'mscraw'), from compute_performance().")
-    # node splitting approach to estimating direct and indirect differences
-    # takes result of compute_performance as argument
-    
-    # for indirect comparisons (node-splitting approach):
-    # if pair not in design --> leave it in as is
-    # if pair == design --> remove entire study
-    # if pair in design (but there are extra scores also) --> remove 2nd of pair
-    scores <- ps$scores
-    we <- ps$working.estimates
-    
-    mt <- match.arg(mtype, c("consistency", "inconsistency"))
-    modelfn <- switch(mt, 
-                      consistency = consistency,
-                      inconsistency = inconsistency)
-    
-    # make list of pairwise comparisons
-    listpairs <- combn(scores, 2)
-    datout <- tibble(s1 = listpairs[1, ], 
-                     s2 = listpairs[2, ],
-                     model = mt,
-                     type = "indirect",
-                     estimate = NA,
-                     ci.lb = NA,
-                     ci.ub = NA,
-                     pval = NA, 
-                     measure = ps$lbl,
-                     mods = paste(mods, collapse = ", "))
-    modelresults <- vector("list", ncol(listpairs))
-    names(modelresults) <- paste(apply(listpairs, 2, paste, collapse = "-"), "indirect")
-    
-    # for each comparison...
-    if(verbose) cat("Number of pairs to compare: ", ncol(listpairs))
-    for(i in 1:ncol(listpairs)){
-        if(verbose) cat(".")
-        #https://edwinth.github.io/blog/dplyr-recipes/
-        s1 <- sym(s1c <- listpairs[1, i])
-        s2 <- sym(s2c <- listpairs[2, i])
-        if(verbose) print(c(s1c, s2c))
-        other.scores <- scores[!grepl(paste(c(s1c, s2c), collapse = "|"), scores)]
-        # 1. keep only "working.estimates" with both s1 and s2, drop other scores% 
-        this.designs <- we %>%
-            filter(id == "Apparent") %>%
-            select(-id, -.data$type, -.data$measure, -.data$ref, -.data$k) %>%
-            group_by(.data$cohort) %>%
-            gather(scores, key = "score", value = "value") %>%
-            mutate(score = factor(.data$score, scores)) %>%
-            arrange(.data$cohort, .data$score) %>%
-            summarize(design = paste(.data$score[!is.na(.data$value)], collapse = "-"))
-        # see, for example, https://dplyr.tidyverse.org/articles/programming.html for !!var := ...
-        this.we <- we %>%
-            full_join(this.designs, by = "cohort") %>%
-            mutate(has1 = grepl(s1c, .data$design),
-                   has2 = grepl(s2c, .data$design),
-                   has.others = grepl(paste(other.scores, collapse = "|"), .data$design)) %>%
-            mutate(!!s1 := case_when(
-                .data$has1 & .data$has2 & !.data$has.others ~ NA_real_,
-                .data$has1 & .data$has2 & .data$has.others ~ !!s1,
-                !(.data$has1 & .data$has2) ~ !!s1),
-            !!s2 := case_when(
-                .data$has1 & .data$has2 & !.data$has.others ~ NA_real_,
-                .data$has1 & .data$has2 & .data$has.others ~ NA_real_,
-                !(.data$has1 & .data$has2) ~ !!s2),
-            k = ifelse(.data$has1 & .data$has2 & !.data$has.others, 0, .data$k)) %>%
-            select(-.data$has1, -.data$has2, -.data$has.others, -.data$design)
-        this.moderators <- ps$moderators %>%
-            filter(.data$cohort %in% this.we$cohort)
-        indirect_evidence <- (nrow(this.we) > 0) & 
-            (mean(!is.na(this.we[, s1c])) > 0) & 
-            (mean(!is.na(this.we[, s2c])) > 0)
-        
-        if(indirect_evidence){
-            this.ps <- ps
-            this.ps$working.estimates <- this.we
-            this.ps$moderators <- this.moderators
-            this.ps$scores <- scores
-            this.ss <- aggregate_performance(this.ps, reference = s1c)
-            # 2. estimate model with [in]consistency()
-            this.model <- try(modelfn(this.ss, mods = mods, ...), silent = TRUE)
-            modelresults[[i]] <- this.model
-            if(verbose) print(this.model)
-            # 3. save results
-            if(any(class(this.model) == "try-error")){
-                datout[i, 5:8] <- NA 
-            } else {
-                this.out <- with(this.model, cbind(beta, ci.lb, ci.ub, pval))
-                names.out <- rownames(this.out)
-                pick.names <- names.out[names.out %in% c(s2c, "mods")]
-                datout[i, 5:8] <- this.out[pick.names, ]
-            }
-        } else {
-            datout[i, 5:8] <- NA 
-        }
-        if(verbose) print(datout[i, ])
-    }
-    
-    
-    out <- list("table" = datout %>%
-                    mutate(s1 = factor(s1, scores),
-                           s2 = factor(s2, scores)),
-                "models" = modelresults, 
-                "type" = "indirect", 
-                "performance" = ps$lbl,
-                "mods" = mods)
-    class(out) <- c("msc")
     out
 }
 
@@ -254,66 +143,151 @@ msc_direct <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency"
     modelresults <- vector("list", ncol(listpairs))
     names(modelresults) <- paste(apply(listpairs, 2, paste, collapse = "-"), "direct")
     
-    # for each comparison...
+    get_direct <- function(x, s1, s2){
+        out <- x[, c("id", s1, s2)]
+        to.keep <- !is.na(out[, s1]) & !is.na(out[, s2])
+        out[to.keep, ]
+    }
+    
     if(verbose) cat("Number of pairs to compare: ", ncol(listpairs))
     for(i in 1:ncol(listpairs)){
         if(verbose) cat(".")
-        #https://edwinth.github.io/blog/dplyr-recipes/
-        s1 <- sym(s1c <- listpairs[1, i])
-        s2 <- sym(s2c <- listpairs[2, i])
-        if(verbose) print(c(s1c, s2c))
-        other.scores <- scores[!grepl(paste(c(s1c, s2c), collapse = "|"), scores)]
-        # 1. keep only "working.estimates" with both s1 and s2, drop other scores% 
-        this.designs <- we %>%
-            filter(id == "Apparent") %>%
-            select(-id, -.data$type, -.data$measure, -.data$ref, -.data$k) %>%
-            group_by(.data$cohort) %>%
-            gather(scores, key = "score", value = "value") %>%
-            mutate(score = factor(.data$score, scores)) %>%
-            arrange(.data$cohort, .data$score) %>%
-            summarize(design = paste(.data$score[!is.na(.data$value)], collapse = "-"))
-        # see, for example, https://dplyr.tidyverse.org/articles/programming.html for !!var := ...
-        #filter(type == "apparent") %>%
-        this.we <- we %>%
-            full_join(this.designs, by = "cohort") %>%
-            mutate(has1 = grepl(s1c, .data$design),
-                   has2 = grepl(s2c, .data$design),
-                   has.others = grepl(paste(other.scores, collapse = "|"), .data$design)) %>%
-            mutate(k = .data$has1 + .data$has2,
-                   ref = which(scores == s1c)) %>%
-            mutate_at(other.scores, ~ ifelse(as.numeric(.), NA, NA)) %>%
-            select(-.data$has1, -.data$has2, -.data$has.others, -.data$design) %>%
-            filter(.data$k == 2)
-        this.moderators <- ps$moderators %>%
-            filter(.data$cohort %in% this.we$cohort)
-        if(nrow(this.we) > 0){
+        
+        s1 <- listpairs[1, i]
+        s2 <- listpairs[2, i]
+        this.we <- mapply(get_direct, we, s1, s2, SIMPLIFY = FALSE)
+        if(all(sapply(this.we, nrow) == 0)){
+            datout[i, 5:8] <- NA 
+        } else {
+        this.ps <- ps
+        this.ps$working.estimates <- this.we
+        this.ps$scores <- c(s1, s2)
+        
+        this.agg <- aggregate_performance(this.ps, reference = s1)
+        this.model <- try(modelfn(this.agg, mods = mods, ...), silent = TRUE)
+        modelresults[[i]] <- this.model
+        if(verbose) print(this.model)
+        if(any(class(this.model) == "try-error")){
+                datout[i, 5:8] <- NA 
+        } else {
+                this.out <- with(this.model, cbind(beta, ci.lb, ci.ub, pval))
+                datout[i, 5:8] <- this.out[1, ]
+        }
+        if(verbose) print(datout[i, ])
+        
+        }
+        
+    }
+    
+    datout$s1 <- factor(datout$s1, scores)
+    datout$s2 <- factor(datout$s2, scores)
+    
+    out <- list("table" = datout,
+                "models" = modelresults, 
+                "type" = "direct", 
+                "performance" = ps$lbl)
+    class(out) <- "msc"
+    out
+}
+
+#' @describeIn msc Compute all pairwise indirect comparisons
+#' @export
+msc_indirect <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency")[1], verbose = FALSE, ...){
+    if(class(ps) != "mscraw") warning("A set of *raw* performance estimates is needed (class(ps) == 'mscraw'), from compute_performance().")
+    scores <- ps$scores
+    we <- ps$working.estimates
+    
+    mt <- match.arg(mtype, c("consistency", "inconsistency"))
+    modelfn <- switch(mt,
+                      consistency = consistency,
+                      inconsistency = inconsistency)
+    
+    # make list of pairwise comparisons
+    listpairs <- combn(scores, 2)
+    datout <- tibble(s1 = listpairs[1, ],
+                     s2 = listpairs[2, ],
+                     model = mt,
+                     type = "indirect",
+                     estimate = NA,
+                     ci.lb = NA,
+                     ci.ub = NA,
+                     pval = NA, 
+                     measure = ps$lbl,
+                     mods = paste(mods, collapse = ", "))
+    modelresults <- vector("list", ncol(listpairs))
+    names(modelresults) <- paste(apply(listpairs, 2, paste, collapse = "-"), "indirect")
+    
+    # for indirect comparisons (node-splitting approach):
+    # if pair not in design --> leave it in as is
+    # if pair == design --> remove entire study
+    # if pair in design (but there are extra scores also) --> remove 2nd of pair
+    
+    get_indirect <- function(x, s1, s2){
+        ap <- x[x$id == "Apparent", scores]
+        nms <- names(ap)[!is.na(ap)]
+        has_s1 <- s1 %in% nms
+        has_s2 <- s2 %in% nms
+        others <- nms[!nms %in% c(s1, s2)]
+        has_others <- length(others) > 0
+        
+        if(has_s1 & has_s1){
+            if(has_others){
+                out <- x
+                out[, s2] <- NA
+            } else if (!has_others){
+                out <- x
+                out[, c(s1, s2)] <- NA
+            }
+        } else {
+            out <- x
+        }
+        out
+    }
+    
+    check_combn <- function(x, to.check = s1){
+        tmp <- as.numeric(x[x$id == "Apparent", to.check])
+        ((length(tmp) > 0) && !is.na(tmp))
+    }
+    
+    
+    if(verbose) cat("Number of pairs to compare: ", ncol(listpairs))
+    for(i in 1:ncol(listpairs)){
+        if(verbose) cat(".")
+        
+        s1 <- listpairs[1, i]
+        s2 <- listpairs[2, i]
+        this.we <- mapply(get_indirect, we, s1, s2, SIMPLIFY = FALSE)
+        
+        c1 <- any(sapply(we, check_combn, to.check = s1)) 
+        c2 <- any(sapply(we, check_combn, to.check = s2)) 
+        
+        if(!(c1 & c2)){
+            datout[i, 5:8] <- NA 
+        } else {
             this.ps <- ps
             this.ps$working.estimates <- this.we
-            this.ps$scores <- scores
-            if(!is.null(mods)) this.ps$moderators <- this.moderators
-            this.ss <- aggregate_performance(this.ps, reference = s1c)
-            # 2. estimate model with [in]consistency()
-            this.model <- try(modelfn(this.ss, mods = mods, ...), silent = TRUE)
+            this.agg <- aggregate_performance(this.ps, reference = s1)
+            this.model <- try(modelfn(this.agg, mods = mods), silent = TRUE)
             modelresults[[i]] <- this.model
             if(verbose) print(this.model)
-            # 3. save results
             if(any(class(this.model) == "try-error")){
                 datout[i, 5:8] <- NA 
             } else {
                 this.out <- with(this.model, cbind(beta, ci.lb, ci.ub, pval))
                 datout[i, 5:8] <- this.out[1, ]
             }
-        } else {
-            datout[i, 5:8] <- NA 
+            if(verbose) print(datout[i, ])
+            
         }
-        if(verbose) print(datout[i, ])
+        
     }
     
-    out <- list("table" = datout %>%
-                    mutate(s1 = factor(s1, scores),
-                           s2 = factor(s2, scores)),
+    datout$s1 <- factor(datout$s1, scores)
+    datout$s2 <- factor(datout$s2, scores)
+    
+    out <- list("table" = datout,
                 "models" = modelresults, 
-                "type" = "direct", 
+                "type" = "indirect", 
                 "performance" = ps$lbl)
     class(out) <- "msc"
     out
@@ -346,11 +320,9 @@ plot.msc <- function(x, compare_to = NULL, newlabels = NULL, ...){
         if(!check1) stop("compare_to should be a vector of length 1, for example: ", x$s1[1])
         check2 <- all((compare_to %in% levels(x$s1) | compare_to %in% levels(x$s2)))
         if(!check2) stop("compare_to should be one of the values found in s1 or s2, for example: ", x$s2[1])
-        x1 <- x %>%
-            filter(.data$s1 == compare_to)
-        x2 <- x %>%
-            filter(.data$s2 == compare_to)
-        x2fix <- tibble(s1 = x2$s2,
+        x1 <- subset(x, s1 == compare_to) 
+        x2 <- subset(x, s2 == compare_to)
+        x2fix <- data.frame(s1 = x2$s2,
                         s2 = x2$s1,
                         model = x2$model,
                         type = x2$type,
@@ -359,7 +331,7 @@ plot.msc <- function(x, compare_to = NULL, newlabels = NULL, ...){
                         ci.ub = -x2$ci.lb,
                         pval = x2$pval,
                         measure = x2$measure)
-        x <- bind_rows(x1, x2fix)
+        x <- rbind(x1, x2fix)
     } 
     if(!is.null(newlabels)){
         oldlabels <- levels(x$s1)

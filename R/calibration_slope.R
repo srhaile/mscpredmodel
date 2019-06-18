@@ -25,62 +25,61 @@
 #'
 #' @describeIn calibration_slope Estimate calibration slope
 #' @export
-calibration_slope <- function(bss, fm){
+calibration_slope <- function(dd, fm){
     fm <- as.formula(fm)
     fm <- update(fm, . ~ qlogis(.))
-    m <- glm(fm, analysis(bss), family = binomial, na.action = na.omit)
+    m <- glm(fm, dd, family = binomial, na.action = na.omit)
     coef(m)[2]
 }
 
 #' @describeIn calibration_slope Estimate calibration-in-the-large
 #' @export
-calibration_large <- function(bss, fm){
+calibration_large <- function(dd, fm){
     fm <- as.formula(fm)
     fm <- update(fm, . ~ offset(qlogis(.)))
-    m <- glm(fm, analysis(bss), family = binomial, na.action = na.omit)
+    m <- glm(fm, dd, family = binomial, na.action = na.omit)
     coef(m)
 }
 
 #' @describeIn calibration_slope Estimate c-Statistics / Area under the ROC curve
 #' @export
-c_statistic <- function(bss, fm){
+c_statistic <- function(dd, fm){
     if (!requireNamespace("pROC", quietly = TRUE)) {
         stop("Package \"pROC\" needed for this function to work. Please install it.",
              call. = FALSE)
     }
     fm <- as.formula(fm)
-    m <- roc(fm, analysis(bss))
+    m <- roc(fm, dd)
     auc(m)
 }
 
 #' @describeIn calibration_slope Estimate ratio of observed to expected number of events
 #' @export
-oe_ratio <- function(bss, fm){
+oe_ratio <- function(dd, fm){
     if(is.character(fm)){
         fm <- trimws(strsplit(fm, "~")[[1]])
     } else {
         fm <- as.character(fm)
         fm <- fm[fm != "~"]
     }
-    this.bss <- analysis(bss) %>%
-        select(fm) %>% 
-        drop_na()
-    obs <- this.bss %>% pull(fm[1])
-    pred <- this.bss %>% pull(fm[2])
+    this.dd <- dd[, fm] 
+    this.dd <- na.omit(this.dd)
+    obs <- this.dd[, fm[1]]
+    pred <- this.dd[, fm[2]]
     sum(obs) / sum(pred)
 }
 
 #' @describeIn calibration_slope Estimate Brier score
 #' @export
-brier_score <- function(bss, fm){
+brier_score <- function(dd, fm){
     if(is.character(fm)){
         fm <- trimws(strsplit(fm, "~")[[1]])
     } else {
         fm <- as.character(fm)
         fm <- fm[fm != "~"]
     }
-    obs <- analysis(bss)[, fm[1]]
-    pred <- analysis(bss)[, fm[2]]
+    obs <- dd[, fm[1]]
+    pred <- dd[, fm[2]]
     brier.score <- (obs - pred) ^ 2
     mean(brier.score, na.rm = TRUE)
 }
