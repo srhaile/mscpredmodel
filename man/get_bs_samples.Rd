@@ -4,7 +4,7 @@
 \alias{get_bs_samples}
 \title{Generates bootstrap samples}
 \usage{
-get_bs_samples(data, id, cohort, outcome, n.samples = 10,
+get_bs_samples(data, id, cohort, outcome, n.samples = 1000,
   scores = NULL, moderators = NULL)
 }
 \arguments{
@@ -25,8 +25,10 @@ get_bs_samples(data, id, cohort, outcome, n.samples = 10,
 \value{
 A list with 3 elements:
 \describe{
-  \item{bs.sample}{A tibble containing the stratified bootstrap samples}
-  \item{scores}{Names of the scores as given in \code{...} in the function call}
+  \item{bs.sample}{A data.frame containing the stratified bootstrap samples, split by cohort}
+  \item{orig.sample}{A data.frame containing the orignal data, split by cohort}
+  \item{scores}{Unique names of the scores which are also in the dataset}
+  \item{mods}{A vector of moderators which may be included in subsequent models}
   \item{formulas}{vector of formulas that can be used in any function which calculates performance measures (e.g. \code{\link{calibration_slope}})}
 }
 }
