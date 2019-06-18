@@ -3,7 +3,6 @@
 \name{compute_performance}
 \alias{compute_performance}
 \alias{print.mscraw}
-\alias{summary.mscraw}
 \alias{points.mscraw}
 \alias{lines.mscraw}
 \title{Computes performance measures for prognostic scores on a set of bootstrap samples}
@@ -11,8 +10,6 @@
 compute_performance(bs.sample, fn = calibration_slope, lbl = NULL)
 
 \method{print}{mscraw}(x, ...)
-
-\method{summary}{mscraw}(object, nonpar = TRUE, NArm = TRUE, ...)
 
 \method{points}{mscraw}(x, ...)
 
@@ -28,12 +25,6 @@ compute_performance(bs.sample, fn = calibration_slope, lbl = NULL)
 \item{x}{Set of performance estimates calculated with \code{\link{compute_performance}}}
 
 \item{...}{Other arguments to be passed to \code{\link{print}}. Ignored by summary, points and lines.}
-
-\item{object}{Set of performance estimates calculated with \code{\link{compute_performance}}}
-
-\item{nonpar}{Should nonparametric summary statistics (median [IQR]) be reported? (TRUE)}
-
-\item{NArm}{Should NAs be removed before calculated summary statistics? (TRUE)}
 }
 \value{
 A list with 3 elements, of class \code{msc_raw}:
@@ -48,6 +39,34 @@ The results of \code{\link{compute_performance}} have suitable \code{print} and 
 }
 \description{
 Computes performance measures for prognostic scores on a set of bootstrap samples
+
+#' @describeIn compute_performance Print summary of raw performance estimates
+#' @param object Set of performance estimates calculated with \code{\link{compute_performance}}
+#' @param nonpar  Should nonparametric summary statistics (median [IQR]) be reported? (TRUE)
+#' @param NArm Should NAs be removed before calculated summary statistics? (TRUE)
+#' @export
+summary.mscraw <- function(object, nonpar = TRUE, NArm = TRUE, ...){
+  sc <- object$scores
+  object.apparent <- object$working.estimates %>%
+    filter(id == "Apparent") %>%
+    select(.data$cohort, sc)
+  q1 <- partial(quantile, probs = 0.25, na.rm = NArm)
+  q3 <- partial(quantile, probs = 0.75, na.rm = NArm)
+  nonmiss <- function(object) sum(!is.na(object))
+  if(nonpar){
+    fns <- list("nonmiss" = nonmiss, "median" = partial(median, na.rm = NArm), 
+                "q1" = q1, "q3" = q3)
+  } else {
+    fns <- list("nonmiss" = nonmiss, "mean" = partial(mean, na.rm = NArm), 
+                "sd" = partial(sd, na.rm = NArm))
+  }
+  object.apparent  %>%
+    gather(sc, key = "score", value = "value") %>%
+    group_by(.data$score) %>%
+    summarize_at("value", fns) %>%
+    mutate(performance = object$lbl) %>%
+    select(.data$score, .data$performance, everything())
+}
 }
 \details{
 The function to compute performance measures, \code{fn} requires two arguments:
@@ -60,8 +79,6 @@ and outputs a single numeric value. Using \code{\link{possibly}}, \code{\link{co
 \section{Methods (by generic)}{
 \itemize{
 \item \code{print}: Print raw performance estimates
-
-\item \code{summary}: Print summary of raw performance estimates
 
 \item \code{points}: Plot variability of raw performance estimates across bootstrap samples using points
 

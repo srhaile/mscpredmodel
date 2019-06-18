@@ -4,7 +4,7 @@
 \alias{get_bs_samples}
 \title{Generates bootstrap samples}
 \usage{
-get_bs_samples(data, id, cohort, outcome, n.samples = 1000,
+get_bs_samples(data, id, cohort, outcome, n.samples = 10,
   scores = NULL, moderators = NULL)
 }
 \arguments{
@@ -35,7 +35,7 @@ Generates bootstrap samples
 }
 \examples{
 dat <- msc_sample_data()
-get_bs_samples(dat, id, study, outcome, n.samples = 10, 
-                  scores = c("a", "b", "c", "d", "e", "f"), 
-                  moderators = c("age", "female", "x1"))
+set.seed(12345)
+get_bs_samples(dat, id, study, outcome, scores = letters[1:4], moderators = "age")
+get_bs_samples(dat, id, "study", outcome, scores = letters[1:4], moderators = "age")
 }

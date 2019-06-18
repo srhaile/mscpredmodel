@@ -3,8 +3,8 @@
 \name{msc_full}
 \alias{msc_full}
 \alias{msc_network}
-\alias{msc_indirect}
 \alias{msc_direct}
+\alias{msc_indirect}
 \alias{print.msc}
 \alias{plot.msc}
 \title{Full, direct and indirect network results for MSC}
@@ -15,10 +15,10 @@ msc_full(ps, mods = NULL, mtype = c("consistency", "inconsistency")[1],
 msc_network(ps, mods = NULL, mtype = c("consistency",
   "inconsistency")[1], ...)
 
-msc_indirect(ps, mods = NULL, mtype = c("consistency",
+msc_direct(ps, mods = NULL, mtype = c("consistency",
   "inconsistency")[1], verbose = FALSE, ...)
 
-msc_direct(ps, mods = NULL, mtype = c("consistency",
+msc_indirect(ps, mods = NULL, mtype = c("consistency",
   "inconsistency")[1], verbose = FALSE, ...)
 
 \method{print}{msc}(x, ...)
@@ -60,9 +60,9 @@ Compute all pairwise comparisons for the full network, all direct comparisons, o
 
 \item \code{msc_network}: Compute all pairwise comparisons in the full network of evidence
 
-\item \code{msc_indirect}: Compute all pairwise indirect comparisons
-
 \item \code{msc_direct}: Compute all pairwise indirect comparisons
+
+\item \code{msc_indirect}: Compute all pairwise indirect comparisons
 }}
 
 \examples{

@@ -15,29 +15,22 @@
 #'   \item{formulas}{vector of formulas that can be used in any function which calculates performance measures (e.g. \code{\link{calibration_slope}})}
 #' }
 #' 
-#' @importFrom magrittr %>%
-#' @importFrom stats model.matrix
-#' @import dplyr
-#' @importFrom tidyr spread gather unite nest
-#' @importFrom purrr map
+#' @importFrom rsample bootstraps
 #' @export
 #'
 #' @examples
 #' dat <- msc_sample_data()
-#' get_bs_samples(dat, id, study, outcome, n.samples = 10, 
-#'                   scores = c("a", "b", "c", "d", "e", "f"), 
-#'                   moderators = c("age", "female", "x1"))
-get_bs_samples <- function(data, id, cohort, outcome, n.samples = 1000, 
+#' set.seed(12345)
+#' get_bs_samples(dat, id, study, outcome, scores = letters[1:4], moderators = "age")
+#' get_bs_samples(dat, id, "study", outcome, scores = letters[1:4], moderators = "age")
+
+get_bs_samples <- function(data, id, cohort, outcome, n.samples = 10, 
                            scores = NULL, moderators = NULL){
-    # for some of these tricks: https://edwinth.github.io/blog/dplyr-recipes/
-    if (!requireNamespace("rsample", quietly = TRUE)) {
-        stop("Package \"rsample\" needed for this function to work. Please install it.",
-             call. = FALSE)
-    }
-    id_enq <- enquo(id)
-    cohort_enq <- enquo(cohort)
-    outcome_enq <- enquo(outcome)
-    #scores <- quos(...)
+    mf <- match.call()
+    print(mf)
+    id      <- as.character(mf[[match("id", names(mf))]])
+    cohort     <- as.character(mf[[match("cohort", names(mf))]])
+    outcome <- as.character(mf[[match("outcome", names(mf))]])
     
     if(is.null(scores)){
         stop("Please specify some scores to be compared.")
@@ -59,22 +52,25 @@ get_bs_samples <- function(data, id, cohort, outcome, n.samples = 1000,
     scores <- scores.to.keep
     mods <- mods.to.keep
     
-    bs.sample <- data %>%
-        select(!!id_enq, !!cohort_enq, !!outcome_enq, scores, moderators) %>%
-        rename(id = !!id_enq,
-               cohort = !!cohort_enq,
-               outcome = !!outcome_enq) %>%
-        group_by(cohort)
-   # scores <- names(bs.sample)
-    scores <- scores.to.keep
-    mods <- mods.to.keep
-    bs.sample2  <- bs.sample %>%
-        nest() %>%
-        mutate(bs = map(data, rsample::bootstraps, times = n.samples, apparent = TRUE)) %>%
-        select(-data) %>%
-        unnest
-    list(bs.sample = bs.sample2,
+    sm <- dat[, c(id, cohort, outcome, scores, mods)]
+    names(sm)[1:3] <- c("id", "cohort", "outcome")
+    
+    fm <- paste(outcome, "~", scores)
+    
+    spl <- split(sm, sm$cohort)
+    
+    if (!requireNamespace("rsample", quietly = TRUE)) {
+        stop("Package \"rsample\" needed for this function to work. Please install it.",
+             call. = FALSE)
+    }
+    bss <- lapply(spl, bootstraps, times = n.samples, apparent = TRUE)
+    
+    list(id, cohort, outcome, scores, mods, fm, spl, bss)
+    list(bs.sample = bss,
+         orig.sample = spl,
          scores = scores,
          mods = mods,
-         formulas = paste("outcome ~", scores))
-}
+         formulas = fm)
+} 
+
+

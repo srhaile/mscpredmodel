@@ -8,20 +8,20 @@
 \alias{brier_score}
 \title{Compute performance in terms of various typical calibration and discrimination measures.}
 \usage{
-calibration_slope(bss, fm)
+calibration_slope(dd, fm)
 
-calibration_large(bss, fm)
+calibration_large(dd, fm)
 
-c_statistic(bss, fm)
+c_statistic(dd, fm)
 
-oe_ratio(bss, fm)
+oe_ratio(dd, fm)
 
-brier_score(bss, fm)
+brier_score(dd, fm)
 }
 \arguments{
-\item{bss}{A set of bootstrap samples, stratified by cohort, as computed by \code{\link{get_bs_samples}}. The full bootstrap data is called within the function as \code{analysis(bss)}. See \code{\link[rsample]{bootstraps}} for more details.}
-
 \item{fm}{The formula that will be called by the model, of the form \code{outcome ~ score} (character).}
+
+\item{bss}{A set of bootstrap samples, stratified by cohort, as computed by \code{\link{get_bs_samples}}. The full bootstrap data is called within the function as \code{analysis(bss)}. See \code{\link[rsample]{bootstraps}} for more details.}
 }
 \value{
 A single performance measure (numeric).
