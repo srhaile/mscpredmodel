@@ -19,9 +19,9 @@ oe_ratio(dd, fm)
 brier_score(dd, fm)
 }
 \arguments{
-\item{fm}{The formula that will be called by the model, of the form \code{outcome ~ score} (character).}
+\item{dd}{A dataset.}
 
-\item{bss}{A set of bootstrap samples, stratified by cohort, as computed by \code{\link{get_bs_samples}}. The full bootstrap data is called within the function as \code{analysis(bss)}. See \code{\link[rsample]{bootstraps}} for more details.}
+\item{fm}{The formula that will be called by the model, of the form \code{outcome ~ score} (character).}
 }
 \value{
 A single performance measure (numeric).
