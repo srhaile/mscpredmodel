@@ -1,12 +1,6 @@
 #' @title Full, direct and indirect network results for MSC
 #' 
-#' @importFrom magrittr %>%
-#' @importFrom rlang :=
 #' @importFrom stats model.matrix pnorm qnorm
-#' @import dplyr
-#' @importFrom tidyr spread gather unite nest
-#' @importFrom purrr map map2 possibly
-#' @importFrom tibble tibble
 #' @importFrom utils combn
 #' @import ggplot2
 #' 
@@ -16,7 +10,7 @@
 #' @param mods A vector of variable names that are moderators, that is, covariates which could affect the differences in score performance. See also \code{\link{aggregate_performance}}. The main model in an analysis should probably not include any moderators, but they may be interesting when examining transitivity.
 #' @param mtype Type of model (default "consistency", else "inconsistency"). It is sufficient to write \code{"c"} or \code{"i"}.
 #' @param verbose If TRUE, results of each model will be printed (default FALSE)
-#' @param ... In the \code{msc} functions, any other arguments are passed to \code{\link[metafor]{rma.mv}}. See also \code{\link{consistency}}. In the print function, other options are passed to \code{\link[tibble]{print.tbl}}. Ignored in the plot function.
+#' @param ... In the \code{msc} functions, any other arguments are passed to \code{\link[metafor]{rma.mv}}. See also \code{\link{consistency}}. In the print function, other options are passed to \code{\link{print.data.frame}}. Ignored in the plot function.
 #'
 #' @return A list of class \code{msc}, with the following components:
 #' \describe{
@@ -130,7 +124,7 @@ msc_direct <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency"
     
     # make list of pairwise comparisons
     listpairs <- combn(scores, 2)
-    datout <- tibble(s1 = listpairs[1, ],
+    datout <- data.frame(s1 = listpairs[1, ],
                      s2 = listpairs[2, ],
                      model = mt,
                      type = "direct",
@@ -149,7 +143,7 @@ msc_direct <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency"
         
         s1 <- listpairs[1, i]
         s2 <- listpairs[2, i]
-        this.we <- mapply(get_direct, we, s1, s2, SIMPLIFY = FALSE)
+        this.we <- lapply(we, get_direct, s1, s2)
         if(all(sapply(this.we, nrow) == 0)){
             datout[i, 5:8] <- NA 
         } else {
@@ -186,7 +180,9 @@ msc_direct <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency"
 
 #' @describeIn msc Compute all pairwise indirect comparisons
 #' @export
-msc_indirect <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency")[1], verbose = FALSE, ...){
+msc_indirect <- function(ps, mods = NULL, 
+                         mtype = c("consistency", "inconsistency")[1], 
+                         verbose = FALSE, ...){
     if(class(ps) != "mscraw") warning("A set of *raw* performance estimates is needed (class(ps) == 'mscraw'), from compute_performance().")
     scores <- ps$scores
     we <- ps$working.estimates
@@ -198,7 +194,7 @@ msc_indirect <- function(ps, mods = NULL, mtype = c("consistency", "inconsistenc
     
     # make list of pairwise comparisons
     listpairs <- combn(scores, 2)
-    datout <- tibble(s1 = listpairs[1, ],
+    datout <- data.frame(s1 = listpairs[1, ],
                      s2 = listpairs[2, ],
                      model = mt,
                      type = "indirect",
@@ -217,7 +213,8 @@ msc_indirect <- function(ps, mods = NULL, mtype = c("consistency", "inconsistenc
         
         s1 <- listpairs[1, i]
         s2 <- listpairs[2, i]
-        this.we <- mapply(get_indirect, we, s1, s2, SIMPLIFY = FALSE)
+        
+        this.we <- lapply(we, get_indirect, s1, s2, sc = scores)
         
         c1 <- any(sapply(we, check_combn, to.check = s1)) 
         c2 <- any(sapply(we, check_combn, to.check = s2)) 
@@ -228,7 +225,7 @@ msc_indirect <- function(ps, mods = NULL, mtype = c("consistency", "inconsistenc
             this.ps <- ps
             this.ps$working.estimates <- this.we
             this.agg <- aggregate_performance(this.ps, reference = s1)
-            this.model <- try(modelfn(this.agg, mods = mods), silent = TRUE)
+            this.model <- try(modelfn(this.agg, mods = mods, ...), silent = TRUE)
             modelresults[[i]] <- this.model
             if(verbose) print(this.model)
             if(any(class(this.model) == "try-error")){
@@ -281,8 +278,8 @@ plot.msc <- function(x, compare_to = NULL, newlabels = NULL, ...){
         if(!check1) stop("compare_to should be a vector of length 1, for example: ", x$s1[1])
         check2 <- all((compare_to %in% levels(x$s1) | compare_to %in% levels(x$s2)))
         if(!check2) stop("compare_to should be one of the values found in s1 or s2, for example: ", x$s2[1])
-        x1 <- subset(x, s1 == compare_to) 
-        x2 <- subset(x, s2 == compare_to)
+        x1 <- x[x$s1 == compare_to, ]
+        x2 <- x[x$s2 == compare_to, ]
         x2fix <- data.frame(s1 = x2$s2,
                         s2 = x2$s1,
                         model = x2$model,
@@ -291,14 +288,16 @@ plot.msc <- function(x, compare_to = NULL, newlabels = NULL, ...){
                         ci.lb = -x2$ci.ub,
                         ci.ub = -x2$ci.lb,
                         pval = x2$pval,
-                        measure = x2$measure)
+                        measure = x2$measure, 
+                        mods = x1$mods[1])
         x <- rbind(x1, x2fix)
     } 
     if(!is.null(newlabels)){
         oldlabels <- levels(x$s1)
         k <- length(oldlabels)
         if(length(newlabels) != length(oldlabels)){
-            warning("newlabels must be the same length as levels(x$s1), that is: ", k, ". We will keep the old levels of s1 and s2,")
+            warning("newlabels must have length ", k, 
+                    ". We will keep the old levels of s1 and s2,")
         } else {
             message("Replacing old s1 and s2 levels (", 
                     paste(oldlabels, collapse = "; "), 
