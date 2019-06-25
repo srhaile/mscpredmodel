@@ -15,13 +15,13 @@
 \usage{
 contrmat(trt1, trt2, ref, sc = NULL)
 
-get_diff(x)
+get_diff(x, s, ref)
 
-get_ref(x)
+get_ref(x, s, ref)
 
-get_scores(x)
+get_scores(x, s)
 
-get_design(x)
+get_design(x, dl, s)
 
 get_est(x, s)
 
@@ -29,9 +29,9 @@ get_var(x, s)
 
 get_direct(x, s1, s2)
 
-get_indirect(x, s1, s2)
+get_indirect(x, s1, s2, sc)
 
-check_combn(x, to.check = s1)
+check_combn(x, to.check)
 }
 \arguments{
 \item{trt1}{vector of the 1st treatment / score in the contrast}
@@ -44,9 +44,13 @@ check_combn(x, to.check = s1)
 
 \item{x}{A variety of possible inputs, depends on the function}
 
-\item{s1}{vector of the 1st score in the contrast}
+\item{s}{vector of scores to be kept}
 
-\item{s2}{vector of the 2nd score in the contrast}
+\item{dl}{design.levels}
+
+\item{s1}{name of the 1st score in the contrast}
+
+\item{s2}{name of the 2nd score in the contrast}
 
 \item{to.check}{Name of score to be checked}
 }

@@ -3,10 +3,12 @@
 #' @describeIn util Make design matrix
 #' @param trt1 vector of the 1st treatment / score in the contrast
 #' @param trt2 vector of the 2nd treatment / score in the contrast
-#' @param s1 vector of the 1st score in the contrast
-#' @param s2 vector of the 2nd score in the contrast
+#' @param s1 name of the 1st score in the contrast
+#' @param s2 name of the 2nd score in the contrast
+#' @param s vector of scores to be kept
 #' @param ref The name of the reference treatment / score (character)
 #' @param sc A vector containing the full list of scores considered, so that the scores are not put into alphabetical order. This keeps the order of the scores in later network meta-analysis models the same as in other places.
+#' @param dl design.levels
 #' @param x A variety of possible inputs, depends on the function
 #' @param to.check Name of score to be checked
 #'
@@ -16,7 +18,7 @@
 #' 
 #' @return A design matrix
 #' 
-#' @importFrom stats model.matrix
+#' @importFrom stats model.matrix var
 contrmat <- function(trt1, trt2, ref, sc = NULL){
     all.lvls <- unique(c(levels(factor(trt1)), levels(factor(trt2))))
     if(is.null(sc)) sc <- all.lvls
@@ -34,11 +36,11 @@ contrmat <- function(trt1, trt2, ref, sc = NULL){
 #' @describeIn util Calculate differences between performance measures
 #' @return A new dataset with differences calculated
 #' 
-get_diff <- function(x){
-    refs <- get_ref(x)
+get_diff <- function(x, s, ref){
+    refs <- get_ref(x, s, ref)
     if(refs != ""){
         x$ref <- x[, refs]
-        for(i in scores) x[, i] <- x[, i] - x$ref
+        for(i in s) x[, i] <- x[, i] - x$ref
         x[, refs] <- NA
         x <- x[, !names(x) %in% "ref"]
         x
@@ -50,12 +52,12 @@ get_diff <- function(x){
 #' @describeIn util Get reference score
 #' @return The number of the reference score
 #'
-get_ref <- function(x){
+get_ref <- function(x, s, ref){
     pick <- x$id == "Apparent"
-    sc <- x[pick, scores]
+    sc <- x[pick, s]
     which.nonmiss <- which(!is.na(sc))
     if(length(which.nonmiss) >= 1){
-        this.ref <- reference
+        this.ref <- ref
         if(is.na(sc[this.ref])) this.ref <- names(sc)[which.nonmiss[1]]
     } else {
         this.ref <- ""
@@ -67,18 +69,18 @@ get_ref <- function(x){
 #' @return The names of the observed scores
 #'
 #'
-get_scores <- function(x){
+get_scores <- function(x, s){
     pick <- x$id == "Apparent"
-    sc <- x[pick, scores]
+    sc <- x[pick, s]
     names(sc)[!is.na(sc)]
 }
 
 #' @describeIn util Get design of the cohort
 #' @return A string of the design (combination of scores) of the cohort
 #'
-get_design <- function(x){
-    new.labels <- design.levels[1:length(scores)]
-    relbl <- factor(x, scores, labels = new.labels)
+get_design <- function(x, dl, s){
+    new.labels <- dl[1:length(s)]
+    relbl <- factor(x, s, labels = new.labels)
     paste(relbl, collapse = "")
 }
 
@@ -124,8 +126,8 @@ get_direct <- function(x, s1, s2){
 # if pair == design --> remove entire study
 # if pair in design (but there are extra scores also) --> remove 2nd of pair
 
-get_indirect <- function(x, s1, s2){
-    ap <- x[x$id == "Apparent", scores]
+get_indirect <- function(x, s1, s2, sc){
+    ap <- x[x$id == "Apparent", sc]
     nms <- names(ap)[!is.na(ap)]
     has_s1 <- s1 %in% nms
     has_s2 <- s2 %in% nms
@@ -148,7 +150,7 @@ get_indirect <- function(x, s1, s2){
 
 #' @describeIn util Check if score is still in any of the cohorts?
 #' @return TRUE/FALSE
-check_combn <- function(x, to.check = s1){
+check_combn <- function(x, to.check){
     tmp <- as.numeric(x[x$id == "Apparent", to.check])
     ((length(tmp) > 0) && !is.na(tmp))
 }
