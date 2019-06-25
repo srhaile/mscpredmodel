@@ -21,17 +21,10 @@ Depends:
     R (>= 3.0)
 Imports:
     broom,
-    dplyr,
-    forcats,
     ggplot2,
     metafor,
-    magrittr,
-    purrr,
     pROC,
-    rlang,
     rsample,
-    tibble,
-    tidyr
 Suggests:
     knitr,
     rmarkdown
