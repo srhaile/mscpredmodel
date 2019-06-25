@@ -24,12 +24,10 @@
 #' dat <- msc_sample_data()
 #' set.seed(12345)
 #' get_bs_samples(dat, id, study, outcome, scores = letters[1:4], moderators = "age")
-#' get_bs_samples(dat, id, "study", outcome, scores = letters[1:4], moderators = "age")
 
 get_bs_samples <- function(data, id, cohort, outcome, n.samples = 1000, 
                            scores = NULL, moderators = NULL){
     mf <- match.call()
-    print(mf)
     id      <- as.character(mf[[match("id", names(mf))]])
     cohort     <- as.character(mf[[match("cohort", names(mf))]])
     outcome <- as.character(mf[[match("outcome", names(mf))]])
@@ -54,7 +52,7 @@ get_bs_samples <- function(data, id, cohort, outcome, n.samples = 1000,
     scores <- scores.to.keep
     mods <- mods.to.keep
     
-    sm <- dat[, c(id, cohort, outcome, scores, mods)]
+    sm <- data[, c(id, cohort, outcome, scores, mods)]
     names(sm)[1:3] <- c("id", "cohort", "outcome")
     
     fm <- paste(outcome, "~", scores)
