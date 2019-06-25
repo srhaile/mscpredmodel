@@ -159,15 +159,16 @@ points.mscraw <- function(x, ...){
                  direction = "long")
   
   bs <- wel[wel$id != "Apparent", ]
+  bs <- bs[!is.na(bs$performance), ]
   ap <- wel[wel$id == "Apparent", ]
-  
-  
+  ap <- ap[!is.na(ap$performance), ]
+ 
   ggplot(aes(.data$cohort, .data$performance), data = bs) +
     geom_jitter(color = "gray", alpha = 0.5) +
     geom_point(data = ap) +
     facet_wrap(vars(.data$score)) +
     coord_flip() +
-    ylim(-2, 5) + xlab(lbl)
+    xlab(lbl)
 }
 
 #' @describeIn compute_performance Plot variability of raw performance estimates across bootstrap samples using lines (density plots)
@@ -196,6 +197,7 @@ lines.mscraw <- function(x, ...) {
                    timevar = "score",
                    direction = "long")
     bs <- wel[wel$id != "Apparent", ]
+    bs <- bs[!is.na(bs$performance), ]
     
     ggplot(aes(.data$performance, group = .data$cohort), data = bs) +
         geom_density() +
