@@ -56,7 +56,7 @@ check_transitivity <- function(x, graph = FALSE){
         dat.x <- merge(d1, d2, by = "cohort", all = TRUE)
         this.fm <- paste("yi ~", moderator)
         this.lm <- lm(as.formula(this.fm), weights = dat.x$wt, data = dat.x)
-        out <- tidy(this.lm, conf.int = TRUE)
+        out <- broom:::tidy.lm(this.lm, conf.int = TRUE)
         out$contr <- contr
         out$moderator <- moderator
         out <- out[, c(8, 9, 1:7)]
