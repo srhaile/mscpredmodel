@@ -19,15 +19,11 @@
 #' \item{bss}{The name of the bootstrap sample. The full bootstrap data is called within the function as \code{analysis(bss)}. See  \code{\link[rsample]{bootstraps}} for more details.}
 #'   \item{fn}{The formula that will be called by the model, of the form \code{outcome ~ score} (character).}
 #' }
-#' and outputs a single numeric value. Using \code{\link{possibly}}, \code{\link{compute_performance}} assigns a value of \code{NA} if there is an error.
+#' and outputs a single numeric value. A value of \code{NA} is assigned if there is an error.
 #'
 #' @export
 #' 
-#' @importFrom magrittr %>%
-#' @importFrom stats model.matrix binomial median quantile sd
-#' @import dplyr
-#' @importFrom tidyr spread gather unite nest
-#' @importFrom purrr map map2 map2_dbl map_dbl possibly partial
+#' @importFrom stats binomial median quantile sd reshape
 #' @importFrom utils head data
 #' @importFrom rsample analysis
 #'
@@ -100,33 +96,43 @@ print.mscraw <- function(x, ...){
   print(x.apparent, ...)
 }
 
-#' #' @describeIn compute_performance Print summary of raw performance estimates
-#' #' @param object Set of performance estimates calculated with \code{\link{compute_performance}}
-#' #' @param nonpar  Should nonparametric summary statistics (median [IQR]) be reported? (TRUE)
-#' #' @param NArm Should NAs be removed before calculated summary statistics? (TRUE)
-#' #' @export
-#' summary.mscraw <- function(object, nonpar = TRUE, NArm = TRUE, ...){
-#'   sc <- object$scores
-#'   object.apparent <- object$working.estimates %>%
-#'     filter(id == "Apparent") %>%
-#'     select(.data$cohort, sc)
-#'   q1 <- partial(quantile, probs = 0.25, na.rm = NArm)
-#'   q3 <- partial(quantile, probs = 0.75, na.rm = NArm)
-#'   nonmiss <- function(object) sum(!is.na(object))
-#'   if(nonpar){
-#'     fns <- list("nonmiss" = nonmiss, "median" = partial(median, na.rm = NArm), 
-#'                 "q1" = q1, "q3" = q3)
-#'   } else {
-#'     fns <- list("nonmiss" = nonmiss, "mean" = partial(mean, na.rm = NArm), 
-#'                 "sd" = partial(sd, na.rm = NArm))
-#'   }
-#'   object.apparent  %>%
-#'     gather(sc, key = "score", value = "value") %>%
-#'     group_by(.data$score) %>%
-#'     summarize_at("value", fns) %>%
-#'     mutate(performance = object$lbl) %>%
-#'     select(.data$score, .data$performance, everything())
-#' }
+#' @describeIn compute_performance Summary of raw performance estimates
+#' @param object Set of performance estimates calculated with \code{\link{compute_performance}}
+#' @param nonpar  Should nonparametric summary statistics (median [IQR]) be reported? (TRUE)
+#' @param NArm Should NAs be removed before calculated summary statistics? (TRUE)
+#' @export
+summary.mscraw <- function(object, nonpar = TRUE, NArm = TRUE, ...){
+  sc <- object$scores
+  ap <- object$working.estimates
+  ap <- lapply(ap, function(x) x[x$id == "Apparent", sc])
+  ap <- as.data.frame(do.call(rbind, ap))
+  apl <- reshape(ap, direction = "long", varying = sc,
+          v.names = "value", timevar = "score", times = sc)
+
+  if(nonpar){
+      fn <- function(x){
+          c("nonmiss" = sum(!is.na(x)),
+            "median" = median(x, na.rm = NArm),
+            "q1" = quantile(x, probs = 0.25, na.rm = NArm, names = FALSE),
+            "q3" = quantile(x, probs = 0.75, na.rm = NArm, names = FALSE))
+      }
+  } else {
+      fn <- function(x){
+          c("nonmiss" = sum(!is.na(x)),
+            "mean" = mean(x, na.rm = NArm),
+            "s" = sd(x, na.rm = NArm))
+      }
+  }
+  
+  out <- tapply(apl$value, apl$score, FUN = fn)
+  out <- as.data.frame(do.call(rbind, out))
+  nms <- names(out)
+  out$score <- rownames(out)
+  rownames(out) <- NULL
+  out <- out[, c("score", nms)]
+  out
+
+}
 
 #' @describeIn compute_performance Plot variability of raw performance estimates across bootstrap samples using points
 #' @inheritParams print.mscraw
@@ -152,8 +158,8 @@ points.mscraw <- function(x, ...){
                  timevar = "score",
                  direction = "long")
   
-  bs <- subset(wel, id != "Apparent")
-  ap <- subset(wel, id == "Apparent")
+  bs <- wel[wel$id != "Apparent", ]
+  ap <- wel[wel$id == "Apparent", ]
   
   
   ggplot(aes(.data$cohort, .data$performance), data = bs) +
@@ -189,7 +195,7 @@ lines.mscraw <- function(x, ...) {
                    idvar = c("cohort", "id"), 
                    timevar = "score",
                    direction = "long")
-    bs <- subset(wel, id != "Apparent")
+    bs <- wel[wel$id != "Apparent", ]
     
     ggplot(aes(.data$performance, group = .data$cohort), data = bs) +
         geom_density() +
