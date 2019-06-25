@@ -5,97 +5,132 @@
 #' sample datasets (for example, with more missing observations, or different
 #' characteristics), the code given here could be adapted to other situations.
 #'
-#' @importFrom magrittr %>%
 #' @importFrom stats model.matrix runif rnorm plogis rbinom runif rexp
-#' @import dplyr
-#' @importFrom tidyr spread gather unite nest unnest crossing
-#' @importFrom purrr map map2 pmap possibly
 #'
 #' @param n.cohorts Number of cohorts in the data set (default 30)
 #'
-#' @return A sample data set (tibble)
+#' @return A sample data set (data.frame)
 #' @export
 #'
 #' @examples
 #' dat <- msc_sample_data(n.cohorts = 30)
 msc_sample_data <- function(n.cohorts = 15){
-  set.seed(20190218)
+  set.seed(123654789)
 
-  scores_setup <- tibble(score = letters[1:9],
+  scores_setup <- data.frame(score = letters[1:9],
                          intercept = c(0, 0.5, -0.5, 0, 0, 0, 0, 0.5, -0.5),
                          slope = c(1, 1, 1, 0.5, 1.5, 0.8, 1.2, 0.5, 1.5))
 
   make_data <- function(n, p, p.width = 0.1){
     p.min <- max(c(0.001, p - p.width))
     p.max <-  min(c(p + p.width, 0.999))
-    d <- tibble(id = 1:n,
+    ids <- data.frame(id = 1:n,
                 p.true = runif(n, p.min, p.max),
-                uncertainty = rnorm(n, mean = 0, sd = 0.75)) %>%
-      crossing("score" = scores_setup$score) %>%
-      full_join(scores_setup, by = "score") %>%
-      mutate(logit.p.true = qlogis(.data$p.true)) %>%
-      mutate(logit.p.pred = (.data$logit.p.true - .data$intercept) / .data$slope,
-             logit.p.outcome = .data$logit.p.true + .data$uncertainty) %>%
-      mutate(outcome = as.numeric(.data$logit.p.outcome > 0),
-             p.pred = plogis(.data$logit.p.pred)) %>%
-      select(id, .data$outcome, .data$score, .data$p.pred) %>%
-      spread(.data$score, .data$p.pred)
-    d
+                uncertainty = rnorm(n, mean = 0, sd = 0.75)) 
+    id_score <- expand.grid("id" = ids$id, "score" = scores_setup$score)
+    d <- merge(ids, id_score, by = "id", all = TRUE, sort = TRUE)
+    d <- merge(d, scores_setup, by = "score", all = TRUE, sort = TRUE)
+    
+    d$logit.p.true <- qlogis(d$p.true)
+    d$logit.p.pred <- (d$logit.p.true - d$intercept) / d$slope
+    d$logit.p.outcome <- d$logit.p.true + d$uncertainty
+    d$outcome <- as.numeric(d$logit.p.outcome > 0)
+    d$p.pred <- plogis(d$logit.p.pred)
+    d <- d[, c("id", "outcome", "score", "p.pred")]
+    dwide <- reshape(d, direction = "wide",
+            idvar = c("id", "outcome"),
+            timevar = "score")
+    names(dwide) <- c("id", "outcome", as.character(scores_setup$score))
+    rownames(dwide) <- NULL
+    ord <- order(dwide$id)
+    dwide[ord, ]
   }
-  
   sim_moderators <- function(n, mean.age, sd.age, pct.female, 
                              mean.x1, sd.x1){
-      d <- tibble(id = 1:n,
+      d <- data.frame(id = 1:n,
                   age = rnorm(n, mean.age, sd.age), 
                   female = rbinom(n, 1, pct.female),
                   x1 = rnorm(n, mean.x1, sd.x1))
+      rownames(d) <- NULL
       d
   }
   
 
-  sample_data <- tibble(cohort = 1:n.cohorts,
-                        n.subjects = round(runif(n.cohorts, 100, 1000)),
+  ## TO DO...
+  sample_data <- data.frame(cohort = sample(1:n.cohorts),
+                        n = round(runif(n.cohorts, 100, 1000)),
                         p.outcome = runif(n.cohorts, 0.2, 0.6),
                         mean.age = round(runif(n.cohorts, 40, 60)),
                         sd.age = round(runif(n.cohorts, 5, 15)),
                         pct.female = round(runif(n.cohorts), 2),
                         mean.x1 = round(rnorm(n.cohorts), 1),
-                        sd.x1 = round(rexp(n.cohorts, 1), 2)) %>%
-    mutate(dat = map2(.data$n.subjects, .data$p.outcome, make_data),
-           datm = pmap(list(.data$n.subjects, .data$mean.age, .data$sd.age,
-                            .data$pct.female, .data$mean.x1, .data$sd.x1), sim_moderators)) %>%
-    unnest() %>%
-    select(-.data$p.outcome, -.data$n.subjects, -.data$mean.age, -.data$sd.age, -.data$pct.female,
-           -.data$mean.x1, -.data$sd.x1, -.data$id1)
+                        sd.x1 = round(rexp(n.cohorts, 1), 2)) 
+  
+  dat <- mapply(make_data, sample_data$n, sample_data$p.outcome, SIMPLIFY = FALSE)
+  datm <- mapply(sim_moderators, sample_data$n, sample_data$mean.age, 
+                 sample_data$sd.age, sample_data$pct.female, 
+                 sample_data$mean.x1, sample_data$sd.x1, SIMPLIFY = FALSE)
+  names(dat) <- names(datm) <- sample_data$cohort
+  add_cohort <- function(x, nms){
+      varnames <- names(x)
+      x$cohort <- nms
+      x <- x[, c("cohort", varnames)]
+      x
+  }
+  dat <- mapply(add_cohort, dat, names(dat), SIMPLIFY = FALSE)
+  dat <- do.call(rbind, dat)
+  datm <- mapply(add_cohort, datm, names(datm), SIMPLIFY = FALSE)
+  datm <- do.call(rbind, datm)
+  dat2 <- merge(dat, datm, by = c("cohort", "id"))
+  sample_data <- split(dat2, dat2$cohort)
+  #sample_data <- mapply(add_cohort, sample_data, names(sample_data), SIMPLIFY = FALSE)
 
   # add in structural missing (by cohort)
-
-  sample_data <- sample_data %>%
-      mutate(b = ifelse(.data$cohort %% 2 == 0, .data$b, NA),
-             c = ifelse(.data$cohort %% 3 == 0, NA, .data$c),
-             d = ifelse(.data$cohort %% 4 == 0, .data$d, NA),
-             e = ifelse(.data$cohort %% 5 == 0, NA, .data$e),
-             f = ifelse(.data$cohort %% 6 == 0, .data$f, NA),
-             g = ifelse(.data$cohort %% 7 == 0, NA, .data$g),
-             h = ifelse(.data$cohort %% 8 == 0, .data$h, NA),
-             i = ifelse(.data$cohort %% 9 == 0, NA, .data$i))
+ lvls <- names(sample_data)
+ b.missing <- sample(lvls, 2)
+ c.missing <- sample(lvls, 3)
+ d.missing <- sample(lvls, 4)
+ e.missing <- sample(lvls, 3)
+ f.missing <- sample(lvls, 5)
+ g.missing <- sample(lvls, 4)
+ h.missing <- sample(lvls, 8)
+ i.missing <- sample(lvls, 10)
+ 
+ strucmiss <- function(d, s, coh){
+     if(d$cohort[1] %in% coh){
+         d[, s] <- NA
+     } 
+     d
+ }
+ 
+ datmiss <- lapply(sample_data, strucmiss, s = "b", coh = b.missing)
+ datmiss <- lapply(datmiss, strucmiss, s = "c", coh = c.missing)
+ datmiss <- lapply(datmiss, strucmiss, s = "d", coh = d.missing)
+ datmiss <- lapply(datmiss, strucmiss, s = "e", coh = e.missing)
+ datmiss <- lapply(datmiss, strucmiss, s = "f", coh = f.missing)
+ datmiss <- lapply(datmiss, strucmiss, s = "g", coh = g.missing)
+ datmiss <- lapply(datmiss, strucmiss, s = "h", coh = h.missing)
+ datmiss <- lapply(datmiss, strucmiss, s = "i", coh = i.missing)
 
   # ... and some random missings
-  random_missing <- function(x, p = 0.2){
-      is.missing <- rbinom(length(x), 1, prob = p)
-      ifelse(is.missing == 1, NA, x)
-  }
-  sample_data  <- sample_data %>%
-      mutate(b = random_missing(.data$b, 0.1),
-             c = random_missing(.data$c, 0.2),
-             d = random_missing(.data$d, 0.3),
-             e = random_missing(.data$e, 0.4),
-             f = random_missing(.data$f, 0.3),
-             g = random_missing(.data$g, 0.2),
-             h = random_missing(.data$h, 0.1),
-             i = random_missing(.data$i, 0.3))
-
-  sample_data %>% 
-      rename(study = .data$cohort)
+ randmiss <- function(d, s, p = 0.2){
+    make_missing <- rbinom(nrow(d), 1, prob = p)
+     d[make_missing == 1, s] <- NA 
+     d
+ }
+ 
+ datmiss <- lapply(datmiss, randmiss, s = "a", p = 0.05)
+ datmiss <- lapply(datmiss, randmiss, s = "b", p = 0.1)
+ datmiss <- lapply(datmiss, randmiss, s = "c", p = 0.2)
+ datmiss <- lapply(datmiss, randmiss, s = "d", p = 0.3)
+ datmiss <- lapply(datmiss, randmiss, s = "e", p = 0.2)
+ datmiss <- lapply(datmiss, randmiss, s = "f", p = 0.1)
+ datmiss <- lapply(datmiss, randmiss, s = "g", p = 0.2)
+ datmiss <- lapply(datmiss, randmiss, s = "h", p = 0.1)
+ datmiss <- lapply(datmiss, randmiss, s = "i", p = 0.3)
+ 
+ sample_data <- do.call(rbind, datmiss)
+ names(sample_data)[1] <- "study"
+ sample_data
 }
 

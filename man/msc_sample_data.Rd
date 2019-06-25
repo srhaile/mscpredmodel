@@ -10,7 +10,7 @@ msc_sample_data(n.cohorts = 15)
 \item{n.cohorts}{Number of cohorts in the data set (default 30)}
 }
 \value{
-A sample data set (tibble)
+A sample data set (data.frame)
 }
 \description{
 Creates a sample data set to test out the \code{\link{mscpredmodel}} package.
