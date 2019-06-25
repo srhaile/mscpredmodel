@@ -1,10 +1,7 @@
 #' Aggregate performance measures by cohort
 #'
-#' @importFrom magrittr %>%
 #' @importFrom stats model.matrix
-#' @import dplyr
-#' @importFrom tidyr spread gather unite nest
-#' @importFrom purrr map map2 map2_dbl map_int map2_chr possibly
+#' @importFrom metafor bldiag
 #' 
 #' @param perf.estimates A set of performance estimates of class \code{mscraw}, as computed by \code{\link{compute_performance}}
 #' @param reference The name of the reference score (default NULL, the first score is the reference). This will be the reference level of the scores in any later models.
@@ -38,13 +35,12 @@
 #' perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
 #' agg <- aggregate_performance(perf)
 #' agg
-aggregate_performance <- function(perf.estimates, reference = NULL, 
+aggregate_performance <- function(perf.estimates, reference = NULL,
                                   design.levels = LETTERS,
                                   fn.mods = NULL){
     scores <- perf.estimates$scores
     mods <- perf.estimates$mods
     moderators <- perf.estimates$moderators
-    #formulas <- perf.estimates$formulas
     fn <- perf.estimates$fn
     lbl <- perf.estimates$lbl
     working.estimates <- perf.estimates$working.estimates
@@ -64,12 +60,12 @@ aggregate_performance <- function(perf.estimates, reference = NULL,
         fn.mods <- function(x) mean(x, na.rm = TRUE)
     }
     
-    refs <- sapply(working.estimates, get_ref)
-    sc <- sapply(working.estimates, get_scores)
-    designs <- sapply(sc, get_design)
+    refs <- sapply(working.estimates, get_ref, s = scores, ref = reference)
+    sc <- sapply(working.estimates, get_scores, s = scores)
+    designs <- sapply(sc, get_design, dl = design.levels, s = scores)
     
     sc <- mapply(function(x, y) x[!x %in% y], sc, refs)
-    we <- lapply(working.estimates, get_diff)
+    we <- lapply(working.estimates, get_diff, s = scores, ref = reference)
 
     yi <- mapply(get_est, working.estimates, sc)
     vi <- mapply(get_var, working.estimates, sc)
