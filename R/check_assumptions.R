@@ -20,7 +20,7 @@
 #' @return A tibble containing results of linear regression models of the effect size (outcome) against the cohort-specific average moderator value.
 #' 
 #' @importFrom stats model.matrix lm
-#' @import broom
+#' @importFrom broom tidy
 #' 
 #' @export
 check_transitivity <- function(x, graph = FALSE){
@@ -56,7 +56,7 @@ check_transitivity <- function(x, graph = FALSE){
         dat.x <- merge(d1, d2, by = "cohort", all = TRUE)
         this.fm <- paste("yi ~", moderator)
         this.lm <- lm(as.formula(this.fm), weights = dat.x$wt, data = dat.x)
-        out <- broom:::tidy.lm(this.lm, conf.int = TRUE)
+        out <- tidy(this.lm, conf.int = TRUE)
         out$contr <- contr
         out$moderator <- moderator
         out <- out[, c(8, 9, 1:7)]
