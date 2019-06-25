@@ -6,18 +6,18 @@
 \alias{check_consistency}
 \title{Check assumptions of transitivity, consistency and homogeneity}
 \usage{
-check_transitivity(ag, graph = FALSE)
+check_transitivity(x, graph = FALSE)
 
-check_homogeneity(mod, dig = 3)
+check_homogeneity(object, dig = 3)
 
 check_consistency(ps, mtype = c("consistency", "inconsistency")[1])
 }
 \arguments{
-\item{ag}{A set of aggregated performance scores}
+\item{x}{A set of computed (mscraw) or aggregated performance scores (mscagg)}
 
 \item{graph}{Should a graph of outcomes versus moderators be printed?}
 
-\item{mod}{A \code{\link{consistency}} or \code{inconsistency} model.}
+\item{object}{A \code{\link{consistency}} or \code{inconsistency} model, or the results of \code{msc_network}, \code{msc_full}, \code{msc_direct}, or \code{msc_indirect}.}
 
 \item{dig}{Number of digits to be printed, see \code{\link{format.pval}}.}
 
@@ -51,7 +51,10 @@ bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 8,
                   moderators = c("age", "female", "x1"))
 perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
 agg <- aggregate_performance(perf)
+check_transitivity(perf, graph = FALSE)
 check_transitivity(agg, graph = FALSE)
 check_homogeneity(consistency(agg))
+full <- msc_full(perf)
+check_homogeneity(full)
 \dontrun{check_consistency(perf)}
 }
