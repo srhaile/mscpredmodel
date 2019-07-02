@@ -21,20 +21,6 @@ This is a basic example which shows you a typical analysis for a dataset having 
 
 ``` r
 library(mscpredmodel)
-#> Loading required package: dplyr
-#> 
-#> Attaching package: 'dplyr'
-#> The following objects are masked from 'package:stats':
-#> 
-#>     filter, lag
-#> The following objects are masked from 'package:base':
-#> 
-#>     intersect, setdiff, setequal, union
-#> Loading required package: forcats
-#> Loading required package: purrr
-#> Loading required package: rsample
-#> Loading required package: tidyr
-#> Loading required package: tibble
 library(ggplot2)
 theme_set(theme_bw())
 dat <- msc_sample_data()
