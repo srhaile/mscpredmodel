@@ -52,9 +52,9 @@ bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 8,
 perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
 agg <- aggregate_performance(perf)
 check_transitivity(perf, graph = FALSE)
-check_transitivity(agg, graph = FALSE)
+\dontrun{check_transitivity(agg, graph = FALSE)
 check_homogeneity(consistency(agg))
 full <- msc_full(perf)
 check_homogeneity(full)
-\dontrun{check_consistency(perf)}
+check_consistency(perf)}
 }
