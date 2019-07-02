@@ -71,8 +71,8 @@ and outputs a single numeric value. A value of \code{NA} is assigned if there is
 \examples{
 dat <- msc_sample_data()
 bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 5, 
-                  scores = c("a", "b", "c", "d", "e", "f"), 
-                  moderators = c("age", "female", "x1"))
+                  scores = c("a", "b", "c"), 
+                  moderators = "age")
 perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
 print(perf)
 summary(perf)
