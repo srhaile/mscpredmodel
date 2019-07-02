@@ -8,18 +8,18 @@
 \alias{brier_score}
 \title{Compute performance in terms of various typical calibration and discrimination measures.}
 \usage{
-calibration_slope(bss, fm)
+calibration_slope(dd, fm)
 
-calibration_large(bss, fm)
+calibration_large(dd, fm)
 
-c_statistic(bss, fm)
+c_statistic(dd, fm)
 
-oe_ratio(bss, fm)
+oe_ratio(dd, fm)
 
-brier_score(bss, fm)
+brier_score(dd, fm)
 }
 \arguments{
-\item{bss}{A set of bootstrap samples, stratified by cohort, as computed by \code{\link{get_bs_samples}}. The full bootstrap data is called within the function as \code{analysis(bss)}. See \code{\link[rsample]{bootstraps}} for more details.}
+\item{dd}{A dataset.}
 
 \item{fm}{The formula that will be called by the model, of the form \code{outcome ~ score} (character).}
 }
@@ -32,9 +32,7 @@ for calibration and discrimination. This is however not intended to be an
 exhaustive set of performance measures.
 }
 \details{
-Please note that \code{\link{compute_performance}} will use \code{\link[purrr]{possibly}} to return \code{NA_real_} if the function has an error. Of the potentially large number of cohort, score and bootstrap sample, this was a straightforward way to prevent \code{\link{compute_performance}} from returning an error for the whole dataset. However, if the function to compute performance generally does not work (for example, if the package \code{pROC} is required but not loaded), this behavior also prevents warning message for, say, unloaded R packages from being printed.
-
-It may be that you 1) prefer some transformation of these performance measures (e.g. log, or logit), or 2) would like to use another performance measure entirely. In the case of using a transformation, consider using \code{\link[purrr]{compose}}. For example, to obtain logit AUC, use the function \code{compose(qlogis, c_statistic)}, or for log O:E ratio, try \code{compose(log, oe_ratio)}. You may of course also define your own function, using these 5 as a template.
+Please note that \code{\link{compute_performance}} will use \code{try}, and return \code{NA} if the function has an error. Of the potentially large number of cohort, score and bootstrap sample, this was a straightforward way to prevent \code{\link{compute_performance}} from returning an error for the whole dataset. However, if the function to compute performance generally does not work (for example, if the package \code{pROC} is required but not loaded), this behavior also prevents warning message for, say, unloaded R packages from being printed. See the example for how to redefine the provided functions with a transformation.
 }
 \section{Functions}{
 \itemize{
@@ -49,3 +47,18 @@ It may be that you 1) prefer some transformation of these performance measures (
 \item \code{brier_score}: Estimate Brier score
 }}
 
+\examples{
+n <- 100
+x <- rnorm(n)
+y <- as.numeric(rnorm(n, x) > 1)
+dat <- data.frame(x, y)
+
+# log calibration slope
+log_cs <- function(dd, fm){
+    log(calibration_slope(dd, fm))
+}
+
+calibration_slope(dat, "y ~ x")
+log_cs(dat, "y ~ x")
+
+}

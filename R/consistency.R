@@ -21,7 +21,6 @@
 #'   \item{consistency}{First item} random contrast within study
 #'   \item{inconsistency}{Second item} random contrast within study, and random contrast within design
 #' }
-#' @import dplyr
 #' @import metafor
 #' @export
 #'
@@ -46,7 +45,9 @@ consistency <- function(x, mods = NULL, ...){
         mods.to.drop <- mods[!mods %in% x$mods]
         mods <- mods.to.keep
         if(length(mods.to.drop) > 0) warning("Dropping moderators because not in aggregated dataset: ", mods.to.drop)
-        x$dm <- cbind(x$design.matrix, as.matrix(x$moderators[, mods.to.keep]))
+        dm.mods <- as.matrix(x$moderators[, mods.to.keep])
+        colnames(dm.mods) <- mods.to.keep
+        x$dm <- cbind(x$design.matrix, dm.mods)
         if(colnames(x$dm)[1] == "") colnames(x$dm)[1] <- "intrcpt"
     } else {
         x$dm <- x$design.matrix
@@ -55,11 +56,11 @@ consistency <- function(x, mods = NULL, ...){
     xdat <- data.frame(yi = x$yi, cohort = x$cohort, contr = x$contr)
     
     if(length(x$yi) > 1){
-        modC <- metafor::rma.mv(xdat$yi, x$vi, mods =  x$dm, data = xdat,
+        modC <- rma.mv(xdat$yi, x$vi, mods =  x$dm, data = xdat,
                                 slab = xdat$cohort, intercept = FALSE, 
                                random = list(~ contr | cohort), rho = 0.5, ...)
     } else if(length(x$yi) == 1){
-        modC <-  metafor::rma(xdat$yi, x$vi, mods = x$dm, slab = xdat$cohort, 
+        modC <-  rma(xdat$yi, x$vi, mods = x$dm, slab = xdat$cohort, 
                               data = xdat, intercept = FALSE,  ...)
     }
     modC$reference <- x$ref
@@ -82,7 +83,9 @@ inconsistency <- function(x, mods = NULL, ...){
         mods.to.keep <- mods[mods %in% x$mods]
         mods.to.drop <- mods[!mods %in% x$mods]
         if(length(mods.to.drop) > 0) warning("Dropping moderators because not in aggregated dataset: ", mods.to.drop)
-        x$dm <- cbind(x$design.matrix, as.matrix(x$moderators[, mods.to.keep]))
+        dm.mods <- as.matrix(x$moderators[, mods.to.keep])
+        colnames(dm.mods) <- mods.to.keep
+        x$dm <- cbind(x$design.matrix, dm.mods)
         if(colnames(x$dm)[1] == "") colnames(x$dm)[1] <- "intrcpt"
     } else {
         x$dm <- x$design.matrix
@@ -94,14 +97,14 @@ inconsistency <- function(x, mods = NULL, ...){
                        design = x$design)
     
     if(length(x$yi) > 1){
-        modI <- metafor::rma.mv(xdat$yi, x$vi, mods = x$dm, 
+        modI <- rma.mv(xdat$yi, x$vi, mods = x$dm, 
                                 slab = xdat$cohort, 
                                intercept = FALSE, data = xdat,
                                random = list(~ contr | cohort, 
                                              ~ contr | design), 
                                rho = 0.5, phi = 0.5, ...)
     } else if(length(x$yi) == 1){
-        modI <-  metafor::rma(xdat$yi, x$vi, mods = x$dm, 
+        modI <-  rma(xdat$yi, x$vi, mods = x$dm, 
                               slab = xdat$cohort, 
                               intercept = FALSE, data = xdat, ...)
     }

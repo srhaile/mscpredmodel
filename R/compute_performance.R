@@ -19,15 +19,11 @@
 #' \item{bss}{The name of the bootstrap sample. The full bootstrap data is called within the function as \code{analysis(bss)}. See  \code{\link[rsample]{bootstraps}} for more details.}
 #'   \item{fn}{The formula that will be called by the model, of the form \code{outcome ~ score} (character).}
 #' }
-#' and outputs a single numeric value. Using \code{\link{possibly}}, \code{\link{compute_performance}} assigns a value of \code{NA} if there is an error.
+#' and outputs a single numeric value. A value of \code{NA} is assigned if there is an error.
 #'
 #' @export
 #' 
-#' @importFrom magrittr %>%
-#' @importFrom stats model.matrix binomial median quantile sd
-#' @import dplyr
-#' @importFrom tidyr spread gather unite nest
-#' @importFrom purrr map map2 map2_dbl map_dbl possibly partial
+#' @importFrom stats binomial median quantile sd reshape
 #' @importFrom utils head data
 #' @importFrom rsample analysis
 #'
@@ -47,53 +43,40 @@ compute_performance <- function(bs.sample,
     scores <- bs.sample$scores
     mods <- bs.sample$mods
     formulas <- bs.sample$formulas
+    orig.sample <- bs.sample$orig.sample
     bs.sample <- bs.sample$bs.sample
+    
     if (!requireNamespace("rsample", quietly = TRUE)) {
       stop("Package \"rsample\" needed for this function to work. Please install it.",
            call. = FALSE)
     }
-
-    if(is.null(lbl)) lbl <- paste(head(fn), collapse = "")
-    # data steps
-    fm.dat <- expand.grid(cohort = unique(bs.sample$cohort),
-                          id = unique(bs.sample$id),
-                          fm = formulas) %>%
-        mutate_all(as.character)
-    bs.sample <- bs.sample %>%
-      mutate(cohort = as.character(.data$cohort))
-    working.data <- full_join(bs.sample, fm.dat, by = c("cohort", "id")) %>%
-        mutate(fm = as.character(.data$fm))
-    # # we test the function to make sure it works in at least one case...
-    test.fn.data <- working.data %>%
-        filter(.data$id == "Apparent" & .data$cohort == .data$cohort[1])
-    test.fn <- try(fn(test.fn.data$splits[[1]], test.fn.data$fm[1]), silent = TRUE)
-    if(any(class(test.fn) == "try-error")){
-        warning("possible error:", geterrmessage())
-    }
-    # then we try it on the whole dataset
-    working.estimates <- working.data %>%
-        mutate(type = ifelse(id == "Apparent", "apparent", "bootstrap"),
-               est = map2_dbl(.data$splits, .data$fm, possibly(fn, otherwise = NA_real_)),
-               scores = rep_len(scores, length.out = nrow(working.data)),
-               measure = lbl) %>%
-        select(-.data$splits, -.data$fm) %>%
-        spread(scores, .data$est)  %>%
-        # next line seems redundant, but else, the scores go in alphabetical order!
-        select(.data$cohort, id, .data$type, .data$measure, scores) %>%
-        unite(scores, col = "est.all", sep = ":", remove = FALSE) %>%
-        mutate(ref = map_dbl(.data$est.all, get_ref),
-               k = map_dbl(.data$est.all, get_k)) %>%
-        select(-.data$est.all)
-
-    dat.mods <- bs.sample %>% 
-        filter(id == "Apparent") %>% 
-        mutate(dat = map(.data$splits, analysis)) %>%
-        select(-id, -.data$splits) %>%
-        unnest() %>%
-        select(.data$cohort, id, mods)
-        
     
-    out <- list("working.estimates" = working.estimates,
+    wrap_fn <- function(dd){
+        out <- NULL
+        bss <- lapply(dd$splits, analysis)
+        try_fn <- function(...){
+            this.out <- try(fn(...), silent = TRUE)
+            if(any(class(this.out) == "try-error")) this.out <- NA
+            this.out
+            }
+        for(i in formulas){
+            out <- cbind(out, sapply(bss, try_fn, fm = i))
+        }
+        colnames(out) <- scores
+        rownames(out) <- NULL
+        data.frame("id" = dd$id, out)
+        
+    }
+
+    ps <- lapply(bs.sample, wrap_fn)
+    
+    get_mods <- function(x){
+        as.data.frame(x[, c("cohort", mods)])
+    }
+    
+    dat.mods <- lapply(orig.sample, get_mods)
+    
+    out <- list("working.estimates" = ps,
                 moderators = dat.mods,
                 scores = scores, mods = mods, 
                 formulas = formulas, fn = fn, lbl = lbl)
@@ -106,47 +89,49 @@ compute_performance <- function(bs.sample,
 #' @param ... Other arguments to be passed to \code{\link{print}}. Ignored by summary, points and lines.
 #' @export
 print.mscraw <- function(x, ...){
-  x.apparent <- x$working.estimates %>%
-    filter(id == "Apparent")
-  if(!is.null(x$mods)){
-  x.mods <- x$moderators %>% 
-      select(-id) %>%
-      group_by(.data$cohort) %>%
-      summarize_all(mean, na.rm = TRUE)
-  out <- full_join(x.apparent, x.mods, by = "cohort") %>% 
-      select(-id, -.data$type)
-  } else {
-      out <- x.apparent
-  }
-  print(out, ...)
+    x.apparent <- lapply(x$working.estimates, function(x) x[x$id == "Apparent", ])
+    cohorts <- names(x.apparent)
+    x.apparent <- do.call(rbind, x.apparent)
+    x.apparent <- data.frame(cohort = cohorts, x.apparent[, -1])
+  print(x.apparent, ...)
 }
 
-#' @describeIn compute_performance Print summary of raw performance estimates
+#' @describeIn compute_performance Summary of raw performance estimates
 #' @param object Set of performance estimates calculated with \code{\link{compute_performance}}
 #' @param nonpar  Should nonparametric summary statistics (median [IQR]) be reported? (TRUE)
 #' @param NArm Should NAs be removed before calculated summary statistics? (TRUE)
 #' @export
 summary.mscraw <- function(object, nonpar = TRUE, NArm = TRUE, ...){
   sc <- object$scores
-  object.apparent <- object$working.estimates %>%
-    filter(id == "Apparent") %>%
-    select(.data$cohort, sc)
-  q1 <- partial(quantile, probs = 0.25, na.rm = NArm)
-  q3 <- partial(quantile, probs = 0.75, na.rm = NArm)
-  nonmiss <- function(object) sum(!is.na(object))
+  ap <- object$working.estimates
+  ap <- lapply(ap, function(x) x[x$id == "Apparent", sc])
+  ap <- as.data.frame(do.call(rbind, ap))
+  apl <- reshape(ap, direction = "long", varying = sc,
+          v.names = "value", timevar = "score", times = sc)
+
   if(nonpar){
-    fns <- list("nonmiss" = nonmiss, "median" = partial(median, na.rm = NArm), 
-                "q1" = q1, "q3" = q3)
+      fn <- function(x){
+          c("nonmiss" = sum(!is.na(x)),
+            "median" = median(x, na.rm = NArm),
+            "q1" = quantile(x, probs = 0.25, na.rm = NArm, names = FALSE),
+            "q3" = quantile(x, probs = 0.75, na.rm = NArm, names = FALSE))
+      }
   } else {
-    fns <- list("nonmiss" = nonmiss, "mean" = partial(mean, na.rm = NArm), 
-                "sd" = partial(sd, na.rm = NArm))
+      fn <- function(x){
+          c("nonmiss" = sum(!is.na(x)),
+            "mean" = mean(x, na.rm = NArm),
+            "s" = sd(x, na.rm = NArm))
+      }
   }
-  object.apparent  %>%
-    gather(sc, key = "score", value = "value") %>%
-    group_by(.data$score) %>%
-    summarize_at("value", fns) %>%
-    mutate(performance = object$lbl) %>%
-    select(.data$score, .data$performance, everything())
+  
+  out <- tapply(apl$value, apl$score, FUN = fn)
+  out <- as.data.frame(do.call(rbind, out))
+  nms <- names(out)
+  out$score <- rownames(out)
+  rownames(out) <- NULL
+  out <- out[, c("score", nms)]
+  out
+
 }
 
 #' @describeIn compute_performance Plot variability of raw performance estimates across bootstrap samples using points
@@ -158,49 +143,65 @@ points.mscraw <- function(x, ...){
          call. = FALSE)
   }
   working.estimates <- x$working.estimates
+  cohorts <- names(working.estimates)
+  we <- mapply(function(x, coh) data.frame(cohort = coh, x), 
+         working.estimates, cohorts,
+         SIMPLIFY = FALSE)
+  we <- do.call(rbind, we)
   scores <- x$scores
   lbl <- x$lbl
   
-  we <- working.estimates %>%
-    select(.data$cohort, id, scores) %>%
-    gather(scores, key = "score", value = "performance") %>%
-    mutate(id = ifelse(id == "Apparent", "Apparent", "Bootstrap"))
+  wel <- reshape(we, varying = scores,
+                 times = scores,
+                 v.names = "performance",
+                 idvar = c("cohort", "id"), 
+                 timevar = "score",
+                 direction = "long")
   
-  bs <- we %>%
-    filter(id == "Bootstrap")
-  ap <- we %>%
-    filter(id == "Apparent")
-  
-  
+  bs <- wel[wel$id != "Apparent", ]
+  bs <- bs[!is.na(bs$performance), ]
+  ap <- wel[wel$id == "Apparent", ]
+  ap <- ap[!is.na(ap$performance), ]
+ 
   ggplot(aes(.data$cohort, .data$performance), data = bs) +
     geom_jitter(color = "gray", alpha = 0.5) +
     geom_point(data = ap) +
     facet_wrap(vars(.data$score)) +
     coord_flip() +
-    ylim(-2, 5) + xlab(lbl)
+    xlab(lbl)
 }
 
 #' @describeIn compute_performance Plot variability of raw performance estimates across bootstrap samples using lines (density plots)
 #' @inheritParams print.mscraw
 #' @export
 lines.mscraw <- function(x, ...) {
-  if (!requireNamespace("ggplot2", quietly = TRUE)) {
-    stop(
-      "Package \"ggplot2\" needed for this function to work. Please install it.",
-      call. = FALSE
-    )
-  }
-  working.estimates <- x$working.estimates
-  scores <- x$scores
-  lbl <- x$lbl
-  
-  working.estimates %>%
-    select(-id, -.data$measure, -.data$ref, -.data$k) %>%
-    gather(scores, key = "score", value = "value") %>%
-    filter(.data$type != "apparent") %>%
-    ggplot(aes(.data$value, group = .data$cohort)) +
-    geom_density() +
-    xlab(lbl) +
-    facet_wrap(vars(.data$score))
+    if (!requireNamespace("ggplot2", quietly = TRUE)) {
+        stop(
+            "Package \"ggplot2\" needed for this function to work. Please install it.",
+            call. = FALSE
+        )
+    }
+    working.estimates <- x$working.estimates
+    cohorts <- names(working.estimates)
+    we <- mapply(function(x, coh) data.frame(cohort = coh, x), 
+                 working.estimates, cohorts,
+                 SIMPLIFY = FALSE)
+    we <- do.call(rbind, we)
+    scores <- x$scores
+    lbl <- x$lbl
+    
+    wel <- reshape(we, varying = scores,
+                   times = scores,
+                   v.names = "performance",
+                   idvar = c("cohort", "id"), 
+                   timevar = "score",
+                   direction = "long")
+    bs <- wel[wel$id != "Apparent", ]
+    bs <- bs[!is.na(bs$performance), ]
+    
+    ggplot(aes(.data$performance, group = .data$cohort), data = bs) +
+        geom_density() +
+        xlab(lbl) +
+        facet_wrap(vars(.data$score))
 }
 

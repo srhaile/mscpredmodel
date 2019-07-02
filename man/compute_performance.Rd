@@ -55,13 +55,13 @@ The function to compute performance measures, \code{fn} requires two arguments:
 \item{bss}{The name of the bootstrap sample. The full bootstrap data is called within the function as \code{analysis(bss)}. See  \code{\link[rsample]{bootstraps}} for more details.}
   \item{fn}{The formula that will be called by the model, of the form \code{outcome ~ score} (character).}
 }
-and outputs a single numeric value. Using \code{\link{possibly}}, \code{\link{compute_performance}} assigns a value of \code{NA} if there is an error.
+and outputs a single numeric value. A value of \code{NA} is assigned if there is an error.
 }
 \section{Methods (by generic)}{
 \itemize{
 \item \code{print}: Print raw performance estimates
 
-\item \code{summary}: Print summary of raw performance estimates
+\item \code{summary}: Summary of raw performance estimates
 
 \item \code{points}: Plot variability of raw performance estimates across bootstrap samples using points
 

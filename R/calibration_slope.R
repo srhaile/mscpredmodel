@@ -4,83 +4,86 @@
 #' for calibration and discrimination. This is however not intended to be an 
 #' exhaustive set of performance measures.
 #' 
-#' Please note that \code{\link{compute_performance}} will use \code{\link[purrr]{possibly}} to return \code{NA_real_} if the function has an error. Of the potentially large number of cohort, score and bootstrap sample, this was a straightforward way to prevent \code{\link{compute_performance}} from returning an error for the whole dataset. However, if the function to compute performance generally does not work (for example, if the package \code{pROC} is required but not loaded), this behavior also prevents warning message for, say, unloaded R packages from being printed.
+#' Please note that \code{\link{compute_performance}} will use \code{try}, and return \code{NA} if the function has an error. Of the potentially large number of cohort, score and bootstrap sample, this was a straightforward way to prevent \code{\link{compute_performance}} from returning an error for the whole dataset. However, if the function to compute performance generally does not work (for example, if the package \code{pROC} is required but not loaded), this behavior also prevents warning message for, say, unloaded R packages from being printed. See the example for how to redefine the provided functions with a transformation. 
 #' 
-#' It may be that you 1) prefer some transformation of these performance measures (e.g. log, or logit), or 2) would like to use another performance measure entirely. In the case of using a transformation, consider using \code{\link[purrr]{compose}}. For example, to obtain logit AUC, use the function \code{compose(qlogis, c_statistic)}, or for log O:E ratio, try \code{compose(log, oe_ratio)}. You may of course also define your own function, using these 5 as a template.
-#' 
-#' @importFrom magrittr %>%
 #' @importFrom stats model.matrix pnorm qnorm glm qlogis offset update na.omit as.formula coef
-#' @import dplyr
-#' @importFrom tidyr spread gather unite nest drop_na
-#' @importFrom purrr map map2 possibly
-#' @importFrom tibble tibble
 #' @importFrom pROC roc auc
-#' @importFrom rsample analysis
 #' 
-#' @param bss A set of bootstrap samples, stratified by cohort, as computed by \code{\link{get_bs_samples}}. The full bootstrap data is called within the function as \code{analysis(bss)}. See \code{\link[rsample]{bootstraps}} for more details.
+#' @param dd A dataset. 
 #' @param fm The formula that will be called by the model, of the form \code{outcome ~ score} (character).
 #'
 #' @return A single performance measure (numeric). 
-#' @export
+#' @examples
+#' n <- 100
+#' x <- rnorm(n)
+#' y <- as.numeric(rnorm(n, x) > 1)
+#' dat <- data.frame(x, y)
+#' 
+#' # log calibration slope
+#' log_cs <- function(dd, fm){
+#'     log(calibration_slope(dd, fm))
+#' }
+#'
+#' calibration_slope(dat, "y ~ x")
+#' log_cs(dat, "y ~ x")
 #'
 #' @describeIn calibration_slope Estimate calibration slope
 #' @export
-calibration_slope <- function(bss, fm){
+calibration_slope <- function(dd, fm){
     fm <- as.formula(fm)
     fm <- update(fm, . ~ qlogis(.))
-    m <- glm(fm, analysis(bss), family = binomial, na.action = na.omit)
+    m <- glm(fm, dd, family = binomial, na.action = na.omit)
     coef(m)[2]
 }
 
 #' @describeIn calibration_slope Estimate calibration-in-the-large
 #' @export
-calibration_large <- function(bss, fm){
+calibration_large <- function(dd, fm){
     fm <- as.formula(fm)
     fm <- update(fm, . ~ offset(qlogis(.)))
-    m <- glm(fm, analysis(bss), family = binomial, na.action = na.omit)
+    m <- glm(fm, dd, family = binomial, na.action = na.omit)
     coef(m)
 }
 
 #' @describeIn calibration_slope Estimate c-Statistics / Area under the ROC curve
 #' @export
-c_statistic <- function(bss, fm){
+c_statistic <- function(dd, fm){
     if (!requireNamespace("pROC", quietly = TRUE)) {
         stop("Package \"pROC\" needed for this function to work. Please install it.",
              call. = FALSE)
     }
     fm <- as.formula(fm)
-    m <- roc(fm, analysis(bss))
+    m <- roc(fm, dd)
     auc(m)
 }
 
 #' @describeIn calibration_slope Estimate ratio of observed to expected number of events
 #' @export
-oe_ratio <- function(bss, fm){
+oe_ratio <- function(dd, fm){
     if(is.character(fm)){
         fm <- trimws(strsplit(fm, "~")[[1]])
     } else {
         fm <- as.character(fm)
         fm <- fm[fm != "~"]
     }
-    this.bss <- analysis(bss) %>%
-        select(fm) %>% 
-        drop_na()
-    obs <- this.bss %>% pull(fm[1])
-    pred <- this.bss %>% pull(fm[2])
+    this.dd <- dd[, fm] 
+    this.dd <- na.omit(this.dd)
+    obs <- this.dd[, fm[1]]
+    pred <- this.dd[, fm[2]]
     sum(obs) / sum(pred)
 }
 
 #' @describeIn calibration_slope Estimate Brier score
 #' @export
-brier_score <- function(bss, fm){
+brier_score <- function(dd, fm){
     if(is.character(fm)){
         fm <- trimws(strsplit(fm, "~")[[1]])
     } else {
         fm <- as.character(fm)
         fm <- fm[fm != "~"]
     }
-    obs <- analysis(bss)[, fm[1]]
-    pred <- analysis(bss)[, fm[2]]
+    obs <- dd[, fm[1]]
+    pred <- dd[, fm[2]]
     brier.score <- (obs - pred) ^ 2
     mean(brier.score, na.rm = TRUE)
 }

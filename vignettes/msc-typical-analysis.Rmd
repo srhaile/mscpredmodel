@@ -23,7 +23,6 @@ This is a basic example which shows you a typical analysis for a dataset having 
 
 ```{r msc_setup}
 library(mscpredmodel)
-library(tidyverse)
 library(ggplot2)
 theme_set(theme_bw())
 
@@ -40,7 +39,8 @@ We want to examine performance of the 5 scores according to calibration-in-the-l
 
 ## Calibration-in-the-large
 ```{r example1}
-ps <- compute_performance(bs.example, fn = calibration_large, lbl = "calibration-in-the-large")
+ps <- compute_performance(bs.example, fn = calibration_large, 
+                          lbl = "calibration-in-the-large")
 lines(ps)
 
 agg <- aggregate_performance(ps, reference = "b")
@@ -50,8 +50,8 @@ modc <- consistency(agg)
 modi <- inconsistency(agg)
 modi
 
+check_transitivity(agg)
 check_homogeneity(modi)
-check_consistency(ps)
 
 allpairs <- msc_network(ps)
 plot(allpairs)
@@ -72,6 +72,7 @@ mod2i
 
 check_homogeneity(mod2i)
 check_consistency(ps2)
+check_transitivity(agg2)
 
 allpairs2 <- msc_network(ps2)
 plot(allpairs2, compare_to = "c")
