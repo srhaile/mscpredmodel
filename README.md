@@ -32,20 +32,13 @@ theme_set(theme_bw())
 
 dat <- msc_sample_data()
 head(dat)
-#>     study  id outcome    a    b    c    d    e    f    g  h  i age female
-#> 1.1     1   1       1 0.53   NA   NA   NA 0.52 0.54 0.52 NA NA  43      1
-#> 1.2     1  10       0 0.41 0.30 0.54 0.33 0.44 0.39 0.43 NA NA  47      0
-#> 1.3     1 100       0 0.56   NA 0.68 0.62 0.54 0.57 0.55 NA NA  39      0
-#> 1.4     1 101       1 0.44 0.32 0.57 0.38 0.46 0.43 0.45 NA NA  52      1
-#> 1.5     1 102       0 0.41   NA   NA 0.32   NA 0.38 0.42 NA NA  51      0
-#> 1.6     1 103       0   NA   NA 0.67 0.61 0.54 0.57 0.55 NA NA  47      1
-#>        x1
-#> 1.1 -0.78
-#> 1.2  1.60
-#> 1.3  0.73
-#> 1.4  2.03
-#> 1.5  0.14
-#> 1.6  1.19
+#>     study  id outcome    a    b    c    d    e    f    g  h  i age female    x1
+#> 1.1     1   1       1 0.53   NA   NA   NA 0.52 0.54 0.52 NA NA  43      1 -0.78
+#> 1.2     1  10       0 0.41 0.30 0.54 0.33 0.44 0.39 0.43 NA NA  47      0  1.60
+#> 1.3     1 100       0 0.56   NA 0.68 0.62 0.54 0.57 0.55 NA NA  39      0  0.73
+#> 1.4     1 101       1 0.44 0.32 0.57 0.38 0.46 0.43 0.45 NA NA  52      1  2.03
+#> 1.5     1 102       0 0.41   NA   NA 0.32   NA 0.38 0.42 NA NA  51      0  0.14
+#> 1.6     1 103       0   NA   NA 0.67 0.61 0.54 0.57 0.55 NA NA  47      1  1.19
 
 M <- 25
 bs.example <- get_bs_samples(data = dat, id = id, cohort = study, 
@@ -75,30 +68,29 @@ check_transitivity(agg, graph = TRUE)
 #> Warning in qt(a, object$df.residual): NaNs produced
 
 #> Warning in qt(a, object$df.residual): NaNs produced
-#> Warning: The shape palette can deal with a maximum of 6 discrete values
-#> because more than 6 becomes difficult to discriminate; you have 7.
-#> Consider specifying shapes manually if you must have them.
+#> Warning: The shape palette can deal with a maximum of 6 discrete values because more than 6
+#> becomes difficult to discriminate; you have 7. Consider specifying shapes manually if you
+#> must have them.
 #> Warning: Removed 72 rows containing missing values (geom_point).
 ```
 
 <img src="man/figures/README-example-1.png" width="60%" />
 
     #> # A tibble: 12 x 9
-    #>    contr moderator term  estimate std.error statistic   p.value  conf.low
-    #>    <fct> <fct>     <chr>    <dbl>     <dbl>     <dbl>     <dbl>     <dbl>
-    #>  1 a-b   age       age     0.0696    0.0211      3.30   0.00708   2.32e-2
-    #>  2 c-b   age       age     0.0428    0.0231      1.85   0.102    -1.06e-2
-    #>  3 e-b   age       age     0.0730    0.0314      2.33   0.0483    6.86e-4
-    #>  4 g-b   age       age     0.0622    0.0239      2.60   0.0316    7.04e-3
-    #>  5 c-a   age       age     0.0959  NaN         NaN    NaN       NaN      
-    #>  6 e-a   age       age     0.112   NaN         NaN    NaN       NaN      
-    #>  7 a-b   female    fema…   1.88      0.747       2.52   0.0284    2.39e-1
-    #>  8 c-b   female    fema…   2.28      0.797       2.86   0.0211    4.42e-1
-    #>  9 e-b   female    fema…   1.36      1.28        1.07   0.318    -1.59e+0
-    #> 10 g-b   female    fema…   2.57      0.753       3.42   0.00910   8.37e-1
-    #> 11 c-a   female    fema…  -5.24    NaN         NaN    NaN       NaN      
-    #> 12 e-a   female    fema…  -6.14    NaN         NaN    NaN       NaN      
-    #> # … with 1 more variable: conf.high <dbl>
+    #>    contr moderator term   estimate std.error statistic   p.value   conf.low conf.high
+    #>    <fct> <fct>     <chr>     <dbl>     <dbl>     <dbl>     <dbl>      <dbl>     <dbl>
+    #>  1 a-b   age       age      0.0696    0.0211      3.30   0.00708   0.0232      0.116 
+    #>  2 c-b   age       age      0.0428    0.0231      1.85   0.102    -0.0106      0.0961
+    #>  3 e-b   age       age      0.0730    0.0314      2.33   0.0483    0.000686    0.145 
+    #>  4 g-b   age       age      0.0622    0.0239      2.60   0.0316    0.00704     0.117 
+    #>  5 c-a   age       age      0.0959  NaN         NaN    NaN       NaN         NaN     
+    #>  6 e-a   age       age      0.112   NaN         NaN    NaN       NaN         NaN     
+    #>  7 a-b   female    female   1.88      0.747       2.52   0.0284    0.239       3.53  
+    #>  8 c-b   female    female   2.28      0.797       2.86   0.0211    0.442       4.12  
+    #>  9 e-b   female    female   1.36      1.28        1.07   0.318    -1.59        4.32  
+    #> 10 g-b   female    female   2.57      0.753       3.42   0.00910   0.837       4.31  
+    #> 11 c-a   female    female  -5.24    NaN         NaN    NaN       NaN         NaN     
+    #> 12 e-a   female    female  -6.14    NaN         NaN    NaN       NaN         NaN
     
     modc <- consistency(agg)
     modi <- inconsistency(agg)
