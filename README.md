@@ -24,41 +24,38 @@ library(mscpredmodel)
 library(ggplot2)
 theme_set(theme_bw())
 dat <- msc_sample_data()
-dat
-#> # A tibble: 8,894 x 15
-#>    study    id outcome     a     b      c     d      e     f      g     h
-#>    <int> <int>   <dbl> <dbl> <dbl>  <dbl> <dbl>  <dbl> <dbl>  <dbl> <dbl>
-#>  1     1     1       0 0.245    NA  0.348    NA  0.320    NA  0.281    NA
-#>  2     1     2       0 0.300    NA  0.414    NA  0.362    NA  0.331    NA
-#>  3     1     3       0 0.317    NA  0.433    NA NA        NA  0.345    NA
-#>  4     1     4       0 0.269    NA  0.377    NA NA        NA  0.303    NA
-#>  5     1     5       1 0.354    NA  0.475    NA NA        NA  0.377    NA
-#>  6     1     6       0 0.359    NA NA        NA NA        NA  0.382    NA
-#>  7     1     7       0 0.265    NA  0.373    NA NA        NA  0.299    NA
-#>  8     1     8       0 0.222    NA  0.320    NA  0.302    NA  0.260    NA
-#>  9     1     9       0 0.166    NA NA        NA NA        NA NA        NA
-#> 10     1    10       0 0.258    NA  0.365    NA  0.331    NA  0.294    NA
-#> # … with 8,884 more rows, and 4 more variables: i <dbl>, age <dbl>,
-#> #   female <int>, x1 <dbl>
+head(dat)
+#> # A tibble: 6 x 15
+#>   study    id outcome     a     b      c     d      e     f     g     h
+#>   <int> <int>   <dbl> <dbl> <dbl>  <dbl> <dbl>  <dbl> <dbl> <dbl> <dbl>
+#> 1     1     1       0 0.245    NA  0.348    NA  0.320    NA 0.281    NA
+#> 2     1     2       0 0.300    NA  0.414    NA  0.362    NA 0.331    NA
+#> 3     1     3       0 0.317    NA  0.433    NA NA        NA 0.345    NA
+#> 4     1     4       0 0.269    NA  0.377    NA NA        NA 0.303    NA
+#> 5     1     5       1 0.354    NA  0.475    NA NA        NA 0.377    NA
+#> 6     1     6       0 0.359    NA NA        NA NA        NA 0.382    NA
+#> # … with 4 more variables: i <dbl>, age <dbl>, female <int>, x1 <dbl>
 M <- 100
 bs.example <- get_bs_samples(data = dat, id = id, cohort = study, 
                              outcome = outcome, n.samples = M, 
                              scores = c("a", "b", "c", "e", "g"), 
                              moderators = c("age", "female"))
 ps <- compute_performance(bs.example, fn = calibration_large, lbl = "calibration-in-the-large")
-lines(ps)
-#> Warning: Removed 1800 rows containing non-finite values (stat_density).
-```
-
-<img src="man/figures/README-example-1.png" width="100%" />
-
-``` r
+summary(ps)
+#> # A tibble: 5 x 6
+#>   score performance              nonmiss  median     q1     q3
+#>   <chr> <chr>                      <int>   <dbl>  <dbl>  <dbl>
+#> 1 a     calibration-in-the-large      15 -0.420  -0.746  0.115
+#> 2 b     calibration-in-the-large       7 -0.0887 -0.362  0.717
+#> 3 c     calibration-in-the-large      10 -1.01   -1.36  -0.388
+#> 4 e     calibration-in-the-large      12 -0.604  -0.820  0.223
+#> 5 g     calibration-in-the-large      13 -0.540  -0.859  0.180
 
 agg <- aggregate_performance(ps, reference = "b")
 check_transitivity(agg, graph = TRUE)
 ```
 
-<img src="man/figures/README-example-2.png" width="100%" />
+<img src="man/figures/README-example-1.png" width="60%" />
 
     #> # A tibble: 8 x 8
     #>   contr moderator  estimate std.error statistic p.value  conf.low conf.high
@@ -118,7 +115,7 @@ check_transitivity(agg, graph = TRUE)
     #> Warning: Removed 4 rows containing missing values (geom_point).
     #> Warning: Removed 4 rows containing missing values (geom_linerange).
 
-<img src="man/figures/README-example-3.png" width="100%" />
+<img src="man/figures/README-example-2.png" width="60%" />
 
 ``` r
 
@@ -128,4 +125,4 @@ plot(fullres, compare_to = "c")
 #> Warning: Removed 1 rows containing missing values (geom_linerange).
 ```
 
-<img src="man/figures/README-example-4.png" width="100%" />
+<img src="man/figures/README-example-3.png" width="60%" />

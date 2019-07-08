@@ -28,19 +28,19 @@ devtools::install_github("srhaile/mscpredmodel")
 
 This is a basic example which shows you a typical analysis for a dataset having individual patient data for 30 cohorts, each with some combination of scores a, b, c, e, and g. The example here has only 100 bootstrap samples to speed up the runtime, but an actual analysis should use more.
 
-```{r example}
+```{r example, out.width = "60%"}
 library(mscpredmodel)
 library(ggplot2)
 theme_set(theme_bw())
 dat <- msc_sample_data()
-dat
+head(dat)
 M <- 100
 bs.example <- get_bs_samples(data = dat, id = id, cohort = study, 
                              outcome = outcome, n.samples = M, 
                              scores = c("a", "b", "c", "e", "g"), 
                              moderators = c("age", "female"))
 ps <- compute_performance(bs.example, fn = calibration_large, lbl = "calibration-in-the-large")
-lines(ps)
+summary(ps)
 
 agg <- aggregate_performance(ps, reference = "b")
 check_transitivity(agg, graph = TRUE)
