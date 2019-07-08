@@ -31,8 +31,6 @@ MSC network meta-analysis models
 \details{
 The consistency and inconsistency models are those found in \href{https://doi.org/10.1186/s12874-016-0184-5}{Law et al 2016}: 
 
-Law, M.; Jackson, D.; Turner, R.; Rhodes, K. & Viechtbauer, W. Two new methods to fit models for network meta-analysis with random inconsistency effects BMC Medical Research Methodology, 2016, 16, 87.
-
 Specifically, we fit one of two models using "Jackson's Model", as described in the paper, which differ only in their random effects:
 \describe{
   \item{consistency}{First item} random contrast within study
@@ -54,4 +52,7 @@ agg <- aggregate_performance(perf)
 consistency(agg)
 agg.c <- aggregate_performance(perf, "c")
 consistency(agg.c)
+}
+\seealso{
+Law, M.; Jackson, D.; Turner, R.; Rhodes, K. & Viechtbauer, W. Two new methods to fit models for network meta-analysis with random inconsistency effects BMC Medical Research Methodology, 2016, 16, 87.
 }
