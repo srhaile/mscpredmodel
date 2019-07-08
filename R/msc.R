@@ -314,5 +314,6 @@ plot.msc <- function(x, compare_to = NULL, newlabels = NULL, ...){
         geom_linerange(position = position_dodge(width = 0.2)) + 
         facet_wrap(vars(.data$s1)) +
         guides(color = guide_legend("")) + 
-        ggtitle(x$measure[1], subtitle = x$model[1])
+        ggtitle(x$measure[1], subtitle = paste(x$model[1], "model")) + 
+        xlab("") + ylab(paste("difference in", x$measure[1]))
 }
