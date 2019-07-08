@@ -6,6 +6,11 @@
 \alias{c_statistic}
 \alias{oe_ratio}
 \alias{brier_score}
+\alias{int_calib_index}
+\alias{ICI}
+\alias{E50}
+\alias{E90}
+\alias{Emax}
 \title{Compute performance in terms of various typical calibration and discrimination measures.}
 \usage{
 calibration_slope(dd, fm)
@@ -17,6 +22,14 @@ c_statistic(dd, fm)
 oe_ratio(dd, fm)
 
 brier_score(dd, fm)
+
+int_calib_index(dd, fm)
+
+E50(dd, fm)
+
+E90(dd, fm)
+
+Emax(dd, fm)
 }
 \arguments{
 \item{dd}{A dataset.}
@@ -28,7 +41,9 @@ A single performance measure (numeric).
 }
 \description{
 Here we provide several functions to compute some typical performance measures 
-for calibration and discrimination. This is however not intended to be an 
+for calibration and discrimination (calibration slope, calibration-in-the-large, 
+c-Statistic / AUC, O:E ratio, Brier score, integrated calibration index, and 
+related E50, E90, and Emax). This is however not intended to be an 
 exhaustive set of performance measures.
 }
 \details{
@@ -45,6 +60,14 @@ Please note that \code{\link{compute_performance}} will use \code{try}, and retu
 \item \code{oe_ratio}: Estimate ratio of observed to expected number of events
 
 \item \code{brier_score}: Estimate Brier score
+
+\item \code{int_calib_index}: Estimate Integrated Calibration Index (ICI) (mean)
+
+\item \code{E50}: Estimate Integrated Calibration Index (ICI) (median)
+
+\item \code{E90}: Estimate Integrated Calibration Index (ICI) (90th percentile)
+
+\item \code{Emax}: Estimate Integrated Calibration Index (ICI) (maximum)
 }}
 
 \examples{
@@ -61,4 +84,9 @@ log_cs <- function(dd, fm){
 calibration_slope(dat, "y ~ x")
 log_cs(dat, "y ~ x")
 
+}
+\seealso{
+Austin, PC, Steyerberg, EW. The Integrated Calibration Index (ICI) and related metrics for quantifying the calibration of logistic regression models. Statistics in Medicine. 2019; 1– 15. https://doi.org/10.1002/sim.8281
+
+Debray, T. P., Damen, J. A., Riley, R. D., Snell, K., Reitsma, J. B., Hooft, L., … Moons, K. G. (2018). A framework for meta-analysis of prediction model studies with binary and time-to-event outcomes. Statistical Methods in Medical Research. https://doi.org/10.1177/0962280218785504
 }
