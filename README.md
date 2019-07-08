@@ -1,119 +1,148 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-mscpredmodel
-============
 
-The goal of mscpredmodel is to make external validation and comparison of prediction models via the network meta-analytic approach multiple score comparison (MSC) straightforward for researchers involved in systematic reviews and (network) meta-analysis of prediction models.
+# mscpredmodel
 
-Installation
-------------
+The goal of mscpredmodel is to make external validation and comparison
+of prediction models via the network meta-analytic approach multiple
+score comparison (MSC) straightforward for researchers involved in
+systematic reviews and (network) meta-analysis of prediction models.
 
-You can install the released version of mscpredmodel from [github](https://github.com/) with:
+## Installation
+
+You can install the released version of mscpredmodel from
+[github](https://github.com/) with:
 
 ``` r
 devtools::install_github("srhaile/mscpredmodel")
 ```
 
-Example
--------
+## Example
 
-This is a basic example which shows you a typical analysis for a dataset having individual patient data for 30 cohorts, each with some combination of scores a, b, c, e, and g. The example here has only 100 bootstrap samples to speed up the runtime, but an actual analysis should use more.
+This is a basic example which shows you a typical analysis for a dataset
+having individual patient data for 30 cohorts, each with some
+combination of scores a, b, c, e, and g. The example here has only 25
+bootstrap samples to speed up the runtime, but an actual analysis should
+use more.
 
 ``` r
 library(mscpredmodel)
 library(ggplot2)
 theme_set(theme_bw())
+
 dat <- msc_sample_data()
 head(dat)
-#> # A tibble: 6 x 15
-#>   study    id outcome     a     b      c     d      e     f     g     h
-#>   <int> <int>   <dbl> <dbl> <dbl>  <dbl> <dbl>  <dbl> <dbl> <dbl> <dbl>
-#> 1     1     1       0 0.245    NA  0.348    NA  0.320    NA 0.281    NA
-#> 2     1     2       0 0.300    NA  0.414    NA  0.362    NA 0.331    NA
-#> 3     1     3       0 0.317    NA  0.433    NA NA        NA 0.345    NA
-#> 4     1     4       0 0.269    NA  0.377    NA NA        NA 0.303    NA
-#> 5     1     5       1 0.354    NA  0.475    NA NA        NA 0.377    NA
-#> 6     1     6       0 0.359    NA NA        NA NA        NA 0.382    NA
-#> # … with 4 more variables: i <dbl>, age <dbl>, female <int>, x1 <dbl>
-M <- 100
+#>     study  id outcome    a    b    c    d    e    f    g  h  i age female
+#> 1.1     1   1       1 0.53   NA   NA   NA 0.52 0.54 0.52 NA NA  43      1
+#> 1.2     1  10       0 0.41 0.30 0.54 0.33 0.44 0.39 0.43 NA NA  47      0
+#> 1.3     1 100       0 0.56   NA 0.68 0.62 0.54 0.57 0.55 NA NA  39      0
+#> 1.4     1 101       1 0.44 0.32 0.57 0.38 0.46 0.43 0.45 NA NA  52      1
+#> 1.5     1 102       0 0.41   NA   NA 0.32   NA 0.38 0.42 NA NA  51      0
+#> 1.6     1 103       0   NA   NA 0.67 0.61 0.54 0.57 0.55 NA NA  47      1
+#>        x1
+#> 1.1 -0.78
+#> 1.2  1.60
+#> 1.3  0.73
+#> 1.4  2.03
+#> 1.5  0.14
+#> 1.6  1.19
+
+M <- 25
 bs.example <- get_bs_samples(data = dat, id = id, cohort = study, 
                              outcome = outcome, n.samples = M, 
                              scores = c("a", "b", "c", "e", "g"), 
                              moderators = c("age", "female"))
-ps <- compute_performance(bs.example, fn = calibration_large, lbl = "calibration-in-the-large")
+ps <- compute_performance(bs.example, fn = int_calib_index, 
+                          lbl = "ICI")
 summary(ps)
-#> # A tibble: 5 x 6
-#>   score performance              nonmiss  median     q1     q3
-#>   <chr> <chr>                      <int>   <dbl>  <dbl>  <dbl>
-#> 1 a     calibration-in-the-large      15 -0.420  -0.746  0.115
-#> 2 b     calibration-in-the-large       7 -0.0887 -0.362  0.717
-#> 3 c     calibration-in-the-large      10 -1.01   -1.36  -0.388
-#> 4 e     calibration-in-the-large      12 -0.604  -0.820  0.223
-#> 5 g     calibration-in-the-large      13 -0.540  -0.859  0.180
+#>   score nonmiss median    q1   q3
+#> 1     a      15  0.104 0.068 0.12
+#> 2     b      13  0.140 0.088 0.18
+#> 3     c      12  0.097 0.075 0.23
+#> 4     e      12  0.102 0.083 0.13
+#> 5     g      11  0.093 0.077 0.13
 
 agg <- aggregate_performance(ps, reference = "b")
 check_transitivity(agg, graph = TRUE)
+#> Warning in qt(a, object$df.residual): NaNs produced
+
+#> Warning in qt(a, object$df.residual): NaNs produced
+
+#> Warning in qt(a, object$df.residual): NaNs produced
+
+#> Warning in qt(a, object$df.residual): NaNs produced
+
+#> Warning in qt(a, object$df.residual): NaNs produced
+
+#> Warning in qt(a, object$df.residual): NaNs produced
+#> Warning: The shape palette can deal with a maximum of 6 discrete values
+#> because more than 6 becomes difficult to discriminate; you have 7.
+#> Consider specifying shapes manually if you must have them.
+#> Warning: Removed 72 rows containing missing values (geom_point).
 ```
 
 <img src="man/figures/README-example-1.png" width="60%" />
 
-    #> # A tibble: 8 x 8
-    #>   contr moderator  estimate std.error statistic p.value  conf.low conf.high
-    #>   <chr> <chr>         <dbl>     <dbl>     <dbl>   <dbl>     <dbl>     <dbl>
-    #> 1 b-a   age        0.00429    0.00169     2.54   0.0521  -5.75e-5   0.00864
-    #> 2 c-a   age       -0.000713   0.00190    -0.375  0.718   -5.10e-3   0.00368
-    #> 3 e-a   age        0.00945    0.00587     1.61   0.139   -3.63e-3   0.0225 
-    #> 4 g-a   age        0.00204    0.00342     0.596  0.563   -5.49e-3   0.00957
-    #> 5 b-a   female     0.0454     0.0556      0.817  0.451   -9.75e-2   0.188  
-    #> 6 c-a   female    -0.0950     0.0505     -1.88   0.0971  -2.12e-1   0.0216 
-    #> 7 e-a   female     0.267      0.128       2.09   0.0632  -1.77e-2   0.551  
-    #> 8 g-a   female     0.121      0.0667      1.82   0.0961  -2.54e-2   0.268
-
+    #> # A tibble: 12 x 9
+    #>    contr moderator term  estimate std.error statistic   p.value  conf.low
+    #>    <fct> <fct>     <chr>    <dbl>     <dbl>     <dbl>     <dbl>     <dbl>
+    #>  1 a-b   age       age   -5.94e-3   0.00114     -5.23   2.81e-4  -0.00844
+    #>  2 c-b   age       age   -1.17e-2   0.00332     -3.54   7.64e-3  -0.0194 
+    #>  3 e-b   age       age   -9.47e-3   0.00329     -2.87   2.07e-2  -0.0171 
+    #>  4 g-b   age       age   -6.94e-3   0.00202     -3.43   8.99e-3  -0.0116 
+    #>  5 c-a   age       age   -1.58e-2 NaN          NaN    NaN       NaN      
+    #>  6 e-a   age       age   -7.20e-4 NaN          NaN    NaN       NaN      
+    #>  7 a-b   female    fema… -1.43e-1   0.0394      -3.63   3.98e-3  -0.230  
+    #>  8 c-b   female    fema… -4.55e-1   0.0776      -5.86   3.79e-4  -0.633  
+    #>  9 e-b   female    fema… -1.70e-1   0.100       -1.70   1.27e-1  -0.401  
+    #> 10 g-b   female    fema… -2.62e-1   0.0566      -4.62   1.70e-3  -0.392  
+    #> 11 c-a   female    fema…  8.61e-1 NaN          NaN    NaN       NaN      
+    #> 12 e-a   female    fema…  3.93e-2 NaN          NaN    NaN       NaN      
+    #> # … with 1 more variable: conf.high <dbl>
+    
     modc <- consistency(agg)
     modi <- inconsistency(agg)
     modi
     #> 
-    #> Multivariate Meta-Analysis Model (k = 42; method: REML)
+    #> Multivariate Meta-Analysis Model (k = 48; method: REML)
     #> 
-    #> Variance Components: 
+    #> Variance Components:
     #> 
     #> outer factor: cohort (nlvls = 15)
-    #> inner factor: contr  (nlvls = 4)
+    #> inner factor: contr  (nlvls = 7)
     #> 
-    #>             estim    sqrt  fixed
-    #> tau^2      0.0028  0.0533     no
-    #> rho        0.5000            yes
+    #>             estim    sqrt  fixed 
+    #> tau^2      0.0028  0.0525     no 
+    #> rho        0.5000            yes 
     #> 
-    #> outer factor: design (nlvls = 9)
-    #> inner factor: contr  (nlvls = 4)
+    #> outer factor: design (nlvls = 7)
+    #> inner factor: contr  (nlvls = 7)
     #> 
-    #>             estim    sqrt  fixed
-    #> gamma^2    0.0011  0.0333     no
-    #> phi        0.5000            yes
+    #>             estim    sqrt  fixed 
+    #> gamma^2    0.0000  0.0000     no 
+    #> phi        0.5000            yes 
     #> 
-    #> Test for Residual Heterogeneity: 
-    #> QE(df = 38) = 88.4727, p-val < .0001
+    #> Test for Residual Heterogeneity:
+    #> QE(df = 44) = 601.6165, p-val < .0001
     #> 
-    #> Test of Moderators (coefficient(s) 1:4): 
-    #> QM(df = 4) = 743.8152, p-val < .0001
+    #> Test of Moderators (coefficients 1:4):
+    #> QM(df = 4) = 96.4464, p-val < .0001
     #> 
     #> Model Results:
     #> 
-    #>    estimate      se      zval    pval    ci.lb    ci.ub     
-    #> a   -0.4571  0.0308  -14.8198  <.0001  -0.5175  -0.3966  ***
-    #> c   -0.9796  0.0368  -26.6531  <.0001  -1.0517  -0.9076  ***
-    #> e   -0.5556  0.0393  -14.1273  <.0001  -0.6327  -0.4785  ***
-    #> g   -0.5373  0.0345  -15.5757  <.0001  -0.6049  -0.4697  ***
+    #>    estimate      se    zval    pval   ci.lb   ci.ub 
+    #> a    0.0865  0.0153  5.6532  <.0001  0.0565  0.1165  *** 
+    #> c    0.1475  0.0169  8.7127  <.0001  0.1143  0.1807  *** 
+    #> e    0.1249  0.0165  7.5500  <.0001  0.0925  0.1573  *** 
+    #> g    0.1130  0.0169  6.6781  <.0001  0.0798  0.1462  *** 
     #> 
     #> ---
     #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
+    
     check_homogeneity(modi)
-    #>      tau2         Q        df   p-value 
-    #>   "0.003"  "88.473"      "38" "<0.0001"
+    #>     tau2  QE df     QEp
+    #> 1 0.0028 602 44 5.3e-99
     check_consistency(ps)
-    #> Warning: Removed 4 rows containing missing values (geom_point).
-    #> Warning: Removed 4 rows containing missing values (geom_linerange).
 
 <img src="man/figures/README-example-2.png" width="60%" />
 
@@ -121,8 +150,6 @@ check_transitivity(agg, graph = TRUE)
 
 fullres <- msc_full(ps)
 plot(fullres, compare_to = "c")
-#> Warning: Removed 1 rows containing missing values (geom_point).
-#> Warning: Removed 1 rows containing missing values (geom_linerange).
 ```
 
 <img src="man/figures/README-example-3.png" width="60%" />
