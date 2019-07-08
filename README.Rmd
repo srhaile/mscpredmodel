@@ -42,8 +42,8 @@ bs.example <- get_bs_samples(data = dat, id = id, cohort = study,
                              outcome = outcome, n.samples = M, 
                              scores = c("a", "b", "c", "e", "g"), 
                              moderators = c("age", "female"))
-ps <- compute_performance(bs.example, fn = int_calib_index, 
-                          lbl = "ICI")
+ps <- compute_performance(bs.example, fn = calibration_large, 
+                          lbl = "calibration-in-the-large")
 summary(ps)
 
 agg <- aggregate_performance(ps, reference = "b")

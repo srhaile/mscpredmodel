@@ -52,15 +52,15 @@ bs.example <- get_bs_samples(data = dat, id = id, cohort = study,
                              outcome = outcome, n.samples = M, 
                              scores = c("a", "b", "c", "e", "g"), 
                              moderators = c("age", "female"))
-ps <- compute_performance(bs.example, fn = int_calib_index, 
-                          lbl = "ICI")
+ps <- compute_performance(bs.example, fn = calibration_large, 
+                          lbl = "calibration-in-the-large")
 summary(ps)
-#>   score nonmiss median    q1   q3
-#> 1     a      15  0.104 0.068 0.12
-#> 2     b      13  0.140 0.088 0.18
-#> 3     c      12  0.097 0.075 0.23
-#> 4     e      12  0.102 0.083 0.13
-#> 5     g      11  0.093 0.077 0.13
+#>   score nonmiss median    q1    q3
+#> 1     a      15  0.012 -0.47  0.23
+#> 2     b      13  0.479  0.03  0.75
+#> 3     c      12 -0.398 -0.98 -0.22
+#> 4     e      12 -0.113 -0.47  0.22
+#> 5     g      11 -0.172 -0.50  0.27
 
 agg <- aggregate_performance(ps, reference = "b")
 check_transitivity(agg, graph = TRUE)
@@ -86,18 +86,18 @@ check_transitivity(agg, graph = TRUE)
     #> # A tibble: 12 x 9
     #>    contr moderator term  estimate std.error statistic   p.value  conf.low
     #>    <fct> <fct>     <chr>    <dbl>     <dbl>     <dbl>     <dbl>     <dbl>
-    #>  1 a-b   age       age   -5.94e-3   0.00114     -5.23   2.81e-4  -0.00844
-    #>  2 c-b   age       age   -1.17e-2   0.00332     -3.54   7.64e-3  -0.0194 
-    #>  3 e-b   age       age   -9.47e-3   0.00329     -2.87   2.07e-2  -0.0171 
-    #>  4 g-b   age       age   -6.94e-3   0.00202     -3.43   8.99e-3  -0.0116 
-    #>  5 c-a   age       age   -1.58e-2 NaN          NaN    NaN       NaN      
-    #>  6 e-a   age       age   -7.20e-4 NaN          NaN    NaN       NaN      
-    #>  7 a-b   female    fema… -1.43e-1   0.0394      -3.63   3.98e-3  -0.230  
-    #>  8 c-b   female    fema… -4.55e-1   0.0776      -5.86   3.79e-4  -0.633  
-    #>  9 e-b   female    fema… -1.70e-1   0.100       -1.70   1.27e-1  -0.401  
-    #> 10 g-b   female    fema… -2.62e-1   0.0566      -4.62   1.70e-3  -0.392  
-    #> 11 c-a   female    fema…  8.61e-1 NaN          NaN    NaN       NaN      
-    #> 12 e-a   female    fema…  3.93e-2 NaN          NaN    NaN       NaN      
+    #>  1 a-b   age       age     0.0696    0.0211      3.30   0.00708   2.32e-2
+    #>  2 c-b   age       age     0.0428    0.0231      1.85   0.102    -1.06e-2
+    #>  3 e-b   age       age     0.0730    0.0314      2.33   0.0483    6.86e-4
+    #>  4 g-b   age       age     0.0622    0.0239      2.60   0.0316    7.04e-3
+    #>  5 c-a   age       age     0.0959  NaN         NaN    NaN       NaN      
+    #>  6 e-a   age       age     0.112   NaN         NaN    NaN       NaN      
+    #>  7 a-b   female    fema…   1.88      0.747       2.52   0.0284    2.39e-1
+    #>  8 c-b   female    fema…   2.28      0.797       2.86   0.0211    4.42e-1
+    #>  9 e-b   female    fema…   1.36      1.28        1.07   0.318    -1.59e+0
+    #> 10 g-b   female    fema…   2.57      0.753       3.42   0.00910   8.37e-1
+    #> 11 c-a   female    fema…  -5.24    NaN         NaN    NaN       NaN      
+    #> 12 e-a   female    fema…  -6.14    NaN         NaN    NaN       NaN      
     #> # … with 1 more variable: conf.high <dbl>
     
     modc <- consistency(agg)
@@ -112,7 +112,7 @@ check_transitivity(agg, graph = TRUE)
     #> inner factor: contr  (nlvls = 7)
     #> 
     #>             estim    sqrt  fixed 
-    #> tau^2      0.0028  0.0525     no 
+    #> tau^2      0.1571  0.3964     no 
     #> rho        0.5000            yes 
     #> 
     #> outer factor: design (nlvls = 7)
@@ -123,25 +123,25 @@ check_transitivity(agg, graph = TRUE)
     #> phi        0.5000            yes 
     #> 
     #> Test for Residual Heterogeneity:
-    #> QE(df = 44) = 601.6165, p-val < .0001
+    #> QE(df = 44) = 371.5608, p-val < .0001
     #> 
     #> Test of Moderators (coefficients 1:4):
-    #> QM(df = 4) = 96.4464, p-val < .0001
+    #> QM(df = 4) = 36.3859, p-val < .0001
     #> 
     #> Model Results:
     #> 
-    #>    estimate      se    zval    pval   ci.lb   ci.ub 
-    #> a    0.0865  0.0153  5.6532  <.0001  0.0565  0.1165  *** 
-    #> c    0.1475  0.0169  8.7127  <.0001  0.1143  0.1807  *** 
-    #> e    0.1249  0.0165  7.5500  <.0001  0.0925  0.1573  *** 
-    #> g    0.1130  0.0169  6.6781  <.0001  0.0798  0.1462  *** 
+    #>    estimate      se     zval    pval    ci.lb    ci.ub 
+    #> a   -0.2214  0.1151  -1.9232  0.0545  -0.4470   0.0042    . 
+    #> c   -0.7236  0.1248  -5.7965  <.0001  -0.9683  -0.4789  *** 
+    #> e   -0.2832  0.1235  -2.2934  0.0218  -0.5253  -0.0412    * 
+    #> g   -0.2590  0.1258  -2.0587  0.0395  -0.5055  -0.0124    * 
     #> 
     #> ---
     #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     
     check_homogeneity(modi)
-    #>     tau2  QE df     QEp
-    #> 1 0.0028 602 44 5.3e-99
+    #>   tau2  QE df   QEp
+    #> 1 0.16 372 44 2e-53
     check_consistency(ps)
 
 <img src="man/figures/README-example-2.png" width="60%" />
