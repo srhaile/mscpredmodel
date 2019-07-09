@@ -48,7 +48,7 @@ aggregate_performance <- function(perf.estimates, reference = NULL,
     if(is.null(reference)){
         reference <- scores[1]
     } else if (!reference %in% scores){
-        warning("reference score was not one of the scores. The reference has been changed to", scores[1])
+        warning("reference score was not one of the scores. The reference has been changed to ", scores[1])
         reference <- scores[1]
     }
     
