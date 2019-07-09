@@ -89,8 +89,8 @@ check_transitivity <- function(x, graph = FALSE){
         p <- ggplot(aes(.data$value, .data$yi, size = .data$wt, 
                         color = .data$contr, shape = .data$contr), 
                data = agw) + 
+            geom_smooth(method = "lm", alpha = 0.2) + 
             geom_point() + 
-            geom_smooth(method = "lm") + 
             xlab("Value of Moderator") + ylab("Difference in Performance") + 
             guides(size = FALSE, 
                    color = guide_legend("Contrast"), 
