@@ -55,7 +55,7 @@ get_bs_samples <- function(data, id, cohort, outcome, n.samples = 1000,
     sm <- data[, c(id, cohort, outcome, scores, mods)]
     names(sm)[1:3] <- c("id", "cohort", "outcome")
     
-    fm <- paste(outcome, "~", scores)
+    fm <- paste("outcome ~", scores)
     
     spl <- split(sm, sm$cohort)
     
