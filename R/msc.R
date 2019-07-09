@@ -100,6 +100,8 @@ msc_network <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency
     
     out$s1 = factor(out$s1, scores)
     out$s2 = factor(out$s2, scores)
+    ord <- order(out$s1, out$s2)
+    out <- out[ord, ]
     out <- list("table" = out,
                 "models" = list("network" = x),
                 "type" = "network", 
@@ -143,6 +145,7 @@ msc_direct <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency"
         
         s1 <- listpairs[1, i]
         s2 <- listpairs[2, i]
+        if(verbose) cat(s1, s2, "\n")
         this.we <- lapply(we, get_direct, s1, s2)
         if(all(sapply(this.we, nrow) == 0)){
             datout[i, 5:8] <- NA 
@@ -169,11 +172,13 @@ msc_direct <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency"
     
     datout$s1 <- factor(datout$s1, scores)
     datout$s2 <- factor(datout$s2, scores)
-    
+    ord <- order(datout$s1, datout$s2)
+    datout <- datout[ord, ]
     out <- list("table" = datout,
                 "models" = modelresults, 
                 "type" = "direct", 
-                "performance" = ps$lbl)
+                "performance" = ps$lbl,
+                "modeltype" = mt)
     class(out) <- "msc"
     out
 }
@@ -213,11 +218,11 @@ msc_indirect <- function(ps, mods = NULL,
         
         s1 <- listpairs[1, i]
         s2 <- listpairs[2, i]
-        
+        if(verbose) cat(s1, s2, "\n")
         this.we <- lapply(we, get_indirect, s1, s2, sc = scores)
         
-        c1 <- any(sapply(we, check_combn, to.check = s1)) 
-        c2 <- any(sapply(we, check_combn, to.check = s2)) 
+        c1 <- any(sapply(this.we, check_combn, to.check = s1)) 
+        c2 <- any(sapply(this.we, check_combn, to.check = s2)) 
         
         if(!(c1 & c2)){
             datout[i, 5:8] <- NA 
@@ -232,7 +237,10 @@ msc_indirect <- function(ps, mods = NULL,
                 datout[i, 5:8] <- NA 
             } else {
                 this.out <- with(this.model, cbind(beta, ci.lb, ci.ub, pval))
-                datout[i, 5:8] <- this.out[1, ]
+                if(verbose) print(coef(this.model))
+                this.pick <- ifelse(length(coef(this.model)) == 1, 1, s2)
+                if(verbose) print(this.pick)
+                datout[i, 5:8] <- this.out[this.pick, ]
             }
             if(verbose) print(datout[i, ])
             
@@ -242,7 +250,8 @@ msc_indirect <- function(ps, mods = NULL,
     
     datout$s1 <- factor(datout$s1, scores)
     datout$s2 <- factor(datout$s2, scores)
-    
+    ord <- order(datout$s1, datout$s2)
+    datout <- datout[ord, ]
     out <- list("table" = datout,
                 "models" = modelresults, 
                 "type" = "indirect", 
@@ -310,8 +319,8 @@ plot.msc <- function(x, compare_to = NULL, newlabels = NULL, ...){
     ggplot(aes(.data$s2, .data$estimate, 
               ymin = .data$ci.lb, ymax = .data$ci.ub,
               color = .data$type), data = x) + 
-        geom_point(position = position_dodge(width = 0.2)) + 
         geom_linerange(position = position_dodge(width = 0.2)) + 
+        geom_point(position = position_dodge(width = 0.2)) + 
         facet_wrap(vars(.data$s1)) +
         guides(color = guide_legend("")) + 
         labs(title = x$measure[1], 
