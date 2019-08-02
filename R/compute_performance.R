@@ -130,6 +130,7 @@ summary.mscraw <- function(object, nonpar = TRUE, NArm = TRUE, ...){
   out$score <- rownames(out)
   rownames(out) <- NULL
   out <- out[, c("score", nms)]
+  out$performance <- object$lbl
   out
 
 }
