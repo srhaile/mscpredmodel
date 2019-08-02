@@ -100,13 +100,15 @@ get_est <- function(x, s){
 #'
 get_var <- function(x, s){
     pick <- x$id != "Apparent"
-    if(any(dim(x[pick, s]) == 0)){
-        out <- matrix(nrow = 0, ncol = 0)
+    if(length(s) == 0){
+      out <- matrix(nrow = 0, ncol = 0)
+    } else if(length(s) == 1){
+      out <- var(x[pick, s], na.rm = TRUE)
+      out <- as.matrix(out)
+      rownames(out) <- colnames(out) <- s
     } else {
-        out <- var(x[pick, s], na.rm = TRUE, 
-                   use = "pairwise.complete.obs")
+      out <- var(x[pick, s], na.rm = TRUE, use = "pairwise.complete.obs")
     }
-    if(length(out) == 1)  out <- as.matrix(out)
     out
 }
 
