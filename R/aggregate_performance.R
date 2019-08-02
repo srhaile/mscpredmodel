@@ -67,8 +67,8 @@ aggregate_performance <- function(perf.estimates, reference = NULL,
     sc <- mapply(function(x, y) x[!x %in% y], sc, refs)
     we <- lapply(working.estimates, get_diff, s = scores, ref = reference)
 
-    yi <- mapply(get_est, working.estimates, sc)
-    vi <- mapply(get_var, working.estimates, sc)
+    yi <- mapply(get_est, we, sc)
+    vi <- mapply(get_var, we, sc)
     
     k <- sapply(yi, length)
     cohort <- factor(rep(names(yi), k))
