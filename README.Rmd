@@ -45,19 +45,16 @@ bs.example <- get_bs_samples(data = dat, id = id, cohort = study,
 ps <- compute_performance(bs.example, fn = oe_ratio, 
                           lbl = "O:E ratio")
 summary(ps)
+check_transitivity(ps, graph = TRUE)
 
-agg <- aggregate_performance(ps, reference = "b")
-check_transitivity(agg, graph = TRUE)
-
-modc <- consistency(agg)
-modi <- inconsistency(agg)
-modi
+msc_model(ps, mtype = "consistency")
+(modi <- msc_model(ps, mtype = "inconsistency"))
 
 check_homogeneity(modi)
 check_consistency(ps)
 
-fullres <- msc_full(ps)
-plot(fullres, compare_to = "c")
+fullres <- msc_full(ps, ref = "c")
+plot(fullres)
 
 
 ```
