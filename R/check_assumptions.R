@@ -37,7 +37,7 @@ check_transitivity <- function(x, graph = FALSE){
         x2$cohort <- as.character(x$cohort[picks])
         x2$yi <- x$yi[picks]
         x2$vi <- x$vi[picks, picks]
-        x2$wt <-  1 / diag(x2$vi))
+        x2$wt <-  1 / diag(x2$vi)
         x2$contr <- x$contr[picks]
         x2$design <- x2$design[picks]
         x2$design.matrix <- x2$design.matrix[picks, ]
