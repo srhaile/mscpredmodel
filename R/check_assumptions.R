@@ -29,7 +29,7 @@ check_transitivity <- function(x, graph = FALSE){
     }
     #if(!identical(class(x), "mscagg")) warning("x should be the results of aggregate_performance()")
     if(is.null(x$mods)) warning("x should contain some moderators. Add these when you run get_bs_samples().")
-    x$wt <- solve(x$vi)
+    #x$wt <- solve(x$vi)
     
     subset_agg <- function(x, ctr){
         picks <- which(x$contr == ctr)
@@ -49,9 +49,10 @@ check_transitivity <- function(x, graph = FALSE){
       this.x <- subset_agg(x, contr)
       d1 <- data.frame("cohort" = this.x$cohort,
                        "yi" = this.x$yi, 
+                       "wt" = this.x$wt,
                        "contr" = this.x$contr, 
                        "design" = this.x$design)
-      d1$wt <- diag(this.x$wt)
+      #d1$wt <- diag(this.x$wt)
       d2 <- this.x$moderators
       dat.x <- merge(d1, d2, by = "cohort", all = TRUE)
       this.fm <- paste("yi ~", moderator)
