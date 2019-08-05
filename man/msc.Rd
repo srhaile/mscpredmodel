@@ -2,6 +2,7 @@
 % Please edit documentation in R/msc.R
 \name{msc_full}
 \alias{msc_full}
+\alias{msc_model}
 \alias{msc_network}
 \alias{msc_direct}
 \alias{msc_indirect}
@@ -10,16 +11,19 @@
 \title{Full, direct and indirect network results for MSC}
 \usage{
 msc_full(ps, mods = NULL, mtype = c("consistency", "inconsistency")[1],
-  verbose = FALSE, ...)
+  ref = NULL, verbose = FALSE, ...)
+
+msc_model(ps, mods = NULL, mtype = c("consistency",
+  "inconsistency")[1], ref = NULL, ...)
 
 msc_network(ps, mods = NULL, mtype = c("consistency",
-  "inconsistency")[1], ...)
+  "inconsistency")[1], ref = NULL, ...)
 
 msc_direct(ps, mods = NULL, mtype = c("consistency",
-  "inconsistency")[1], verbose = FALSE, ...)
+  "inconsistency")[1], ref = NULL, verbose = FALSE, ...)
 
 msc_indirect(ps, mods = NULL, mtype = c("consistency",
-  "inconsistency")[1], verbose = FALSE, ...)
+  "inconsistency")[1], ref = NULL, verbose = FALSE, ...)
 
 \method{print}{msc}(x, ...)
 
@@ -32,13 +36,15 @@ msc_indirect(ps, mods = NULL, mtype = c("consistency",
 
 \item{mtype}{Type of model (default "consistency", else "inconsistency"). It is sufficient to write \code{"c"} or \code{"i"}.}
 
+\item{ref}{Reference score, that is, the base score to which performance should be compared. In \code{msc_model}, the default reference score is the first one. In contrast, \code{msc_direct} and \code{msc_indirect} will print all pairwise comparisons unless a reference is specified.}
+
 \item{verbose}{If TRUE, results of each model will be printed (default FALSE)}
 
 \item{...}{In the \code{msc} functions, any other arguments are passed to \code{\link[metafor]{rma.mv}}. See also \code{\link{consistency}}. In the print function, other options are passed to \code{\link{print.data.frame}}. Ignored in the plot function.}
 
 \item{x}{An object of class \code{msc}, from any of \code{msc_{full, direct, indirect, network}}.}
 
-\item{compare_to}{If specified, only comparisons to \code{compare_to} are plotted.}
+\item{compare_to}{Deprecated. Use the \code{ref} option in the \code{msc} function instead. (If specified, only comparisons to \code{compare_to} are plotted.)}
 
 \item{newlabels}{A new vector of labels (character) for the scores can be used instead of the current vector of score names.}
 }
@@ -58,6 +64,8 @@ Compute all pairwise comparisons for the full network, all direct comparisons, o
 \itemize{
 \item \code{msc_full}: Compute all pairwise comparisons in full network of evidence, as well as direct and indirect comparisons
 
+\item \code{msc_model}: Compute an MSC model
+
 \item \code{msc_network}: Compute all pairwise comparisons in the full network of evidence
 
 \item \code{msc_direct}: Compute all pairwise indirect comparisons
@@ -71,7 +79,8 @@ bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 10,
                   scores = c("a", "b", "c", "d", "e", "f"), 
                   moderators = c("age", "female", "x1"))
 perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
-msc_network(perf, mods = "age", mtype = "inconsistency")
+msc_model(perf, mods = "age", mtype = "inconsistency", ref = "b")
+plot(nw <- msc_network(perf, mods = NULL, mtype = "inconsistency", ref = "b"))
 \dontrun{
 msc_direct(perf, mods = "age", mtype = "inconsistency")
 msc_indirect(perf, mtype = "inconsistency")

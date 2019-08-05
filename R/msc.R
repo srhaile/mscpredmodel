@@ -9,6 +9,7 @@
 #' @param ps A set of raw performance estimates, see \code{\link{compute_performance}}. Since we have to compute a range of different aggregated performance measures, we start here with the raw performance estimates.
 #' @param mods A vector of variable names that are moderators, that is, covariates which could affect the differences in score performance. See also \code{\link{aggregate_performance}}. The main model in an analysis should probably not include any moderators, but they may be interesting when examining transitivity.
 #' @param mtype Type of model (default "consistency", else "inconsistency"). It is sufficient to write \code{"c"} or \code{"i"}.
+#' @param ref Reference score, that is, the base score to which performance should be compared. In \code{msc_model}, the default reference score is the first one. In contrast, \code{msc_direct} and \code{msc_indirect} will print all pairwise comparisons unless a reference is specified.
 #' @param verbose If TRUE, results of each model will be printed (default FALSE)
 #' @param ... In the \code{msc} functions, any other arguments are passed to \code{\link[metafor]{rma.mv}}. See also \code{\link{consistency}}. In the print function, other options are passed to \code{\link{print.data.frame}}. Ignored in the plot function.
 #'
@@ -26,7 +27,8 @@
 #'                   scores = c("a", "b", "c", "d", "e", "f"), 
 #'                   moderators = c("age", "female", "x1"))
 #' perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
-#' msc_network(perf, mods = "age", mtype = "inconsistency")
+#' msc_model(perf, mods = "age", mtype = "inconsistency", ref = "b")
+#' plot(nw <- msc_network(perf, mods = NULL, mtype = "inconsistency", ref = "b"))
 #' \dontrun{
 #' msc_direct(perf, mods = "age", mtype = "inconsistency")
 #' msc_indirect(perf, mtype = "inconsistency")
@@ -37,15 +39,15 @@
 #' 
 #' @export
 #' @describeIn msc Compute all pairwise comparisons in full network of evidence, as well as direct and indirect comparisons
-msc_full <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency")[1], verbose = FALSE, ...){
+msc_full <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency")[1], ref = NULL, verbose = FALSE, ...){
     if(class(ps) != "mscraw") warning("A set of *raw* performance estimates is needed (class(ps) == 'mscraw'), from compute_performance().")
     mt <- match.arg(mtype, c("consistency", "inconsistency"))
     if(verbose) cat("Calculating network estimates...\n")
-    res.nw <- msc_network(ps, mods = mods, mtype = mt, ...)
+    res.nw <- msc_network(ps, mods = mods, mtype = mt, ref = ref, ...)
     if(verbose) cat("Calculating direct estimates...\n")
-    res.d <- msc_direct(ps, mods = mods, mtype = mt, verbose = verbose, ...)
+    res.d <- msc_direct(ps, mods = mods, mtype = mt, ref = ref, verbose = verbose, ...)
     if(verbose) cat("Calculating indirect estimates...\n")
-    res.i <- msc_indirect(ps, mods = mods, mtype = mt, verbose = verbose, ...)
+    res.i <- msc_indirect(ps, mods = mods, mtype = mt, ref = ref, verbose = verbose, ...)
     outtab <- rbind(res.nw$table, res.d$table, res.i$table)
     outtab$type <- factor(outtab$type, c("network", "direct", "indirect"))
     ord <- with(outtab, order(s1, s2, type))
@@ -60,11 +62,56 @@ msc_full <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency")[
     out
 }
 
+#' @describeIn msc Compute an MSC model
+#' @export
+msc_model <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency")[1], ref = NULL, ...){
+  if(class(ps) != "mscraw") warning("A set of *raw* performance estimates is needed (class(ps) == 'mscraw'), from compute_performance().")
+  scores <- ps$scores
+  mt <- match.arg(mtype, c("consistency", "inconsistency"))
+  modelfn <- switch(mt, 
+                    consistency = consistency,
+                    inconsistency = inconsistency)
+  this.ref <- ref
+  if(is.null(ref)){
+    this.ref <- scores[1]
+  }
+  if(!this.ref %in% scores){
+    this.ref <- scores[1]
+    message("ref not in list of scores: ", this.ref, " used instead.")
+  }
+  this.ss <- aggregate_performance(ps, reference = this.ref)
+  x <- modelfn(this.ss, mods = mods, ...)
+  out <- data.frame(s1 = this.ref,
+                    s2 = rownames(x$beta),
+                    model = mt,
+                    type = "model",
+                    estimate = x$beta,
+                    ci.lb = x$ci.lb,
+                    ci.ub = x$ci.ub,
+                    pval = x$pval, 
+                    measure = ps$lbl,
+                    mods = paste(mods, collapse = ", "))
+  out <- list("table" = out,
+              "models" = list("network" = x),
+              "type" = "network", 
+              "performance" = ps$lbl,
+              "mods" = mods)
+  class(out) <- "msc"
+  out
+}
+
 #' @describeIn msc Compute all pairwise comparisons in the full network of evidence
 #' @export
-msc_network <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency")[1], ...){
+msc_network <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency")[1], ref = NULL, ...){
     if(class(ps) != "mscraw") warning("A set of *raw* performance estimates is needed (class(ps) == 'mscraw'), from compute_performance().")
     scores <- ps$scores
+    
+    this.ref <- ref
+    if(!is.null(this.ref) && !(this.ref %in% scores)){
+      warning("ref not in list of scores, using ", scores[1], " instead")
+      this.ref <- scores[1]
+    }
+    
     mt <- match.arg(mtype, c("consistency", "inconsistency"))
     modelfn <- switch(mt, 
                       consistency = consistency,
@@ -74,7 +121,11 @@ msc_network <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency
     scorepairs <- expand.grid(x1 = scores, x2 = scores)
     scorepairs$x1 <- factor(scorepairs$x1, scores)
     scorepairs$x2 <- factor(scorepairs$x2, scores)
-    to.include <- with(scorepairs, x1 != x2 & as.numeric(x2) > as.numeric(x1))
+    if(!is.null(this.ref)){
+     to.include <- with(scorepairs, x1 == this.ref & x1 != x2) 
+    } else {
+      to.include <- with(scorepairs, x1 != x2 & as.numeric(x2) > as.numeric(x1))
+    }
     scorepairs <- scorepairs[to.include, ]
     pairmat <- (model.matrix(~ scorepairs$x2) - model.matrix( ~ scorepairs$x1))[, -1]
     colnames(pairmat) <- scores[-1]
@@ -113,7 +164,7 @@ msc_network <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency
 
 #' @describeIn msc Compute all pairwise indirect comparisons
 #' @export
-msc_direct <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency")[1], verbose = FALSE, ...){
+msc_direct <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency")[1], ref = NULL, verbose = FALSE, ...){
     if(class(ps) != "mscraw") warning("A set of *raw* performance estimates is needed (class(ps) == 'mscraw'), from compute_performance().")
     # keep only if (pair %in% design)
     scores <- ps$scores
@@ -125,7 +176,17 @@ msc_direct <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency"
                       inconsistency = inconsistency)
     
     # make list of pairwise comparisons
-    listpairs <- combn(scores, 2)
+    this.ref <- ref
+    if(!is.null(this.ref) && !(this.ref %in% scores)){
+      warning("ref not in list of scores, using ", scores[1], " instead")
+      this.ref <- scores[1]
+    }
+    if(is.null(ref)){
+      listpairs <- combn(scores, 2)
+    } else {
+      listpairs <- rbind(this.ref, scores[scores != this.ref])
+    }
+    if(verbose) print(listpairs)
     datout <- data.frame(s1 = listpairs[1, ],
                      s2 = listpairs[2, ],
                      model = mt,
@@ -186,7 +247,8 @@ msc_direct <- function(ps, mods = NULL, mtype = c("consistency", "inconsistency"
 #' @describeIn msc Compute all pairwise indirect comparisons
 #' @export
 msc_indirect <- function(ps, mods = NULL, 
-                         mtype = c("consistency", "inconsistency")[1], 
+                         mtype = c("consistency", "inconsistency")[1],
+                         ref = NULL, 
                          verbose = FALSE, ...){
     if(class(ps) != "mscraw") warning("A set of *raw* performance estimates is needed (class(ps) == 'mscraw'), from compute_performance().")
     scores <- ps$scores
@@ -198,7 +260,17 @@ msc_indirect <- function(ps, mods = NULL,
                       inconsistency = inconsistency)
     
     # make list of pairwise comparisons
-    listpairs <- combn(scores, 2)
+    this.ref <- ref
+    if(!is.null(this.ref) && !(this.ref %in% scores)){
+      warning("ref not in list of scores, using ", scores[1], " instead")
+      this.ref <- scores[1]
+    }
+    if(is.null(ref)){
+      listpairs <- combn(scores, 2)
+    } else {
+      listpairs <- rbind(this.ref, scores[scores != this.ref])
+    }
+    if(verbose) print(listpairs)
     datout <- data.frame(s1 = listpairs[1, ],
                      s2 = listpairs[2, ],
                      model = mt,
@@ -270,7 +342,7 @@ print.msc <- function(x,  ...){
 
 #' @rdname msc
 #' @title Simple plots for MSC network comparisons
-#' @param compare_to If specified, only comparisons to \code{compare_to} are plotted.
+#' @param compare_to Deprecated. Use the \code{ref} option in the \code{msc} function instead. (If specified, only comparisons to \code{compare_to} are plotted.)
 #' @param newlabels A new vector of labels (character) for the scores can be used instead of the current vector of score names.
 #' @method plot msc
 #' @export
@@ -283,6 +355,7 @@ plot.msc <- function(x, compare_to = NULL, newlabels = NULL, ...){
     x <- x$table
     
     if(!is.null(compare_to)){
+      warning("Use the `ref` option in the msc_full, etc, function.")
         check1 <- length(compare_to) == 1
         if(!check1) stop("compare_to should be a vector of length 1, for example: ", x$s1[1])
         check2 <- all((compare_to %in% levels(x$s1) | compare_to %in% levels(x$s2)))
