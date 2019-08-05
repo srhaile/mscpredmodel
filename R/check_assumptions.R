@@ -55,7 +55,11 @@ check_transitivity <- function(x, graph = FALSE){
         d2 <- this.x$moderators
         dat.x <- merge(d1, d2, by = "cohort", all = TRUE)
         this.fm <- paste("yi ~", moderator)
-        this.lm <- lm(as.formula(this.fm), weights = dat.x$wt, data = dat.x)
+        this.lm <- try(lm(as.formula(this.fm), weights = dat.x$wt, data = dat.x),
+                       silent = TRUE)
+        if(class(this.lm) == "try-error"){
+          this.lm <- NULL
+        }
         out <- tidy(this.lm, conf.int = TRUE)
         out$contr <- contr
         out$moderator <- moderator
