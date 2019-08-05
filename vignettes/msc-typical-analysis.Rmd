@@ -27,7 +27,7 @@ library(ggplot2)
 theme_set(theme_bw())
 
 dat <- msc_sample_data()
-dat
+head(dat)
 M <- 25
 bs.example <- get_bs_samples(data = dat, id = id, cohort = study, 
                              outcome = outcome, n.samples = M, 
@@ -44,13 +44,13 @@ ps <- compute_performance(bs.example, fn = calibration_large,
 lines(ps)
 
 agg <- aggregate_performance(ps, reference = "b")
-check_transitivity(agg, graph = TRUE)
+check_transitivity(ps, graph = TRUE)
 
 modc <- consistency(agg)
 modi <- inconsistency(agg)
 modi
 
-check_transitivity(agg)
+# check_transitivity(ps)
 check_homogeneity(modi)
 
 allpairs <- msc_network(ps)
@@ -64,7 +64,7 @@ ps2 <- compute_performance(bs.example, fn = calibration_slope, lbl = "calibratio
 lines(ps2)
 
 agg2 <- aggregate_performance(ps, reference = "b")
-check_transitivity(agg2, graph = TRUE)
+check_transitivity(ps2, graph = TRUE)
 
 mod2c <- consistency(agg2)
 mod2i <- inconsistency(agg2)
@@ -72,7 +72,7 @@ mod2i
 
 check_homogeneity(mod2i)
 check_consistency(ps2)
-check_transitivity(agg2)
+#check_transitivity(ps2)
 
 allpairs2 <- msc_network(ps2)
 plot(allpairs2, compare_to = "c")
