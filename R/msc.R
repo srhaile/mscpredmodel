@@ -289,6 +289,7 @@ plot.msc <- function(x, compare_to = NULL, newlabels = NULL, ...){
         if(!check2) stop("compare_to should be one of the values found in s1 or s2, for example: ", x$s2[1])
         x1 <- x[x$s1 == compare_to, ]
         x2 <- x[x$s2 == compare_to, ]
+        if(nrow(x2) > 0){
         x2fix <- data.frame(s1 = x2$s2,
                         s2 = x2$s1,
                         model = x2$model,
@@ -300,6 +301,9 @@ plot.msc <- function(x, compare_to = NULL, newlabels = NULL, ...){
                         measure = x2$measure, 
                         mods = x1$mods[1])
         x <- rbind(x1, x2fix)
+        } else {
+          x <- x1
+        }
     } 
     if(!is.null(newlabels)){
         oldlabels <- levels(x$s1)
