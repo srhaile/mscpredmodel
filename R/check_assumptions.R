@@ -32,12 +32,12 @@ check_transitivity <- function(x, graph = FALSE){
     x$wt <- solve(x$vi)
     
     subset_agg <- function(x, ctr){
-        picks <- x$contr == ctr
+        picks <- which(x$contr == ctr)
         x2 <- x
         x2$cohort <- as.character(x$cohort[picks])
-        x2$yi <- x2$yi[picks]
-        x2$vi <- x2$vi[picks, picks]
-        x2$wt <- as.matrix(x2$wt[picks, picks])
+        x2$yi <- x$yi[picks]
+        x2$vi <- x$vi[picks, picks]
+        x2$wt <- as.matrix(solve(x2$vi))
         x2$contr <- x$contr[picks]
         x2$design <- x2$design[picks]
         x2$design.matrix <- x2$design.matrix[picks, ]
@@ -46,25 +46,25 @@ check_transitivity <- function(x, graph = FALSE){
     }
     
     transitivity_model <- function(contr, moderator){
-        this.x <- subset_agg(x, contr)
-        d1 <- data.frame("cohort" = this.x$cohort,
-                         "yi" = this.x$yi, 
-                         "contr" = this.x$contr, 
-                         "design" = this.x$design)
-        d1$wt <- diag(this.x$wt)
-        d2 <- this.x$moderators
-        dat.x <- merge(d1, d2, by = "cohort", all = TRUE)
-        this.fm <- paste("yi ~", moderator)
-        this.lm <- try(lm(as.formula(this.fm), weights = dat.x$wt, data = dat.x),
-                       silent = TRUE)
-        if(class(this.lm) == "try-error"){
-          this.lm <- NULL
-        }
-        out <- tidy(this.lm, conf.int = TRUE)
-        out$contr <- contr
-        out$moderator <- moderator
-        out <- out[, c(8, 9, 1:7)]
-        out
+      this.x <- subset_agg(x, contr)
+      d1 <- data.frame("cohort" = this.x$cohort,
+                       "yi" = this.x$yi, 
+                       "contr" = this.x$contr, 
+                       "design" = this.x$design)
+      d1$wt <- diag(this.x$wt)
+      d2 <- this.x$moderators
+      dat.x <- merge(d1, d2, by = "cohort", all = TRUE)
+      this.fm <- paste("yi ~", moderator)
+      this.lm <- try(lm(as.formula(this.fm), weights = dat.x$wt, data = dat.x),
+                     silent = TRUE)
+      if(class(this.lm) == "try-error"){
+        this.lm <- NULL
+      }
+      out <- tidy(this.lm, conf.int = TRUE)
+      out$contr <- contr
+      out$moderator <- moderator
+      out <- out[, c(8, 9, 1:7)]
+      out
     }  
     parms <- expand.grid(moderator = x$mods, 
                 contr = unique(x$contr)) 
