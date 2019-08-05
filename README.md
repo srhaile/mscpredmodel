@@ -42,82 +42,45 @@ bs.example <- get_bs_samples(data = dat, id = id, cohort = study,
 ps <- compute_performance(bs.example, fn = oe_ratio, 
                           lbl = "O:E ratio")
 summary(ps)
-#>   score nonmiss median   q1   q3
-#> 1     a      15   1.06 0.38 1.10
-#> 2     b      13   1.37 0.63 1.40
-#> 3     c      12   0.75 0.29 0.89
-#> 4     e      12   0.98 0.36 1.15
-#> 5     g      11   1.07 0.50 1.12
-
-agg <- aggregate_performance(ps, reference = "b")
-check_transitivity(agg, graph = TRUE)
-#> Warning in qt(a, object$df.residual): NaNs produced
-
-#> Warning in qt(a, object$df.residual): NaNs produced
-
-#> Warning in qt(a, object$df.residual): NaNs produced
-
-#> Warning in qt(a, object$df.residual): NaNs produced
+#>   score nonmiss median   q1   q3 performance
+#> 1     a      15   1.06 0.38 1.10   O:E ratio
+#> 2     b      13   1.37 0.63 1.40   O:E ratio
+#> 3     c      12   0.75 0.29 0.89   O:E ratio
+#> 4     e      12   0.98 0.36 1.15   O:E ratio
+#> 5     g      11   1.07 0.50 1.12   O:E ratio
+check_transitivity(ps, graph = TRUE)
 ```
 
 <img src="man/figures/README-example-1.png" width="60%" />
 
-    #> # A tibble: 10 x 9
-    #>    contr moderator term   estimate std.error statistic  p.value  conf.low conf.high
-    #>    <fct> <fct>     <chr>     <dbl>     <dbl>     <dbl>    <dbl>     <dbl>     <dbl>
-    #>  1 g-a   age       age      0.0514  NaN        NaN     NaN      NaN        NaN     
-    #>  2 a-b   age       age      0.0621    0.0274     2.27    0.0445   0.00181    0.122 
-    #>  3 c-b   age       age      0.0209    0.0197     1.06    0.313   -0.0229     0.0647
-    #>  4 e-b   age       age      0.0930    0.0398     2.34    0.0442   0.00299    0.183 
-    #>  5 g-b   age       age      0.0382    0.0425     0.898   0.399   -0.0624     0.139 
-    #>  6 g-a   female    female   2.40    NaN        NaN     NaN      NaN        NaN     
-    #>  7 a-b   female    female  -0.460     1.02      -0.450   0.661   -2.71       1.79  
-    #>  8 c-b   female    female   0.521     0.563      0.925   0.377   -0.734      1.78  
-    #>  9 e-b   female    female  -0.930     1.12      -0.833   0.427   -3.46       1.60  
-    #> 10 g-b   female    female  -0.559     1.00      -0.556   0.596   -2.93       1.82
+    #> # A tibble: 8 x 9
+    #>   contr moderator term     estimate std.error statistic p.value  conf.low conf.high
+    #>   <fct> <fct>     <chr>       <dbl>     <dbl>     <dbl>   <dbl>     <dbl>     <dbl>
+    #> 1 e-a   age       age     0.00571     0.00222   2.58     0.0276  0.000770   0.0106 
+    #> 2 g-a   age       age     0.00349     0.00141   2.48     0.0352  0.000301   0.00668
+    #> 3 b-a   age       age     0.00215     0.00371   0.581    0.573  -0.00600    0.0103 
+    #> 4 c-a   age       age     0.0000179   0.00294   0.00610  0.995  -0.00653    0.00657
+    #> 5 e-a   female    female  0.0829      0.0857    0.968    0.356  -0.108      0.274  
+    #> 6 g-a   female    female  0.0822      0.0423    1.95     0.0836 -0.0134     0.178  
+    #> 7 b-a   female    female -0.0216      0.116    -0.186    0.856  -0.277      0.234  
+    #> 8 c-a   female    female -0.111       0.0951   -1.17     0.270  -0.323      0.101
 
-    modc <- consistency(agg)
-    modi <- inconsistency(agg)
-    modi
-    #> 
-    #> Multivariate Meta-Analysis Model (k = 48; method: REML)
-    #> 
-    #> Variance Components: 
-    #> 
-    #> outer factor: cohort (nlvls = 15)
-    #> inner factor: contr  (nlvls = 6)
-    #> 
-    #>             estim    sqrt  fixed
-    #> tau^2      0.0797  0.2823     no
-    #> rho        0.5000            yes
-    #> 
-    #> outer factor: design (nlvls = 6)
-    #> inner factor: contr  (nlvls = 6)
-    #> 
-    #>             estim    sqrt  fixed
-    #> gamma^2    0.0430  0.2074     no
-    #> phi        0.5000            yes
-    #> 
-    #> Test for Residual Heterogeneity: 
-    #> QE(df = 44) = 2509.9110, p-val < .0001
-    #> 
-    #> Test of Moderators (coefficient(s) 1:4): 
-    #> QM(df = 4) = 59.4103, p-val < .0001
-    #> 
-    #> Model Results:
-    #> 
-    #>    estimate      se    zval    pval   ci.lb   ci.ub     
-    #> a    0.7692  0.1327  5.7952  <.0001  0.5091  1.0294  ***
-    #> c    0.6692  0.1445  4.6295  <.0001  0.3859  0.9524  ***
-    #> e    0.9207  0.1440  6.3922  <.0001  0.6384  1.2031  ***
-    #> g    0.9635  0.1450  6.6455  <.0001  0.6793  1.2476  ***
-    #> 
-    #> ---
-    #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    msc_model(ps, mtype = "consistency")
+    #>   s1 s2       model  type estimate  ci.lb  ci.ub    pval   measure mods
+    #> b  a  b consistency model   0.2851  0.247  0.323 3.8e-49 O:E ratio     
+    #> c  a  c consistency model  -0.1836 -0.221 -0.146 8.7e-22 O:E ratio     
+    #> e  a  e consistency model  -0.0076 -0.045  0.030 6.9e-01 O:E ratio     
+    #> g  a  g consistency model  -0.0024 -0.041  0.036 9.0e-01 O:E ratio
+    (modi <- msc_model(ps, mtype = "inconsistency"))
+    #>   s1 s2         model  type estimate  ci.lb  ci.ub    pval   measure mods
+    #> b  a  b inconsistency model   0.2851  0.247  0.323 3.8e-49 O:E ratio     
+    #> c  a  c inconsistency model  -0.1836 -0.221 -0.146 8.7e-22 O:E ratio     
+    #> e  a  e inconsistency model  -0.0076 -0.045  0.030 6.9e-01 O:E ratio     
+    #> g  a  g inconsistency model  -0.0024 -0.041  0.036 9.0e-01 O:E ratio
 
     check_homogeneity(modi)
-    #>   tau2   QE df QEp
-    #> 1 0.08 2510 44   0
+    #>           tau2  QE df     QEp
+    #> network 0.0038 325 44 1.8e-44
     check_consistency(ps)
     #> Warning: Removed 5 rows containing missing values (geom_linerange).
     #> Warning: Removed 5 rows containing missing values (geom_point).
@@ -126,10 +89,8 @@ check_transitivity(agg, graph = TRUE)
 
 ``` r
 
-fullres <- msc_full(ps)
-plot(fullres, compare_to = "c")
-#> Warning: Removed 2 rows containing missing values (geom_linerange).
-#> Warning: Removed 2 rows containing missing values (geom_point).
+fullres <- msc_full(ps, ref = "c")
+plot(fullres)
 ```
 
 <img src="man/figures/README-example-3.png" width="60%" />
