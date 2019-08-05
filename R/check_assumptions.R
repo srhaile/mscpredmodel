@@ -83,7 +83,7 @@ check_transitivity <- function(x, graph = FALSE){
         
         dat1 <- data.frame(cohort = as.character(x$cohort), 
                                 yi = x$yi, 
-                                contr = x$contr, wt = diag(x$wt))
+                                contr = x$contr, wt = 1 / diag(x$vi))
         dat2 <- x$moderators
         dat.ag <- merge(dat1, dat2, by = "cohort", all = TRUE) 
         dat.ag$id <- 1:nrow(dat.ag)
