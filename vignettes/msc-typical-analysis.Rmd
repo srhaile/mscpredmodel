@@ -41,17 +41,13 @@ We want to examine performance of the 5 scores according to calibration-in-the-l
 ```{r example1}
 ps <- compute_performance(bs.example, fn = calibration_large, 
                           lbl = "calibration-in-the-large")
-lines(ps)
+summary(ps)
 
-agg <- aggregate_performance(ps, reference = "b")
+msc_model(ps, mtype = "consistency")
+msc_model(ps, mtype = "inconsistency")
+
 check_transitivity(ps, graph = TRUE)
-
-modc <- consistency(agg)
-modi <- inconsistency(agg)
-modi
-
-# check_transitivity(ps)
-check_homogeneity(modi)
+check_homogeneity(msc_model(ps, mtype = "inconsistency"))
 
 allpairs <- msc_network(ps)
 plot(allpairs)
@@ -63,18 +59,13 @@ plot(allpairs)
 ps2 <- compute_performance(bs.example, fn = calibration_slope, lbl = "calibration slope")
 lines(ps2)
 
-agg2 <- aggregate_performance(ps, reference = "b")
+msc_model(ps2, mtype = "consistency")
+msc_model(ps2, mtype = "inconsistency")
+
 check_transitivity(ps2, graph = TRUE)
+check_homogeneity(msc_model(ps2, mtype = "inconsistency"))
 
-mod2c <- consistency(agg2)
-mod2i <- inconsistency(agg2)
-mod2i
-
-check_homogeneity(mod2i)
-check_consistency(ps2)
-#check_transitivity(ps2)
-
-allpairs2 <- msc_network(ps2)
-plot(allpairs2, compare_to = "c")
+allpairs2 <- msc_network(ps2, ref = "e")
+plot(allpairs2)
 ```
 
