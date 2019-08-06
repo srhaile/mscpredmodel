@@ -37,7 +37,11 @@ check_transitivity <- function(x, graph = FALSE){
         x2$cohort <- as.character(x$cohort[picks])
         x2$yi <- x$yi[picks]
         x2$vi <- x$vi[picks, picks]
-        x2$wt <-  1 / diag(x2$vi)
+        if(length(x2$vi) > 1){
+          x2$wt <-  1 / diag(x2$vi)
+        } else {
+          x2$wt <- 1 / x2$vi
+        }
         x2$contr <- x$contr[picks]
         x2$design <- x2$design[picks]
         x2$design.matrix <- x2$design.matrix[picks, ]
@@ -69,7 +73,8 @@ check_transitivity <- function(x, graph = FALSE){
     }  
     parms <- expand.grid(moderator = x$mods, 
                 contr = unique(x$contr)) 
-    res <- do.call(rbind, mapply(transitivity_model, parms$contr, parms$moderator, SIMPLIFY = FALSE))
+    res <- do.call(rbind, 
+                   mapply(transitivity_model, parms$contr, parms$moderator, SIMPLIFY = FALSE))
     res <- res[res$term != "(Intercept)", ]
     
     if(graph){
@@ -145,7 +150,6 @@ check_homogeneity <- function(object, dig = 3){
 check_consistency <- function(ps, mtype = c("consistency", "inconsistency")[1], ref = NULL){
     if(class(ps) != "mscraw") stop("ps should be the results of `compute_performance`!")
     fullres <- msc_full(ps, mtype = mtype, ref = ref)
-    print(fullres)
     return(plot.msc(fullres))
 }
 
