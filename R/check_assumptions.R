@@ -97,13 +97,14 @@ check_transitivity <- function(x, graph = FALSE){
                 timevar = "moderator", times = x$mods, 
                 idvar = "id", direction = "long")
         p <- ggplot(aes(.data$value, .data$yi, size = .data$wt, 
-                        color = .data$contr, shape = .data$contr), 
+                        color = .data$contr), 
                data = agw) + 
-            geom_smooth(method = "lm", alpha = 0.2) + 
-            geom_point() + 
+            geom_smooth(aes(linetype = .data$contr), method = "lm", alpha = 0.2) + 
+            geom_point(aes(shape = .data$contr)) + 
             xlab("Value of Moderator") + ylab("Difference in Performance") + 
             guides(size = FALSE, 
                    color = guide_legend("Contrast"), 
+                   linetype = guide_legend("Contrast"),
                    shape = guide_legend("Contrast")) + 
             facet_wrap( ~ .data$moderator, scales = "free_x")
         print(p)
