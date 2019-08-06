@@ -138,12 +138,13 @@ check_homogeneity <- function(object, dig = 3){
 #' @describeIn check_assumptions Check assumption of consistency
 #' @param ps A set of raw performance estimates, from \code{\link{compute_performance}}
 #' @param mtype Type of model (default "consistency", else "inconsistency"). It is sufficient to write \code{"c"} or \code{"i"}.
+#' @param ref Reference score all other scores should be compared to. (Default NULL, all pairwise comparisons are estimated)
 #' @return A graph of the direct and indirect estimates for the various differences in score performance.
 #' @export
 #'
-check_consistency <- function(ps, mtype = c("consistency", "inconsistency")[1]){
+check_consistency <- function(ps, mtype = c("consistency", "inconsistency")[1], ref = NULL){
     if(class(ps) != "mscraw") stop("ps should be the results of `compute_performance`!")
-    fullres <- msc_full(ps, mtype = mtype)
+    fullres <- msc_full(ps, mtype = mtype, ref = NULL)
     return(plot.msc(fullres))
 }
 

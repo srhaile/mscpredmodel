@@ -10,7 +10,8 @@ check_transitivity(x, graph = FALSE)
 
 check_homogeneity(object, dig = 3)
 
-check_consistency(ps, mtype = c("consistency", "inconsistency")[1])
+check_consistency(ps, mtype = c("consistency", "inconsistency")[1],
+  ref = NULL)
 }
 \arguments{
 \item{x}{A set of computed (mscraw) or aggregated performance scores (mscagg)}
@@ -24,6 +25,8 @@ check_consistency(ps, mtype = c("consistency", "inconsistency")[1])
 \item{ps}{A set of raw performance estimates, from \code{\link{compute_performance}}}
 
 \item{mtype}{Type of model (default "consistency", else "inconsistency"). It is sufficient to write \code{"c"} or \code{"i"}.}
+
+\item{ref}{Reference score all other scores should be compared to. (Default NULL, all pairwise comparisons are estimated)}
 }
 \value{
 A tibble containing results of linear regression models of the effect size (outcome) against the cohort-specific average moderator value.
