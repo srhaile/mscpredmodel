@@ -144,7 +144,8 @@ check_homogeneity <- function(object, dig = 3){
 #'
 check_consistency <- function(ps, mtype = c("consistency", "inconsistency")[1], ref = NULL){
     if(class(ps) != "mscraw") stop("ps should be the results of `compute_performance`!")
-    fullres <- msc_full(ps, mtype = mtype, ref = NULL)
+    fullres <- msc_full(ps, mtype = mtype, ref = ref)
+    print(fullres)
     return(plot.msc(fullres))
 }
 
