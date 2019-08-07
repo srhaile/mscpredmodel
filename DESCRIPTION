@@ -1,7 +1,7 @@
 Package: mscpredmodel
 Type: Package
 Title: Multiple Score Comparison of Prediction Models with Network Meta-Analysis
-Version: 0.2.0
+Version: 0.2.1
 Authors@R: person("Sarah", "Haile", email = "sarah.haile@uzh.ch",
     role = c("aut", "cre"))
 Maintainer: Sarah Haile <sarah.haile@uzh.ch>
