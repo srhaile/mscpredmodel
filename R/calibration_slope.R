@@ -58,7 +58,7 @@ c_statistic <- function(dd, fm){
              call. = FALSE)
     }
     fm <- as.formula(fm)
-    m <- roc(fm, dd)
+    m <- roc(fm, dd, quiet = TRUE)
     auc(m)
 }
 
