@@ -69,7 +69,7 @@ check_transitivity <- function(x, graph = FALSE){
       out$contr <- contr
       out$moderator <- moderator
       out <- out[, c(8, 9, 1:7)]
-      out
+      as.data.frame(out)
     }  
     parms <- expand.grid(moderator = x$mods, 
                 contr = unique(x$contr)) 
