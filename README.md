@@ -53,17 +53,15 @@ check_transitivity(ps, graph = TRUE)
 
 <img src="man/figures/README-example-1.png" width="60%" />
 
-    #> # A tibble: 8 x 9
-    #>   contr moderator term     estimate std.error statistic p.value  conf.low conf.high
-    #>   <fct> <fct>     <chr>       <dbl>     <dbl>     <dbl>   <dbl>     <dbl>     <dbl>
-    #> 1 e-a   age       age     0.00571     0.00222   2.58     0.0276  0.000770   0.0106 
-    #> 2 g-a   age       age     0.00349     0.00141   2.48     0.0352  0.000301   0.00668
-    #> 3 b-a   age       age     0.00215     0.00371   0.581    0.573  -0.00600    0.0103 
-    #> 4 c-a   age       age     0.0000179   0.00294   0.00610  0.995  -0.00653    0.00657
-    #> 5 e-a   female    female  0.0829      0.0857    0.968    0.356  -0.108      0.274  
-    #> 6 g-a   female    female  0.0822      0.0423    1.95     0.0836 -0.0134     0.178  
-    #> 7 b-a   female    female -0.0216      0.116    -0.186    0.856  -0.277      0.234  
-    #> 8 c-a   female    female -0.111       0.0951   -1.17     0.270  -0.323      0.101
+    #>    contr moderator   term estimate std.error statistic p.value conf.low conf.high
+    #> 2    e-a       age    age  5.7e-03    0.0022    2.5758   0.028  0.00077    0.0106
+    #> 6    g-a       age    age  3.5e-03    0.0014    2.4761   0.035  0.00030    0.0067
+    #> 10   b-a       age    age  2.2e-03    0.0037    0.5810   0.573 -0.00600    0.0103
+    #> 14   c-a       age    age  1.8e-05    0.0029    0.0061   0.995 -0.00653    0.0066
+    #> 4    e-a    female female  8.3e-02    0.0857    0.9678   0.356 -0.10799    0.2738
+    #> 8    g-a    female female  8.2e-02    0.0423    1.9453   0.084 -0.01339    0.1778
+    #> 12   b-a    female female -2.2e-02    0.1161   -0.1863   0.856 -0.27717    0.2339
+    #> 16   c-a    female female -1.1e-01    0.0951   -1.1673   0.270 -0.32292    0.1009
 
     msc_model(ps, mtype = "consistency")
     #>   s1 s2       model  type estimate  ci.lb  ci.ub    pval   measure mods
