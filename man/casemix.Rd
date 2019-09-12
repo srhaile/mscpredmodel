@@ -28,8 +28,6 @@ bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 10,
                   moderators = c("age", "agegrp", "agegrp2", "agegrp3", "female", "sex", "x1"))
 casemix(bssamp)
 casemix(bssamp, plot = FALSE)
-casemix(bssamp, mods = "x1")
-casemix(bssamp, mods = c("AGE", "sex", "x1"))
 casemix(bssamp, mods = c("agegrp2", "agegrp3"), max.levels = 10)   
 
 }
