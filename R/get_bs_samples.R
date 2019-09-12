@@ -23,7 +23,7 @@
 #' @examples
 #' dat <- msc_sample_data()
 #' set.seed(12345)
-#' get_bs_samples(dat, id, study, outcome, scores = letters[1:4], moderators = "age")
+#' get_bs_samples(dat, id, study, outcome, scores = letters[1:3], moderators = "age")
 
 get_bs_samples <- function(data, id, cohort, outcome, n.samples = 1000, 
                            scores = NULL, moderators = NULL){
