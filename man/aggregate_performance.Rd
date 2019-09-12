@@ -17,7 +17,7 @@ aggregate_performance(perf.estimates, reference = NULL,
 
 \item{design.levels}{A character vector of alternate short names for the scores, to be used in naming the designs. Default is \code{\link{LETTERS}}, so that a possible design would be \code{AB} or \code{ACD}, instead of \code{score1score2} or \code{score1score3score4}. The design variable is used in the definition of the random effects. See \code{\link{consistency}}.}
 
-\item{fn.mods}{A function used to summarize the moderators within cohorts. If NULL, the default mean(x, na.rm = TRUE) is used.}
+\item{fn.mods}{A function used to summarize the moderators within cohorts. Moderators should be numeric as the mean is computed by default. Factor variables should converted to numeric prior to use in \code{\link{get_bs_samples}}. For example, if variable x2 has levels A, B, C and D, convert to x2f = 1 if x2 = {A, B} and 0, otherwise. If NULL, the default mean(x, na.rm = TRUE) is used.}
 
 \item{x}{An object of class \code{mscagg}, returned from \code{\link{aggregate_performance}}.}
 
@@ -43,6 +43,9 @@ A list with the following elements, of class \code{mscagg}
 \description{
 Aggregate performance measures by cohort
 }
+\details{
+The aggregation of moderators here is different than what the function \code{\link{casemix}} is doing. \code{\link{casemix}} shows the actual levels of the moderators, either as median and IQR (or boxplots) for continuous variables, or tables (or barplots) for factor variables. In \code{aggregate_performance} we assume a single number is needed to describe the overall value of the moderator, which is most commonly the mean. Factor variables with two levels (e.g. A and B) should be converted to 0/1 variables. Unordered factor variables with more than 2 levels (e.g. A, B, C, and D) should be collapsed to 0/1 variables (for example 0 = {A, B}, 1 = {C, D}). Ordered factor variables (e.g. I, II, III, IV) should be converted to numeric variables (e.g. 1, 2, 3, 4). Any factor variables will be dropped in \code{aggregate_performance}.
+}
 \section{Methods (by generic)}{
 \itemize{
 \item \code{print}: Print basic aggregated performance measures
@@ -50,10 +53,10 @@ Aggregate performance measures by cohort
 
 \examples{
 dat <- msc_sample_data()
-bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 10, 
+bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 5, 
                   scores = c("a", "b", "c", "d", "e", "f"), 
-                  moderators = c("age", "female", "x1"))
+                  moderators = c("age", "female", "x1", "sex"))
 perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
 agg <- aggregate_performance(perf)
-agg
+head(agg)
 }
