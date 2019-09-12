@@ -131,6 +131,7 @@ msc_sample_data <- function(n.cohorts = 15){
  
  sample_data <- do.call(rbind, datmiss)
  names(sample_data)[1] <- "study"
+ sample_data$sex <- factor(sample_data$female, 0:1, c("male", "female"))
  sample_data
 }
 
