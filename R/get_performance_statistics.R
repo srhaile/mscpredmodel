@@ -57,7 +57,7 @@ get_performance_statistics <- function(scores,
             for(i in 1:k){
                 this_score <- scores[i]
                 obs <- this_spl[, outcome]
-                pred <- this_spl[, this_score] %>% as.vector
+                pred <- as.vector(this_spl[, this_score])
                 if(all(is.na(pred)) | all(is.na(obs))){
                     this_out[j, i] <- NA
                 } else {
