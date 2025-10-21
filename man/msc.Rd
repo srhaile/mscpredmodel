@@ -18,7 +18,7 @@ msc(
   model = c("consistency", "inconsistency")[1],
   direct = TRUE,
   indirect = TRUE,
-  ref = c("all", "first")[1],
+  ref = c("first", "all")[1],
   n.boot = 250,
   seed = NULL,
   max_missing = 0.8,

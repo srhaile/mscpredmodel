@@ -59,7 +59,7 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
                 mods = NULL, data = copddata, 
                 model = c("consistency", "inconsistency")[1], 
                 direct = TRUE, indirect = TRUE, 
-                ref = c("all", "first")[1], n.boot = 250, 
+                ref = c("first", "all")[1], n.boot = 250, 
                 seed = NULL, max_missing = 0.8, 
                 ...){
     
@@ -94,6 +94,11 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
         stop("A subject ID must be specified, under the option `subjid`.") 
     } else if(!subjid %in% names(data)){
         stop("The specified subject ID (", subjid, ") is not in dataset.")
+    }
+    
+    if(requireNamespace("future.apply", quietly = TRUE)) {
+        require(future.apply)
+        plan(multisession)
     }
     
     fnv <- as.vector(fn)
@@ -207,8 +212,6 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
     if (!requireNamespace("future.apply", quietly = TRUE)) {
         out <- lapply(fn, function(x) my_fit(f_fn = x, f_lbl = names(x)))
     } else {
-        require(future.apply)
-        plan(multisession)
         out <- future_lapply(fn, function(x) my_fit(f_fn = x, f_lbl = names(x)),
                              future.seed = NULL)
     }
