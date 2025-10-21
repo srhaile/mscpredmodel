@@ -9,6 +9,7 @@
 \alias{get_design}
 \alias{get_mm}
 \alias{summarize_moderators}
+\alias{coeftab}
 \title{Various internal utility functions}
 \usage{
 contrmat(trt1, trt2, ref, sc = NULL)
@@ -42,6 +43,8 @@ get_design(x)
 get_mm(x)
 
 summarize_moderators(x, m = mods)
+
+coeftab(x)
 }
 \arguments{
 \item{trt1}{vector of the 1st treatment / score in the contrast}
@@ -80,6 +83,8 @@ A matrix
 A matrix
 
 A matrix
+
+A data.frame with model coefficients (similar to broom::tidy)
 }
 \description{
 Various internal utility functions
@@ -104,6 +109,8 @@ This function has been adapted slightly from the supplementary material of  \hre
 \item \code{get_mm()}: Get model matrix
 
 \item \code{summarize_moderators()}: Summarize moderators
+
+\item \code{coeftab()}: Summarize moderators
 
 }}
 \seealso{

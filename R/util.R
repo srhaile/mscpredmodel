@@ -202,3 +202,50 @@ summarize_moderators <- function(x, m = mods){
         return(summ)
     }
 }  
+
+#' @describeIn util Summarize moderators
+#' @return A data.frame with model coefficients (similar to broom::tidy)
+coeftab <- function(x){
+    if(is.null(x)) {
+        out <- data.frame(term = NA, type = "summary",
+                          estimate = NA, std.error = NA,
+                          statistic = NA, p.value = NA,
+                          conf.low = NA, conf.high = NA)
+    } else {
+        conf.level <- 0.95
+        betas <- x$beta
+        if (!is.null(nrow(betas)) && nrow(betas) > 1) {
+            study <- rownames(betas)
+            swap <- grepl("intrcpt", study)
+            study[swap] <- "intercept"
+            betas <- as.double(betas)
+        }
+        else {
+            study <- "overall"
+            betas <- betas[1]
+        }
+        if (x$level != 1 - conf.level) {
+            level <- 1 - conf.level
+            if (is.element(x$test, c("knha", "adhoc", "t"))) {
+                crit <- if (all(x$ddf > 0)) 
+                    qt(level/2, df = x$ddf, lower.tail = FALSE)
+                else NA
+            }
+            else {
+                crit <- qnorm(level/2, lower.tail = FALSE)
+            }
+            conf.low <- c(betas - crit * x$se)
+            conf.high <- c(betas + crit * x$se)
+        }
+        else {
+            conf.low <- x$ci.lb
+            conf.high <- x$ci.ub
+        }
+        out <- data.frame(term = study, type = "summary", 
+                          estimate = betas, std.error = x$se, statistic = x$zval, 
+                          p.value = x$pval, conf.low = conf.low, conf.high = conf.high)
+        
+        out
+    }
+    out
+}
