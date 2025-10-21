@@ -2,20 +2,37 @@
 #' 
 #' @examples
 #' dat <- msc_sample_data()
-#' bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 8, 
-#'                   scores = c("a", "b", "c", "d", "e", "f"), 
-#'                   moderators = c("age", "female", "x1"))
-#' perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
-#' agg <- aggregate_performance(perf)
-#' check_transitivity(perf, graph = FALSE)
-#' \dontrun{check_transitivity(agg, graph = FALSE)
-#' check_homogeneity(consistency(agg))
-#' full <- msc_full(perf)
-#' check_homogeneity(full)
-#' check_consistency(perf)}
+#' mod <- msc(scores = c("a", "b", "c", "d",),
+#'             cohort = "cohort", outcome = "mort3", subjid = "id",
+#'             fn = list(`logit AUC` = c_statistic, 
+#'             `calib slope` = calibration_slope), 
+#'             model = "consistency", 
+#'             direct = FALSE, indirect = FALSE,
+#'             ref = "first", data = dat)
+#' \dontrun{check_consistency(mod)
+#' modm <- msc(scores = c("a", "b", "c", "d",),
+#'             cohort = "cohort", outcome = "mort3", subjid = "id",
+#'             fn = list(`logit AUC` = c_statistic, 
+#'             `calib slope` = calibration_slope), 
+#'             model = "consistency", 
+#'             mods = c("age", "female", "x1"),
+#'             direct = FALSE, indirect = FALSE,
+#'             ref = "first", data = dat
+#'             
+#' check_transitivity(modm)
+#' 
+#' modnet <- msc(scores = c("a", "b", "c", "d",),
+#'             cohort = "cohort", outcome = "mort3", subjid = "id",
+#'             fn = list(`logit AUC` = c_statistic, 
+#'             `calib slope` = calibration_slope), 
+#'             model = "consistency", 
+#'             direct = TRUE, indirect = TRUE,
+#'             ref = "first", data = dat)
+#'             
+#' check_consistency(modnet)}
 
 #' @describeIn check_assumptions Check assumption of transitivity
-#' @param x A set of computed (mscraw) or aggregated performance scores (mscagg)
+#' @param object An object from \code{msc}. For \code{check_transitivity}, it must contain moderators.
 #' @param graph Should a graph of outcomes versus moderators be printed?
 #' @return A tibble containing results of linear regression models of the effect size (outcome) against the cohort-specific average moderator value.
 #' 
@@ -23,134 +40,183 @@
 #' @importFrom broom tidy
 #' 
 #' @export
-check_transitivity <- function(x, graph = FALSE){
-    if(identical(class(x), "mscraw")){
-        x <- aggregate_performance(x)
-    }
-    #if(!identical(class(x), "mscagg")) warning("x should be the results of aggregate_performance()")
-    if(is.null(x$mods)) warning("x should contain some moderators. Add these when you run get_bs_samples().")
-    #x$wt <- solve(x$vi)
+check_transitivity <- function(object, graph = TRUE){
     
-    subset_agg <- function(x, ctr){
-        picks <- which(x$contr == ctr)
-        x2 <- x
-        x2$cohort <- as.character(x$cohort[picks])
-        x2$yi <- x$yi[picks]
-        x2$vi <- x$vi[picks, picks]
-        if(length(x2$vi) > 1){
-          x2$wt <-  1 / diag(x2$vi)
-        } else {
-          x2$wt <- 1 / x2$vi
+    if(is.null(attr(object, "mods"))){
+        stop("No moderators included. Please add some with the `mods` argument.")
+    }
+    
+    mods <- attr(object, "mods")
+    
+    this_dat <- lapply(object, function(x) x$data)
+    this_dat <- lapply(this_dat, function(x){
+        x$w <- 1 / x$vi
+        x
+    })
+    
+    measures <- names(this_dat)
+    m <- length(mods)
+    
+    out <- vector("list", length(measures))
+    names(out) <- measures
+    
+    for(meas in measures){
+        contrlist <- unique(this_dat[[meas]]$contr)
+        p <- length(contrlist)
+        
+        tmp <- vector("list", m * p)
+        
+        k <- 0
+        for(i in 1:m){
+            for(j in 1:p){
+                k <- k + 1
+                trfm <- paste("yi ~ ", mods[i])
+                subdat <- subset(this_dat[[meas]], contr == contrlist[j])
+                trmodel <- try(lm(as.formula(trfm),
+                                  weights = w, 
+                                  data = subdat), silent = TRUE)
+                if (class(trmodel) == "try-error") {
+                    tmp[[k]] <- NULL
+                } else {
+                    tmp[[k]] <- trmodel
+                }
+            }
         }
-        x2$contr <- x$contr[picks]
-        x2$design <- x2$design[picks]
-        x2$design.matrix <- x2$design.matrix[picks, ]
-        x2$moderators <- x2$moderators[picks, ]
-        x2
+        out[[meas]] <- tmp
+        names(out[[meas]]) <- paste(rep(mods, each = p), rep(contrlist, m))
     }
     
-    transitivity_model <- function(contr, moderator){
-      this.x <- subset_agg(x, contr)
-      d1 <- data.frame("cohort" = this.x$cohort,
-                       "yi" = this.x$yi, 
-                       "wt" = this.x$wt,
-                       "contr" = this.x$contr, 
-                       "design" = this.x$design)
-      #d1$wt <- diag(this.x$wt)
-      d2 <- this.x$moderators
-      dat.x <- merge(d1, d2, by = "cohort", all = TRUE)
-      this.fm <- paste("yi ~", moderator)
-      this.lm <- try(lm(as.formula(this.fm), weights = dat.x$wt, data = dat.x),
-                     silent = TRUE)
-      if(class(this.lm) == "try-error"){
-        this.lm <- NULL
-      }
-      out <- tidy(this.lm, conf.int = TRUE)
-      out$contr <- contr
-      out$moderator <- moderator
-      out <- out[, c(8, 9, 1:7)]
-      as.data.frame(out)
-    }  
-    parms <- expand.grid(moderator = x$mods, 
-                contr = unique(x$contr)) 
-    res <- do.call(rbind, 
-                   mapply(transitivity_model, parms$contr, parms$moderator, SIMPLIFY = FALSE))
-    res <- res[res$term != "(Intercept)", ]
-    
-    if(graph){
+    if (graph){
         if (!requireNamespace("ggplot2", quietly = TRUE)) {
-            stop("Package \"ggplot2\" needed for this function to work. Please install it.",
+            stop("Package \"ggplot2\" needed for this function to work. Please install it.", 
                  call. = FALSE)
         }
-        #require(ggplot2)
         
+        agw <- lapply(this_dat, function(x) reshape(x,
+                                                    varying = mods, 
+                                                    v.names = "value", 
+                                                    timevar = "moderator", 
+                                                    times = mods, 
+                                                    idvar = "id", 
+                                                    direction = "long"))
+        for(i in 1:length(agw)){
+            agw[[i]]$measure <- names(agw)[i]
+        }
+        agw <- do.call("rbind", agw)
         
-        
-        dat1 <- data.frame(cohort = as.character(x$cohort), 
-                                yi = x$yi, 
-                                contr = x$contr, wt = 1 / diag(x$vi))
-        dat2 <- x$moderators
-        dat.ag <- merge(dat1, dat2, by = "cohort", all = TRUE) 
-        dat.ag$id <- 1:nrow(dat.ag)
-        
-        agw <- reshape(dat.ag, varying = x$mods, v.names = "value",
-                timevar = "moderator", times = x$mods, 
-                idvar = "id", direction = "long")
-        p <- ggplot(aes(.data$value, .data$yi, size = .data$wt, 
-                        color = .data$contr), 
-               data = agw) + 
-            geom_smooth(aes(linetype = .data$contr), method = "lm", alpha = 0.2) + 
-            geom_point(aes(shape = .data$contr)) + 
+        p <- ggplot(aes(value, yi), data = agw) + 
+            geom_smooth(aes(linetype = contr, 
+                            color = contr, weight = w),
+                        method = "lm", formula = y ~ x,
+                        alpha = 0.2) +
+            geom_point(aes(shape = contr, color = contr, size = w)) + 
             xlab("Value of Moderator") + ylab("Difference in Performance") + 
-            guides(size = FALSE, 
+            guides(weight = "none", size = "none",
                    color = guide_legend("Contrast"), 
-                   linetype = guide_legend("Contrast"),
-                   shape = guide_legend("Contrast")) + 
-            facet_wrap( ~ .data$moderator, scales = "free_x")
-        print(p)
+                   linetype = "none", 
+                   shape = guide_legend("Contrast")) +
+            scale_linetype_discrete(drop = FALSE) +
+            facet_grid(cols = vars(moderator), 
+                       rows = vars(measure), scales = "free") +
+            theme(legend.position = "bottom")
     }
-    
-    ord <- with(res, order(moderator, contr))
-    res[ord, ]
+    if(graph){
+        return(p)
+    } else {
+        return(out)
+    }
 }
 
 #' @describeIn check_assumptions Check assumption of homogeneity
-#' @param object A \code{\link{consistency}} or \code{inconsistency} model, or the results of \code{msc_network}, \code{msc_full}, \code{msc_direct}, or \code{msc_indirect}.
+#' @param object An object from \code{msc}.
 #' @param dig Number of digits to be printed, see \code{\link{format.pval}}.
-#' @return A vector containing tau-square, the Q likelihood ratio statistic, its degrees of freedom and its p-value.
+#' @return A list containing datasets with tau-square, the Q likelihood ratio statistic, its degrees of freedom and its p-value.
 #' 
 #' @export
 check_homogeneity <- function(object, dig = 3){
-    if(!any(class(object) %in% c("rma.mv", "msc"))){
-        stop("Input should be from `[in]consistency()` or any `msc` command!")
+    if (!any(class(object) =="msc")) {
+        stop("Input should be from `msc()` command!")
     }
     
     parms <- c("tau2", "QE", "k", "p", "QEp")
     newparms <- c("tau2", "QE", "df", "QEp")
-    if(any(class(object) == "msc")){
-        object <- object$models
-        out <- lapply(lapply(object, `[`, parms), unlist)
-        out <- as.data.frame(do.call(rbind, out))
-    } else {
-        out <- data.frame(object[parms])
-    }
-    out$df <- out$k - out$p
-    out <- out[, newparms]
-    out
     
+    models <- lapply(object, function(x){
+        y <- x$rma.mv
+        y <- y[parms]
+        y <- as.data.frame(y)
+        y$df <- with(y, k - p)
+        y <- y[, newparms]
+        y
+    })
+    
+    for(i in 1:length(models)){
+        models[[i]]$measure <- names(models)[i]
+        models[[i]] <- models[[i]][, c(5, 1:4)]
+    }
+    out <- do.call("rbind", models)
+    rownames(out) <- NULL
+    return(out)
 }
 
 
+
 #' @describeIn check_assumptions Check assumption of consistency
-#' @param ps A set of raw performance estimates, from \code{\link{compute_performance}}
-#' @param mtype Type of model (default "consistency", else "inconsistency"). It is sufficient to write \code{"c"} or \code{"i"}.
-#' @param ref Reference score all other scores should be compared to. (Default NULL, all pairwise comparisons are estimated)
+#' @param object An object from \code{msc}. For \code{check_consistency}, it must have been run with options \code{direct = TRUE, indirect = TRUE}
+#' @param graph Should the results be displayed graphically? (default TRUE) If not, the coefficient table is returned.
 #' @return A graph of the direct and indirect estimates for the various differences in score performance.
 #' @export
 #'
-check_consistency <- function(ps, mtype = c("consistency", "inconsistency")[1], ref = NULL){
-    if(class(ps) != "mscraw") stop("ps should be the results of `compute_performance`!")
-    fullres <- msc_full(ps, mtype = mtype, ref = ref)
-    return(plot.msc(fullres))
+check_consistency <- function(object, graph = TRUE){
+    if (!all(c("network", "direct", "indirect") %in% object[[1]]$models$evidence)) {
+        stop("Please rerun the model with `direct = TRUE, indirect = TRUE`.")
+    }
+    
+    avail_scores <- attr(object, "scores")
+    k <- length(avail_scores)
+    main_contr <- NULL
+    for(i in 1:(k - 1)){
+        main_contr <- c(main_contr, 
+                        paste(avail_scores[(i + 1):k], avail_scores[i], sep = "-"))
+    }
+    
+    est <- lapply(object, function(x) x["models"])
+    est <- lapply(est, function(x) do.call("rbind", x))
+    est <- lapply(est, function(x){rownames(x) <- NULL; x})
+    for(i in 1:length(est)){
+        est[[i]]$perfmeasure <- names(est)[i]
+        est[[i]] <- est[[i]][, c(11, 1:10)]
+        est[[i]]$contr <- with(est[[i]], paste(term, ref, sep = "-"))
+        est[[i]] <- subset(est[[i]], contr %in% main_contr)
+    }
+    out <- do.call("rbind", est)
+    out$contr <- with(out,  paste(term, ref, sep = "-"))
+    ord <- with(out, order(perfmeasure, contr, evidence))
+    out <- out[ord, ]
+    out$evidence <- factor(out$evidence, c("network", "direct", "indirect"))
+    rownames(out) <- NULL
+    
+    if (graph){
+        if (!requireNamespace("ggplot2", quietly = TRUE)) {
+            stop("Package \"ggplot2\" needed for this function to work. Please install it.", 
+                 call. = FALSE)
+        }
+        
+        p <- ggplot(aes(contr, estimate,
+                        ymin = conf.low, ymax = conf.high), data = out) +
+            geom_point(aes(color = evidence, shape = evidence, 
+                           size = 1 / (std.error ^ 2)),
+                       position  = position_dodge(width = 0.3)) + 
+            geom_linerange(aes(color = evidence),
+                           position  = position_dodge(width = 0.3)) + 
+            facet_wrap(vars(perfmeasure)) + 
+            guides(size = "none") +
+            xlab(NULL) + ylab("estimated difference in performance") + 
+            theme(legend.position = "bottom")
+        return(p)
+    } else {
+        return(out)
+    }
+    
 }
 
