@@ -129,7 +129,6 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
                     fm_mods <- paste(m, collapse = " + ")
                     new_fm <- paste(new_fm, "+", fm_mods)
                 }
-                
                 if(model == "consistency"){
                     new_mod <- rma.mv(yi, V, data = nw_dat, 
                                       mods = eval(as.formula(new_fm)),
@@ -144,7 +143,7 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
                                                     ~contr | design), 
                                       rho = 0.5, phi = 0.5, ...)
                 }
-                this_res <- coeftab(nw_model)
+                this_res <- coeftab(new_mod)
                 this_res$ref <- ref_score
                 this_res$evidence <- "network"
                 res$models <- rbind(res$models, this_res)
