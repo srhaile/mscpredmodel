@@ -51,6 +51,7 @@ mod <- msc(scores = c("a", "b", "c", "e", "g"),
            model = "consistency", direct = FALSE, indirect = FALSE,
            ref = "first")
 mod
+plot(mod)
 
 check_homogeneity(mod)
 ```

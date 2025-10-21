@@ -3,6 +3,7 @@
 \name{msc}
 \alias{msc}
 \alias{print.msc}
+\alias{plot.msc}
 \alias{fit_msc}
 \title{Full, direct and indirect network results for MSC}
 \usage{
@@ -25,6 +26,8 @@ msc(
 )
 
 \method{print}{msc}(object)
+
+\method{plot}{msc}(object)
 
 fit_msc(
   scores = c("A", "B", "C", "D"),
