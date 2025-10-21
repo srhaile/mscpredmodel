@@ -34,28 +34,27 @@ library(mscpredmodel)
 library(ggplot2)
 theme_set(theme_bw())
 
-dat <- msc_sample_data()
+dat <- msc_sample_data(n.cohorts = 10)
 head(dat)
 
-M <- 25
-bs.example <- get_bs_samples(data = dat, id = id, cohort = study, 
-                             outcome = outcome, n.samples = M, 
-                             scores = c("a", "b", "c", "e", "g"), 
-                             moderators = c("age", "female"))
-ps <- compute_performance(bs.example, fn = oe_ratio, 
-                          lbl = "O:E ratio")
-summary(ps)
-check_transitivity(ps, graph = TRUE)
+get_performance_statistics(data = dat, 
+                          scores = c("a", "b", "c", "e", "g"), 
+                          cohort = "study", outcome = "outcome", 
+                          fn = list(AUC = c_statistic, 
+                                    `O/E` = oe_ratio,
+                                    BS = brier_score))
 
-msc_model(ps, mtype = "consistency")
-(modi <- msc_model(ps, mtype = "inconsistency"))
+mod <- msc(scores = c("a", "b", "c", "e", "g"),
+           outcome = "outcome", subjid = "id",
+           cohort = "study", mods = NULL, data = dat,
+           fn = list("AUC" = c_statistic,
+                     "CS" = calibration_slope,
+                     "BS" = brier_score),
+           model = "consistency", direct = FALSE, indirect = FALSE,
+           ref = "first")
+mod
 
-check_homogeneity(modi)
-check_consistency(ps)
-
-fullres <- msc_full(ps, ref = "c")
-plot(fullres)
-
+check_homogeneity(mod)
 
 ```
 
