@@ -6,12 +6,12 @@
 #' individual patient data (IPD). 
 #' 
 #' @section Main Functions:
-#' The main mscpredmodel functions are as follows:
+#' The main mscpredmodel function is:
 #' \describe{
-#'   \item{\code{\link{msc_sample_data}}}{Produces a simulated dataset in order to try out the package}
 #'   \item{\code{\link{msc}}}{Compare performance of prediction models, can calculate any model for full network comparisons, or direct or indirect comparisons, and can adjust for moderators.}
-#'
-#' @docType package
+#' }
+#' 
+#' @docType _PACKAGE
 #' @name mscpredmodel
 #' 
 NULL

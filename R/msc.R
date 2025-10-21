@@ -38,23 +38,15 @@
 #'
 #' @examples
 #' dat <- msc_sample_data()
-#' out1 <- msc(scores = c("a", "b", "c", "d", "e", "f", "g", "h", "i"),
+#' out1 <- msc(scores = c("a", "b", "c", "d", "e"),
 #'          cohort = "study", outcome = "outcome", subjid = "id", 
-#'          data = dat, direct = FALSE, indirect = FALSE)
+#'          data = dat, direct = FALSE, indirect = FALSE,
+#'          model = "inconsistency")
 #' print(out1)
 #' 
-#' 
 #' \dontrun{
-#'          
 #'  library(ggplot2)
-#'  plot(out1) +
-#'      xlab(NULL) + 
-#'      ylab("Difference in AUC compared to score 'a'")
-#'      
-#'       
-#'  out2 <- msc(scores = c("a", "b", "c", "d", "e", "f", "g", "h", "i"),
-#'          cohort = "study", outcome = "outcome", subjid = "id", 
-#'          data = dat, direct = TRUE, indirect = TRUE, ref = "all)
+#'  plot(out1)
 #' }
 #' 
  

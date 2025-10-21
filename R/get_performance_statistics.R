@@ -6,10 +6,19 @@
 #' @param fn A named list of performance metrics.
 #' @param data  Name of dataset containing all other variables, with individual patient data, that is, 1 row per subject.
 #'
-#' @returns
+#' @returns A matrix of performance estimates by cohort.
 #' @export
 #'
-#' @examples
+#' @examples 
+#' dat <- msc_sample_data(n.cohorts = 10)
+#' get_performance_statistics(data = dat, 
+#'                   scores = c("a", "b", "c"), 
+#'                   cohort = "study", outcome = "outcome", 
+#'                   fn = list(AUC = c_statistic, 
+#'                              `O/E` = oe_ratio,
+#'                              BS = brier_score))
+#' 
+#' 
 get_performance_statistics <- function(scores,
                                        cohort,
                                        outcome,         

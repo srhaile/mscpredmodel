@@ -117,6 +117,20 @@ Specifically, we fit the models described in Law et al 2016, which differ only i
 \item \code{fit_msc()}: Compute MSC models for various performance measures, returning only the model results
 
 }}
+\examples{
+dat <- msc_sample_data()
+out1 <- msc(scores = c("a", "b", "c", "d", "e"),
+         cohort = "study", outcome = "outcome", subjid = "id", 
+         data = dat, direct = FALSE, indirect = FALSE,
+         model = "inconsistency")
+print(out1)
+
+\dontrun{
+ library(ggplot2)
+ plot(out1)
+}
+
+}
 \seealso{
 Law, M.; Jackson, D.; Turner, R.; Rhodes, K. & Viechtbauer, W. Two new methods to fit models for network meta-analysis with random inconsistency effects BMC Medical Research Methodology, 2016, 16, 87.#'
 }
