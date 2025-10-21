@@ -1,4 +1,4 @@
-#' @title Various utility functions
+#' @title Various internal utility functions
 #'
 #' @describeIn util Make design matrix
 #' @param trt1 vector of the 1st treatment / score in the contrast
@@ -34,128 +34,147 @@ contrmat <- function(trt1, trt2, ref, sc = NULL){
 }
 
 #' @describeIn util Calculate differences between performance measures
-#' @return A new dataset with differences calculated
+#' @return A new dataset with performance measures
 #' 
-get_diff <- function(x, s, ref){
-    refs <- get_ref(x, s, ref)
-    if(refs != ""){
-        x$ref <- x[, refs]
-        for(i in s) x[, i] <- x[, i] - x$ref
-        x[, refs] <- NA
-        x <- x[, !names(x) %in% "ref"]
-        x
-    } else {
-        NULL
+
+compute_performance <- function(x, k = k, sc = scores, fn = perffn, 
+                                observed = outcome,
+                                missing_threshold = 0.8){
+    out <- rep(NA, k)
+    names(out) <- sc
+    for(i in 1:k){
+        this_score <- sc[i]
+        obs <- as.vector(x[, observed])
+        if(this_score %in% names(x)){
+            pred <- as.vector(x[, this_score])
+            pct_miss <- mean(is.na(pred))
+            if(pct_miss > missing_threshold){
+                out[i] <- NA
+            } else if(all(is.na(pred)) | 
+                      all(is.na(obs) | 
+                          all(obs == 0) | all(obs == 1) |
+                          all(obs[!is.na(pred)] == 0))){
+                out[i] <- NA
+            } else if(length(table(pred)) < 2 | 
+                      length(table(obs)) < 2){
+                out[i] <- NA
+            } else {
+                out[i] <- fn(obs, pred)
+            }
+        } else {
+            out[i] <- NA
+        }
+        
     }
-}
-
-#' @describeIn util Get reference score
-#' @return The number of the reference score
-#'
-get_ref <- function(x, s, ref){
-    pick <- x$id == "Apparent"
-    sc <- x[pick, s]
-    which.nonmiss <- which(!is.na(sc))
-    if(length(which.nonmiss) >= 1){
-        this.ref <- ref
-        if(is.na(sc[this.ref])) this.ref <- names(sc)[which.nonmiss[1]]
-    } else {
-        this.ref <- ""
-    }
-    this.ref
-}
-
-#' @describeIn util Get non-missing scores
-#' @return The names of the observed scores
-#'
-#'
-get_scores <- function(x, s){
-    pick <- x$id == "Apparent"
-    sc <- x[pick, s]
-    names(sc)[!is.na(sc)]
-}
-
-#' @describeIn util Get design of the cohort
-#' @return A string of the design (combination of scores) of the cohort
-#'
-get_design <- function(x, dl, s){
-    new.labels <- dl[1:length(s)]
-    relbl <- factor(x, s, labels = new.labels)
-    paste(relbl, collapse = "")
-}
-
-#' @describeIn util Get estimated performance
-#' @return a vector of performance estimates
-#'
-get_est <- function(x, s){
-    pick <- x$id == "Apparent"
-    out <- as.numeric(x[pick, s])
-    names(out) <- s
-    if(length(out) == 0) out <- numeric(0)
+    out <- out[!is.na(out)]
     out
 }
 
-#' @describeIn util Get variance estimated performance
-#' @return a variance matrix
-#'
-get_var <- function(x, s){
-    pick <- x$id != "Apparent"
-    if(length(s) == 0){
-      out <- matrix(nrow = 0, ncol = 0)
-    } else if(length(s) == 1){
-      out <- var(x[pick, s], na.rm = TRUE)
-      out <- as.matrix(out)
-      rownames(out) <- colnames(out) <- s
-    } else {
-      out <- var(x[pick, s], na.rm = TRUE, use = "pairwise.complete.obs")
+#' @describeIn util Calculate variance matrix of differences in performance measures, after bootstrap sampling
+#' @return A variance matrix
+bootfn <- function(x, R = n.boot, newseed = NULL, k = k, 
+                   sc = scores, pfn = perf_fn,
+                   missing_threshold = 0.8, 
+                   observed = outcome){
+    out <- matrix(NA, nrow = R, ncol = k)
+    colnames(out) <- sc
+    n.obs <- nrow(x)
+    if(!is.null(newseed)){
+        set.seed(newseed)
     }
-    out
-}
-
-#' @describeIn util Find direct (head-to-head) comparisons
-#' @return a data.frame
-#'
-get_direct <- function(x, s1, s2){
-    out <- x[, c("id", s1, s2)]
-    to.keep <- !is.na(out[, s1]) & !is.na(out[, s2])
-    out[to.keep, ]
-}
-
-#' @describeIn util Find indirect comparisons
-#' @return a data.frame
-# for indirect comparisons (node-splitting approach):
-# if pair not in design --> leave it in as is
-# if pair == design --> remove entire study
-# if pair in design (but there are extra scores also) --> remove 2nd of pair
-
-get_indirect <- function(x, s1, s2, sc){
-    ap <- x[x$id == "Apparent", sc]
-    nms <- names(ap)[!is.na(ap)]
-    has_s1 <- s1 %in% nms
-    has_s2 <- s2 %in% nms
-    others <- nms[!nms %in% c(s1, s2)]
-    has_others <- length(others) > 0
     
-    if(has_s1 & has_s1){
-        if(has_others){
-            out <- x
-            out[, s2] <- NA
-        } else if (!has_others){
-            out <- x
-            out[, c(s1, s2)] <- NA
+    for(b in 1:R){
+        this_sample <- sample(1:n.obs, n.obs, replace = TRUE)
+        for(i in 1:k){
+            this_score <- sc[i]
+            obs <- x[, observed][this_sample]
+            pred <- as.vector(x[, this_score][this_sample])
+            pct_miss <- mean(is.na(pred))
+            if(pct_miss > missing_threshold){
+                out[b, i] <- NA
+            } else if(all(is.na(pred)) | all(is.na(obs))){
+                out[b, i] <- NA
+            } else if(all(obs[!is.na(pred)] == 0) | all(obs[!is.na(pred)] == 1)){
+                out[b, i] <- NA
+            } else if(length(table(pred)) < 2 | 
+                      length(table(obs)) < 2  ){
+                
+                out[b, i] <- NA
+            }  else {
+                out[b, i] <- pfn(obs, pred)
+            }
+        }
+    }
+    
+    out[out == Inf | out == -Inf] <- NA
+    
+    any_values <- apply(out, 2, function(x) any(!is.na(x)))
+    
+    if(sum(any_values) >= 2){
+        out <- out[, any_values]
+        out_diff <- out[, -1] - out[, 1]
+        VE <- var(out_diff, use = "pairwise.complete.obs")
+        if(length(VE) > 1){
+            colnames(VE) <- paste(colnames(out)[-1], colnames(out)[1], sep = "-")
+        } else {
+            names(VE) <- paste(colnames(out)[-1], colnames(out)[1], sep = "-")
         }
     } else {
-        out <- x
+        VE <- NA
+    }
+    VE
+}
+
+#' @describeIn util Get vector of which scores are compared
+#' @return A vector
+get_contrasts <- function(x){
+    p <- length(x)
+    if(p %in% 0:1){
+        return(NULL)
+    } else {
+        nms <- names(x)
+        paste(nms[-1], nms[1], sep = "-")
+    }
+}
+
+#' @describeIn util Calculate difference in performance measure compared to first score
+#' @return A vector
+get_perf_diff <- function(x){
+    p <- length(x)
+    if(p %in% 0:1){
+        out <- NULL
+    } else {
+        nms <- names(x)
+        nms <- paste(nms[-1], nms[1], sep = "-")
+        out <- x[-1] - x[1]
+        names(out) <- nms
+    }
+    return(out)
+}
+
+#' @describeIn util Get design of study
+#' @return A matrix
+get_design <- function(x){
+    p <- length(x)
+    if(p %in% 0:1){
+        return("")
+    } else {
+        nms <- names(x)
+        paste(nms, collapse = "-")
+    }
+}
+
+#' @describeIn util Get model matrix
+#' @return A matrix
+get_mm <- function(x){
+    p <- length(x)
+    if(p %in% 0:1){
+        out <- NULL
+    } else {
+        nms <- names(x)
+        out <- data.frame(score.1 = nms[-1],
+                      score.2 = nms[1])
     }
     out
 }
-
-#' @describeIn util Check if score is still in any of the cohorts?
-#' @return TRUE/FALSE
-check_combn <- function(x, to.check){
-    tmp <- as.numeric(x[x$id == "Apparent", to.check])
-    ((length(tmp) > 0) && !is.na(tmp))
-}
-
-
 
