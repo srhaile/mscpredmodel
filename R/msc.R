@@ -254,6 +254,42 @@ print.msc <- function(object){
     print(out)
 }
 
+#' @rdname msc
+#' @title Plot MSC results for one model
+#' @param object An object of class \code{msc}, from \code{msc}.
+#' @export
+plot.msc <- function(object){
+    est <- lapply(object, function(x) x$models)
+    est <- lapply(est, function(x){rownames(x) <- NULL; x})
+    for(i in 1:length(est)){
+        est[[i]]$perfmeasure <- names(est)[i]
+        est[[i]] <- est[[i]][, c(11, 1:10)]
+    }
+    out <- do.call("rbind", est)
+    rownames(out) <- NULL
+    
+    out$contr <- with(out, paste(term, ref, sep = "-"))
+    
+    if (!requireNamespace("ggplot2", quietly = TRUE)) {
+        stop("Package \"ggplot2\" needed for this function to work. Please install it.", call. = FALSE)
+    }
+    
+    p <- ggplot(aes(contr, estimate, 
+                    ymin = conf.low, ymax = conf.high,
+                    color = evidence, shape = evidence), 
+                data = out) +
+        geom_point(aes(size = 1 / (std.error ^ 2)), 
+                   position = position_dodge(width = 0.3)) + 
+        geom_linerange(position = position_dodge(width = 0.3)) +
+        facet_wrap(vars(perfmeasure), scales = "free_y") + 
+        xlab(NULL) + ylab("different in performance") + 
+        guides(color = guide_legend(NULL),
+               shape = guide_legend(NULL),
+               size = "none") +
+        theme(legend.position = "bottom")
+    p
+}
+
 #' @describeIn msc Compute MSC models for various performance measures, returning only the model results
 #' @export
 fit_msc <- function(scores = c("A", "B", "C", "D"),
