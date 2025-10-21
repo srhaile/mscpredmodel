@@ -2,36 +2,43 @@
 % Please edit documentation in R/util.R
 \name{contrmat}
 \alias{contrmat}
-\alias{get_diff}
-\alias{get_ref}
-\alias{get_scores}
+\alias{compute_performance}
+\alias{bootfn}
+\alias{get_contrasts}
+\alias{get_perf_diff}
 \alias{get_design}
-\alias{get_est}
-\alias{get_var}
-\alias{get_direct}
-\alias{get_indirect}
-\alias{check_combn}
-\title{Various utility functions}
+\alias{get_mm}
+\title{Various internal utility functions}
 \usage{
 contrmat(trt1, trt2, ref, sc = NULL)
 
-get_diff(x, s, ref)
+compute_performance(
+  x,
+  k = k,
+  sc = scores,
+  fn = perffn,
+  observed = outcome,
+  missing_threshold = 0.8
+)
 
-get_ref(x, s, ref)
+bootfn(
+  x,
+  R = n.boot,
+  newseed = NULL,
+  k = k,
+  sc = scores,
+  pfn = perf_fn,
+  missing_threshold = 0.8,
+  observed = outcome
+)
 
-get_scores(x, s)
+get_contrasts(x)
 
-get_design(x, dl, s)
+get_perf_diff(x)
 
-get_est(x, s)
+get_design(x)
 
-get_var(x, s)
-
-get_direct(x, s1, s2)
-
-get_indirect(x, s1, s2, sc)
-
-check_combn(x, to.check)
+get_mm(x)
 }
 \arguments{
 \item{trt1}{vector of the 1st treatment / score in the contrast}
@@ -44,66 +51,54 @@ check_combn(x, to.check)
 
 \item{x}{A variety of possible inputs, depends on the function}
 
-\item{s}{vector of scores to be kept}
-
-\item{dl}{design.levels}
-
 \item{s1}{name of the 1st score in the contrast}
 
 \item{s2}{name of the 2nd score in the contrast}
+
+\item{s}{vector of scores to be kept}
+
+\item{dl}{design.levels}
 
 \item{to.check}{Name of score to be checked}
 }
 \value{
 A design matrix
 
-A new dataset with differences calculated
+A new dataset with performance measures
 
-The number of the reference score
+A variance matrix
 
-The names of the observed scores
+A vector
 
-A string of the design (combination of scores) of the cohort
+A vector
 
-a vector of performance estimates
+A matrix
 
-a variance matrix
-
-a data.frame
-
-a data.frame
-
-TRUE/FALSE
+A matrix
 }
 \description{
-Various utility functions
+Various internal utility functions
 }
 \details{
 This function has been adapted slightly from the supplementary material of  \href{https://doi.org/10.1186/s12874-016-0184-5}{Law et al 2016}:
 }
 \section{Functions}{
 \itemize{
-\item \code{contrmat}: Make design matrix
+\item \code{contrmat()}: Make design matrix
 
-\item \code{get_diff}: Calculate differences between performance measures
+\item \code{compute_performance()}: Calculate differences between performance measures
 
-\item \code{get_ref}: Get reference score
+\item \code{bootfn()}: Calculate variance matrix of differences in performance measures, after bootstrap sampling
 
-\item \code{get_scores}: Get non-missing scores
+\item \code{get_contrasts()}: Get vector of which scores are compared
 
-\item \code{get_design}: Get design of the cohort
+\item \code{get_perf_diff()}: Calculate difference in performance measure compared to first score
 
-\item \code{get_est}: Get estimated performance
+\item \code{get_design()}: Get design of study
 
-\item \code{get_var}: Get variance estimated performance
+\item \code{get_mm()}: Get model matrix
 
-\item \code{get_direct}: Find direct (head-to-head) comparisons
-
-\item \code{get_indirect}: Find indirect comparisons
-
-\item \code{check_combn}: Check if score is still in any of the cohorts?
 }}
-
 \seealso{
 Law, M.; Jackson, D.; Turner, R.; Rhodes, K. & Viechtbauer, W. Two new methods to fit models for network meta-analysis with random inconsistency effects BMC Medical Research Methodology, 2016, 16, 87.
 }

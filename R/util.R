@@ -178,3 +178,27 @@ get_mm <- function(x){
     out
 }
 
+#' @describeIn util Summarize moderators
+#' @return A matrix
+summarize_moderators <- function(x, m = mods){
+    check_names <- any(!m %in% names(x))
+    if(check_names){
+        which_missing <- m[!m %in% names(x)]
+        warning("Requested moderator(s) ", 
+                paste(which_missing, collapse = ", "),
+                " not in data set, and will be removed.", sep = "")
+        m <- m[!m %in% which_missing]
+    }
+    if(length(m) == 0 | is.null(m)){
+        return(NA)
+    } else if(length(m) > 1){
+        xm <- x[, m]
+        summ <- apply(xm, 2, mean, na.rm = TRUE)
+        return(summ)
+    } else if(length(m) == 1){
+        xm <- x[, m]
+        summ <- data.frame(m = mean(xm, na.rm = TRUE))
+        names(summ) <- m
+        return(summ)
+    }
+}  

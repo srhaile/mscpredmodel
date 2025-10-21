@@ -13,80 +13,84 @@
 \alias{Emax}
 \title{Compute performance in terms of various typical calibration and discrimination measures.}
 \usage{
-calibration_slope(dd, fm)
+calibration_slope(obs, pred)
 
-calibration_large(dd, fm)
+calibration_large(obs, pred)
 
-c_statistic(dd, fm)
+c_statistic(obs, pred)
 
-oe_ratio(dd, fm)
+oe_ratio(obs, pred)
 
-brier_score(dd, fm)
+brier_score(obs, pred)
 
-int_calib_index(dd, fm)
+int_calib_index(obs, pred)
 
-E50(dd, fm)
+E50(obs, pred)
 
-E90(dd, fm)
+E90(obs, pred)
 
-Emax(dd, fm)
+Emax(obs, pred)
 }
 \arguments{
-\item{dd}{A dataset.}
+\item{obs}{A vector of observed scores}
 
-\item{fm}{The formula that will be called by the model, of the form \code{outcome ~ score} (character).}
+\item{pred}{A vector of observed outcomes}
 }
 \value{
 A single performance measure (numeric).
 }
 \description{
-Here we provide several functions to compute some typical performance measures 
-for calibration and discrimination (calibration slope, calibration-in-the-large, 
-c-Statistic / AUC, O:E ratio, Brier score, integrated calibration index, and 
-related E50, E90, and Emax). This is however not intended to be an 
-exhaustive set of performance measures.
+Here we provide several functions to compute some typical performance measures for calibration and discrimination (calibration slope, calibration-in-the-large, c-Statistic / AUC, O:E ratio, Brier score, integrated calibration index, and related E50, E90, and Emax). This is not intended to be an exhaustive set of performance measures.
 }
 \details{
-Please note that \code{\link{compute_performance}} will use \code{try}, and return \code{NA} if the function has an error. Of the potentially large number of cohort, score and bootstrap sample, this was a straightforward way to prevent \code{\link{compute_performance}} from returning an error for the whole dataset. However, if the function to compute performance generally does not work (for example, if the package \code{pROC} is required but not loaded), this behavior also prevents warning message for, say, unloaded R packages from being printed. See the example for how to redefine the provided functions with a transformation.
+In some cases, it may be better to perform network meta-analysis on transformed performance measures, for example log calibration slope or logit AUC, as these may be closer to normally distributed. The examples below show how these could be computed.
 }
 \section{Functions}{
 \itemize{
-\item \code{calibration_slope}: Estimate calibration slope
+\item \code{calibration_slope()}: Estimate calibration slope
 
-\item \code{calibration_large}: Estimate calibration-in-the-large
+\item \code{calibration_large()}: Estimate calibration-in-the-large
 
-\item \code{c_statistic}: Estimate c-Statistics / Area under the ROC curve
+\item \code{c_statistic()}: Estimate c-Statistic / Area under the ROC curve
 
-\item \code{oe_ratio}: Estimate ratio of observed to expected number of events
+\item \code{oe_ratio()}: Estimate ratio of observed to expected number of events
 
-\item \code{brier_score}: Estimate Brier score
+\item \code{brier_score()}: Estimate Brier score
 
-\item \code{int_calib_index}: Estimate Integrated Calibration Index (ICI) (mean)
+\item \code{int_calib_index()}: Estimate Integrated Calibration Index (ICI) (mean)
 
-\item \code{E50}: Estimate Integrated Calibration Index (ICI) (median)
+\item \code{E50()}: Estimate Integrated Calibration Index (ICI) (median)
 
-\item \code{E90}: Estimate Integrated Calibration Index (ICI) (90th percentile)
+\item \code{E90()}: Estimate Integrated Calibration Index (ICI) (90th percentile)
 
-\item \code{Emax}: Estimate Integrated Calibration Index (ICI) (maximum)
+\item \code{Emax()}: Estimate Integrated Calibration Index (ICI) (maximum)
+
 }}
-
 \examples{
 n <- 100
-x <- rnorm(n)
-y <- as.numeric(rnorm(n, x) > 1)
-dat <- data.frame(x, y)
+predscore <- runif(n)
+outcome <- as.numeric(rnorm(n, predscore) > 1)
 
-# log calibration slope
-log_cs <- function(dd, fm){
-    log(calibration_slope(dd, fm))
+# using a built-in function
+calibration_slope(outcome, predscore)
+
+
+# adapt above to compute log calibration slope
+log_cs <- function(obs, pred){
+    log(calibration_slope(obs, pred))
 }
+log_cs(outcome, predscore)
 
-calibration_slope(dat, "y ~ x")
-log_cs(dat, "y ~ x")
-
+# or adapt c_statistic to get logit AUC
+logit_auc <- function(obs, pred){
+qlogis(c_statistic(obs, pred))
+} 
+logit_auc(outcome, predscore)
 }
 \seealso{
 Austin, PC, Steyerberg, EW. The Integrated Calibration Index (ICI) and related metrics for quantifying the calibration of logistic regression models. Statistics in Medicine. 2019; 1– 15. https://doi.org/10.1002/sim.8281
 
 Debray, T. P., Damen, J. A., Riley, R. D., Snell, K., Reitsma, J. B., Hooft, L., … Moons, K. G. (2018). A framework for meta-analysis of prediction model studies with binary and time-to-event outcomes. Statistical Methods in Medical Research. https://doi.org/10.1177/0962280218785504
+
+Snell KI, Ensor J, Debray TP, et al (2017). Meta-analysis of prediction model performance across multiple studies: which scale helps ensure between-study normality for the C -statistic and calibration measures? Statistical Methods in Medical Research. https://doi.org/10.1177/0962280217705678
 }

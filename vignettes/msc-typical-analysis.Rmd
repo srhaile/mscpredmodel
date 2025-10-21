@@ -19,53 +19,72 @@ knitr::opts_chunk$set(
 
 # Typical analysis
 
-This is a basic example which shows you a typical analysis for a dataset having individual patient data for 30 cohorts, each with some combination of scores a, b, c, e, and g. The example here has only 25 bootstrap samples to speed up the runtime, but an actual analysis should use more.
+This is a basic example which shows you a typical analysis for a dataset having individual patient data from 10 cohorts, each with some combination of scores a, b, c, e, and g. 
+
 
 ```{r msc_setup}
 library(mscpredmodel)
 library(ggplot2)
 theme_set(theme_bw())
 
-dat <- msc_sample_data()
+dat <- msc_sample_data(n.cohorts = 10)
 head(dat)
-M <- 25
-bs.example <- get_bs_samples(data = dat, id = id, cohort = study, 
-                             outcome = outcome, n.samples = M, 
-                             scores = c("a", "b", "c", "e", "g"), 
-                             moderators = c("age", "female"))
+
+get_performance_statistics(data = dat, 
+                          scores = c("a", "b", "c", "e", "g"), 
+                          cohort = "study", outcome = "outcome", 
+                          fn = list(AUC = c_statistic, 
+                                    `O/E` = oe_ratio,
+                                    BS = brier_score))
+
 ```
 
-We want to examine performance of the 5 scores according to calibration-in-the-large. We show a basic analysis for calibration-in-the-large, and then repeat the analysis with calibration slope. Note that we use the same set of bootstrap samples for each of the performance measures, so that any differences in variability are due only to the performance measures themselves, and not because of differing bootstrap samples.
+We want to examine performance of the 5 scores according to c-statistic (area under the curve, AUC), calibration slope (CS) and Brier score. 
 
-## Calibration-in-the-large
 ```{r example1}
-ps <- compute_performance(bs.example, fn = calibration_large, 
-                          lbl = "calibration-in-the-large")
-summary(ps)
+mod <- msc(scores = c("a", "b", "c", "e", "g"),
+           outcome = "outcome", subjid = "id",
+           cohort = "study", mods = NULL, data = dat,
+           fn = list("AUC" = c_statistic,
+                     "CS" = calibration_slope,
+                     "BS" = brier_score),
+           model = "consistency", direct = FALSE, indirect = FALSE,
+           ref = "first")
+mod
 
-msc_model(ps, mtype = "consistency")
-msc_model(ps, mtype = "inconsistency")
-
-check_transitivity(ps, graph = TRUE)
-check_homogeneity(msc_model(ps, mtype = "inconsistency"))
-
-allpairs <- msc_network(ps)
-plot(allpairs)
+check_homogeneity(mod)
 ```
 
-## Calibration slope
+We can rerun the model with moderators to check for transitivity.
 
 ```{r example2}
-ps2 <- compute_performance(bs.example, fn = calibration_slope, lbl = "calibration slope")
-lines(ps2)
+modm <- msc(scores = c("a", "b", "c", "e", "g"),
+           outcome = "outcome", subjid = "id",
+           cohort = "study", 
+           mods = c("age", "female", "x1"), 
+           data = dat,
+           fn = list("AUC" = c_statistic,
+                     "CS" = calibration_slope,
+                     "BS" = brier_score),
+           model = "consistency", direct = FALSE, indirect = FALSE,
+           ref = "first")
+check_transitivity(modm, graph = TRUE)
+```
 
-msc_model(ps2, mtype = "consistency")
-msc_model(ps2, mtype = "inconsistency")
+Finally, if we want to compare direct, indirect and network evidence, we can also compute these comparisons.
 
-check_transitivity(ps2, graph = TRUE)
-check_homogeneity(msc_model(ps2, mtype = "inconsistency"))
+```{r example3, eval = FALSE}
+moddi <- msc(scores = c("a", "b", "c", "e"),
+           outcome = "outcome", subjid = "id",
+           cohort = "study", mods = NULL, data = dat,
+           fn = list("AUC" = c_statistic,
+                     "CS" = calibration_slope,
+                     "BS" = brier_score),
+           model = "consistency", direct = TRUE, indirect = TRUE,
+           ref = "first")
 
-allpairs2 <- msc_network(ps2, ref = "e")
-plot(allpairs2)
+moddi
+
+check_consistency(moddi, graph = TRUE)
 ```
 

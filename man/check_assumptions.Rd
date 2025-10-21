@@ -6,32 +6,23 @@
 \alias{check_consistency}
 \title{Check assumptions of transitivity, consistency and homogeneity}
 \usage{
-check_transitivity(x, graph = FALSE)
+check_transitivity(object, graph = TRUE)
 
 check_homogeneity(object, dig = 3)
 
-check_consistency(ps, mtype = c("consistency", "inconsistency")[1],
-  ref = NULL)
+check_consistency(object, graph = TRUE)
 }
 \arguments{
-\item{x}{A set of computed (mscraw) or aggregated performance scores (mscagg)}
+\item{object}{An object from \code{msc}. For \code{check_consistency}, it must have been run with options \code{direct = TRUE, indirect = TRUE}}
 
-\item{graph}{Should a graph of outcomes versus moderators be printed?}
-
-\item{object}{A \code{\link{consistency}} or \code{inconsistency} model, or the results of \code{msc_network}, \code{msc_full}, \code{msc_direct}, or \code{msc_indirect}.}
+\item{graph}{Should the results be displayed graphically? (default TRUE) If not, the coefficient table is returned.}
 
 \item{dig}{Number of digits to be printed, see \code{\link{format.pval}}.}
-
-\item{ps}{A set of raw performance estimates, from \code{\link{compute_performance}}}
-
-\item{mtype}{Type of model (default "consistency", else "inconsistency"). It is sufficient to write \code{"c"} or \code{"i"}.}
-
-\item{ref}{Reference score all other scores should be compared to. (Default NULL, all pairwise comparisons are estimated)}
 }
 \value{
 A tibble containing results of linear regression models of the effect size (outcome) against the cohort-specific average moderator value.
 
-A vector containing tau-square, the Q likelihood ratio statistic, its degrees of freedom and its p-value.
+A list containing datasets with tau-square, the Q likelihood ratio statistic, its degrees of freedom and its p-value.
 
 A graph of the direct and indirect estimates for the various differences in score performance.
 }
@@ -40,24 +31,41 @@ Check assumptions of transitivity, consistency and homogeneity
 }
 \section{Functions}{
 \itemize{
-\item \code{check_transitivity}: Check assumption of transitivity
+\item \code{check_transitivity()}: Check assumption of transitivity
 
-\item \code{check_homogeneity}: Check assumption of homogeneity
+\item \code{check_homogeneity()}: Check assumption of homogeneity
 
-\item \code{check_consistency}: Check assumption of consistency
+\item \code{check_consistency()}: Check assumption of consistency
+
 }}
-
 \examples{
 dat <- msc_sample_data()
-bssamp <- get_bs_samples(dat, id, study, outcome, n.samples = 8, 
-                  scores = c("a", "b", "c", "d", "e", "f"), 
-                  moderators = c("age", "female", "x1"))
-perf <- compute_performance(bssamp, fn = calibration_slope, lbl = "CS")
-agg <- aggregate_performance(perf)
-check_transitivity(perf, graph = FALSE)
-\dontrun{check_transitivity(agg, graph = FALSE)
-check_homogeneity(consistency(agg))
-full <- msc_full(perf)
-check_homogeneity(full)
-check_consistency(perf)}
+mod <- msc(scores = c("a", "b", "c", "d",),
+            cohort = "cohort", outcome = "mort3", subjid = "id",
+            fn = list(`logit AUC` = c_statistic, 
+            `calib slope` = calibration_slope), 
+            model = "consistency", 
+            direct = FALSE, indirect = FALSE,
+            ref = "first", data = dat)
+\dontrun{check_consistency(mod)
+modm <- msc(scores = c("a", "b", "c", "d",),
+            cohort = "cohort", outcome = "mort3", subjid = "id",
+            fn = list(`logit AUC` = c_statistic, 
+            `calib slope` = calibration_slope), 
+            model = "consistency", 
+            mods = c("age", "female", "x1"),
+            direct = FALSE, indirect = FALSE,
+            ref = "first", data = dat
+            
+check_transitivity(modm)
+
+modnet <- msc(scores = c("a", "b", "c", "d",),
+            cohort = "cohort", outcome = "mort3", subjid = "id",
+            fn = list(`logit AUC` = c_statistic, 
+            `calib slope` = calibration_slope), 
+            model = "consistency", 
+            direct = TRUE, indirect = TRUE,
+            ref = "first", data = dat)
+            
+check_consistency(modnet)}
 }

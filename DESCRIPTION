@@ -1,7 +1,7 @@
 Package: mscpredmodel
 Type: Package
 Title: Multiple Score Comparison of Prediction Models with Network Meta-Analysis
-Version: 0.2.1
+Version: 0.3
 Authors@R: person("Sarah", "Haile", email = "sarah.haile@uzh.ch",
     role = c("aut", "cre"))
 Maintainer: Sarah Haile <sarah.haile@uzh.ch>
@@ -9,8 +9,8 @@ Description: Set of functions to facilitate the comparison and external
     validation of prediction models and prognostic scores using a network meta-
     analytic approach called multiple score comparison from individual
     patient data. The package has functions to estimate performance estimates
-    (and corresponding variances) for both calibration and discrimination endpoints, 
-    and perform appropriate network meta-analysis, and compute all direct and
+    (and corresponding variances) for both calibration and discrimination endpoints,
+    perform appropriate network meta-analysis, and compute all direct and
     indirect pairwise comparisons.
 License: GPL-2
 Encoding: UTF-8
@@ -18,15 +18,13 @@ LazyData: true
 URL: http://github.com/srhaile/mscpredmodel
 BugReports: http://github.com/srhaile/mscpredmodel/issues
 Depends: 
-    R (>= 3.0)
+    R (>= 4.0)
 Imports:
-    broom,
     ggplot2,
     metafor,
-    pROC,
-    rsample,
+    pROC
 Suggests:
     knitr,
     rmarkdown
-RoxygenNote: 6.1.1
+RoxygenNote: 7.3.2
 VignetteBuilder: knitr

@@ -124,9 +124,10 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
         nw_dat <- nw$aggrdat
         nw_model <- nw$rma.mv
         V <- nw$V
-        res$models <-  coeftab(nw_model) %>%
-            mutate(ref = scores[1],
-                   evidence = "network")
+        this_res <- coeftab(nw_model)
+        this_res$ref <- scores[1]
+        this_res$evidence <- "network"
+        res$models <-  this_res
         
         if(which_ref == "all"){
             for(ref_score in scores[-1]){
@@ -151,10 +152,10 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
                                                     ~contr | design), 
                                       rho = 0.5, phi = 0.5, ...)
                 }
-                res$models <- rbind(res$models,
-                                    coeftab(new_mod) %>%
-                                        mutate(ref = ref_score,
-                                               evidence = "network"))
+                this_res <- coeftab(nw_model)
+                this_res$ref <- ref_score
+                this_res$evidence <- "network"
+                res$models <- rbind(res$models, this_res)
             }
         }
         
