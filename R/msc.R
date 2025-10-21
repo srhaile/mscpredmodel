@@ -251,6 +251,8 @@ print.msc <- function(object){
 #' @param object An object of class \code{msc}, from \code{msc}.
 #' @export
 plot.msc <- function(object){
+    avail_scores <- attr(object, "scores")
+    
     est <- lapply(object, function(x) x$models)
     est <- lapply(est, function(x){rownames(x) <- NULL; x})
     for(i in 1:length(est)){
@@ -259,6 +261,8 @@ plot.msc <- function(object){
     }
     out <- do.call("rbind", est)
     rownames(out) <- NULL
+    incl <- out$term %in% avail_scores
+    out <- out[incl, ]
     
     out$contr <- with(out, paste(term, ref, sep = "-"))
     
