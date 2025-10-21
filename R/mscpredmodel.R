@@ -11,7 +11,8 @@
 #'   \item{\code{\link{msc}}}{Compare performance of prediction models, can calculate any model for full network comparisons, or direct or indirect comparisons, and can adjust for moderators.}
 #' }
 #' 
-#' @docType _PACKAGE
+#' @docType package
 #' @name mscpredmodel
 #' 
-NULL
+#' 
+"_PACKAGE"
