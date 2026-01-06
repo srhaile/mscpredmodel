@@ -14,7 +14,7 @@
 #'
 #' @examples
 #' dat <- msc_sample_data(n.cohorts = 30)
-msc_sample_data <- function(n.cohorts = 15){
+msc_sample_data <- function(n.cohorts = 5){
   set.seed(123654789)
 
   scores_setup <- data.frame(score = letters[1:9],
@@ -87,14 +87,14 @@ msc_sample_data <- function(n.cohorts = 15){
 
   # add in structural missing (by cohort)
  lvls <- names(sample_data)
- b.missing <- sample(lvls, 2)
- c.missing <- sample(lvls, 3)
- d.missing <- sample(lvls, 4)
- e.missing <- sample(lvls, 3)
- f.missing <- sample(lvls, 5)
- g.missing <- sample(lvls, 4)
- h.missing <- sample(lvls, 8)
- i.missing <- sample(lvls, 10)
+ b.missing <- sample(lvls, round(n.cohorts * 0.2))
+ c.missing <- sample(lvls, round(n.cohorts * 0.2))
+ d.missing <- sample(lvls, round(n.cohorts * 0.2))
+ e.missing <- sample(lvls, round(n.cohorts * 0.4))
+ f.missing <- sample(lvls, round(n.cohorts * 0.4))
+ g.missing <- sample(lvls, round(n.cohorts * 0.4))
+ h.missing <- sample(lvls, round(n.cohorts * 0.6))
+ i.missing <- sample(lvls, round(n.cohorts * 0.6))
  
  strucmiss <- function(d, s, coh){
      if(d$cohort[1] %in% coh){
