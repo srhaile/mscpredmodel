@@ -27,7 +27,7 @@ library(mscpredmodel)
 library(ggplot2)
 theme_set(theme_bw())
 
-dat <- msc_sample_data(n.cohorts = 10)
+dat <- msc_sample_data(n.cohorts = 6, seed = 12345)
 head(dat)
 
 get_performance_statistics(data = dat, 
@@ -81,8 +81,8 @@ moddi <- msc(scores = c("a", "b", "c", "e"),
            fn = list("AUC" = c_statistic,
                      "CS" = calibration_slope,
                      "BS" = brier_score),
-           model = "consistency", direct = TRUE, indirect = TRUE,
-           ref = "first")
+           model = "consistency", direct = TRUE, indirect = FALSE,
+           ref = "all")
 
 moddi
 
