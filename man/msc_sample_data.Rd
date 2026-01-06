@@ -4,7 +4,7 @@
 \alias{msc_sample_data}
 \title{Make MSC sample data set}
 \usage{
-msc_sample_data(n.cohorts = 5)
+msc_sample_data(n.cohorts = 5, seed = NULL)
 }
 \arguments{
 \item{n.cohorts}{Number of cohorts in the data set (default 30)}
