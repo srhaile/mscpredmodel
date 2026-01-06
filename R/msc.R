@@ -2,7 +2,8 @@
 #' 
 #' @importFrom stats model.matrix pnorm qnorm
 #' @importFrom utils combn
-#' @import ggplot2
+#' @importFrom ggplot2 ggplot
+#' @importFrom future.apply future_lapply
 #' 
 #' @description Compute comparisons of performance metrics for scores within a network.
 #'
@@ -98,7 +99,7 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
     
     if(requireNamespace("future.apply", quietly = TRUE)) {
         require(future.apply)
-        plan(multisession)
+        plan(multisession, workers = 2)
     }
     
     fnv <- as.vector(fn)
@@ -139,14 +140,18 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
                                       mods = eval(as.formula(new_fm)),
                                       slab = cohort,
                                       random = list(~contr | cohort), 
-                                      rho = 0.5, ...)
+                                      rho = 0.5, 
+                                      control = list(tau2.init = 0.5),
+                                      ...)
                 } else if(model == "inconsistency"){
                     new_mod <- rma.mv(yi, V, data = nw_dat, 
                                       mods = eval(as.formula(new_fm)),
                                       slab = cohort,
                                       random = list(~contr | cohort, 
                                                     ~contr | design), 
-                                      rho = 0.5, phi = 0.5, ...)
+                                      rho = 0.5, phi = 0.5, 
+                                      control = list(tau2.init = 0.5),
+                                      ...)
                 }
                 this_res <- coeftab(new_mod)
                 this_res$ref <- ref_score
@@ -165,9 +170,11 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
         }
         
         if(run_direct){
+            message("obtaining direct estimates")
             tmp <- vector("list", mc)
             for(j in 1:mc){ #perf fun i + combo j
                 this_combo <- combos[, j]
+                print(this_combo)
                 tmp[[j]] <- coeftab(fit_msc(scores = s, cohort = c,
                                             outcome = o, subjid = id,
                                             perf_fn = f_fn, perf_lbl = f_lbl,
@@ -185,9 +192,11 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
         }
 
         if(run_indirect){
+            message("obtaining indirect estimates")
             tmp <- vector("list", mc)
             for(j in 1:mc){ #perf fun i + combo j
                 this_combo <- combos[, j]
+                print(this_combo)
                 tmp[[j]] <- coeftab(fit_msc(scores = s, cohort = c,
                                             outcome = o, subjid = id,
                                             perf_fn = f_fn, perf_lbl = f_lbl,
@@ -280,7 +289,7 @@ plot.msc <- function(object){
                    position = position_dodge(width = 0.3)) + 
         geom_linerange(position = position_dodge(width = 0.3)) +
         facet_wrap(vars(perfmeasure), scales = "free_y") + 
-        xlab(NULL) + ylab("different in performance") + 
+        xlab(NULL) + ylab("difference in performance") + 
         guides(color = guide_legend(NULL),
                shape = guide_legend(NULL),
                size = "none") +
@@ -558,14 +567,18 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
                               mods = as.formula(this_fm),
                               slab = cohort,
                               random = list(~contr | cohort), 
-                              rho = 0.5, ...)
+                              rho = 0.5, 
+                              control = list(tau2.init = 0.5),
+                              ...)
             } else if(model == "inconsistency"){
                 mod <- rma.mv(yi, V, data = aggr_ipd, 
                               mods = as.formula(this_fm),
                               slab = cohort,
                               random = list(~contr | cohort, 
                                             ~contr | design), 
-                              rho = 0.5, phi = 0.5, ...)
+                              rho = 0.5, phi = 0.5, 
+                              control = list(tau2.init = 0.5),
+                              ...)
             }
         out <-  list(aggr_ipd, V, mod)
     }  else {
