@@ -23,6 +23,7 @@ This is a basic example which shows you a typical analysis for a dataset having 
 
 
 ```{r msc_setup}
+options(digits = 4, scipen = 8)
 library(mscpredmodel)
 library(ggplot2)
 theme_set(theme_bw())
@@ -41,7 +42,7 @@ get_performance_statistics(data = dat,
 
 We want to examine performance of the 5 scores according to c-statistic (area under the curve, AUC), calibration slope (CS) and Brier score. 
 
-```{r example1}
+```{r example1, message = FALSE, out.width = "80%"}
 mod <- msc(scores = c("a", "b", "c", "e", "g"),
            outcome = "outcome", subjid = "id",
            cohort = "study", mods = NULL, data = dat,
@@ -58,7 +59,7 @@ check_homogeneity(mod)
 
 We can rerun the model with moderators to check for transitivity.
 
-```{r example2}
+```{r example2, out.width = "80%"}
 modm <- msc(scores = c("a", "b", "c", "e", "g"),
            outcome = "outcome", subjid = "id",
            cohort = "study", 
@@ -81,11 +82,11 @@ moddi <- msc(scores = c("a", "b", "c", "e"),
            fn = list("AUC" = c_statistic,
                      "CS" = calibration_slope,
                      "BS" = brier_score),
-           model = "consistency", direct = TRUE, indirect = FALSE,
+           model = "consistency", direct = TRUE, indirect = TRUE,
            ref = "all")
 
 moddi
 
-check_consistency(moddi, graph = TRUE)
+#check_consistency(moddi, graph = TRUE)
 ```
 
