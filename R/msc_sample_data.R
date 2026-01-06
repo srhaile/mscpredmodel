@@ -14,8 +14,8 @@
 #'
 #' @examples
 #' dat <- msc_sample_data(n.cohorts = 30)
-msc_sample_data <- function(n.cohorts = 5){
-  set.seed(123654789)
+msc_sample_data <- function(n.cohorts = 5, seed = NULL){
+  set.seed(seed)
 
   scores_setup <- data.frame(score = letters[1:9],
                          intercept = c(0, 0.5, -0.5, 0, 0, 0, 0, 0.5, -0.5),
@@ -134,4 +134,5 @@ msc_sample_data <- function(n.cohorts = 5){
  sample_data$sex <- factor(sample_data$female, 0:1, c("male", "female"))
  sample_data
 }
+
 
