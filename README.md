@@ -32,13 +32,13 @@ theme_set(theme_bw())
 
 dat <- msc_sample_data(n.cohorts = 10)
 head(dat)
-#>     study  id outcome    a     b  c     d    e    f    g  h  i age female   x1    sex
-#> 1.1     1   1       0 0.18 0.114 NA 0.043   NA 0.13 0.22 NA NA  44      1 0.65 female
-#> 1.2     1  10       0 0.20 0.132 NA 0.059   NA 0.15 0.24 NA NA  61      1 0.40 female
-#> 1.3     1 100       0 0.18 0.116 NA 0.045 0.26   NA 0.22 NA NA  61      1 0.75 female
-#> 1.4     1 101       0 0.15 0.098 NA 0.031 0.24 0.10 0.19 NA NA  58      1 0.70 female
-#> 1.5     1 102       0 0.18 0.115 NA    NA 0.26 0.13 0.22 NA NA  45      1 0.29 female
-#> 1.6     1 103       1 0.22 0.143 NA 0.070 0.30 0.17 0.25 NA NA  48      1 0.61 female
+#>     study  id outcome    a  b    c     d  e    f  g  h  i age female    x1  sex
+#> 1.1     1   1       1 0.26 NA 0.36 0.105 NA 0.21 NA NA NA  49      0 -1.13 male
+#> 1.2     1  10       0 0.33 NA 0.45 0.193 NA 0.29 NA NA NA  68      0 -1.09 male
+#> 1.3     1 100       0 0.24 NA 0.35 0.094 NA 0.20 NA NA NA  43      0 -1.42 male
+#> 1.4     1 101       0 0.31 NA 0.43    NA NA 0.27 NA NA NA  57      0 -0.95 male
+#> 1.5     1 102       0 0.31 NA 0.42 0.166 NA 0.27 NA NA NA  44      0 -1.04 male
+#> 1.6     1 103       0 0.30 NA 0.42    NA NA   NA NA NA NA  43      0 -0.81 male
 
 get_performance_statistics(data = dat, 
                           scores = c("a", "b", "c", "e", "g"), 
@@ -48,42 +48,42 @@ get_performance_statistics(data = dat,
                                     BS = brier_score))
 #> $AUC
 #>       a    b    c    e    g
-#> 1  0.75 0.81   NA 0.76 0.73
-#> 10 0.72 0.73   NA 0.72   NA
-#> 2  0.61 0.66 0.66   NA 0.66
-#> 3  0.78 0.78 0.80 0.76 0.78
-#> 4  0.73 0.71 0.73 0.74   NA
-#> 5  0.65 0.65 0.62   NA 0.61
-#> 6  0.65   NA 0.67 0.68   NA
-#> 7  0.61 0.59 0.61 0.58 0.60
-#> 8  0.58   NA 0.58 0.62   NA
-#> 9  0.57 0.57   NA   NA 0.53
+#> 1  0.69   NA 0.66   NA   NA
+#> 10 0.66 0.67 0.66 0.68   NA
+#> 2  0.74   NA 0.74 0.76   NA
+#> 3  0.70 0.68 0.68 0.68 0.71
+#> 4  0.62 0.63   NA 0.61 0.60
+#> 5  0.65 0.64 0.64   NA   NA
+#> 6  0.70 0.72 0.70   NA 0.71
+#> 7  0.62 0.62   NA 0.61 0.65
+#> 8  0.60 0.60 0.59   NA 0.60
+#> 9  0.65 0.66 0.63 0.64 0.67
 #> 
 #> $`O/E`
 #>       a    b    c    e    g
-#> 1  0.41 0.57   NA 0.41 0.36
-#> 10 0.20 0.31   NA 0.16   NA
-#> 2  0.72 0.92 0.56   NA 0.68
-#> 3  0.38 0.57 0.28 0.30 0.38
-#> 4  0.38 0.51 0.27 0.29   NA
-#> 5  0.57 0.84 0.46   NA 0.55
-#> 6  0.95   NA 0.74 1.03   NA
-#> 7  0.67 0.89 0.52 0.63 0.68
-#> 8  0.73   NA 0.58 0.71   NA
-#> 9  1.05 1.46   NA   NA 1.05
+#> 1  0.53   NA 0.35   NA   NA
+#> 10 0.98 1.32 0.81 1.02   NA
+#> 2  0.30   NA 0.22 0.21   NA
+#> 3  0.44 0.64 0.29 0.34 0.38
+#> 4  0.88 1.17   NA 0.87 0.86
+#> 5  1.02 1.36 0.81   NA   NA
+#> 6  0.57 0.85 0.46   NA 0.58
+#> 7  1.11 1.41   NA 1.15 1.12
+#> 8  1.03 1.36 0.82   NA 1.07
+#> 9  0.41 0.59 0.32 0.34 0.38
 #> 
 #> $BS
-#>        a     b    c    e    g
-#> 1  0.101 0.081   NA 0.14 0.11
-#> 10 0.096 0.068   NA 0.13   NA
-#> 2  0.218 0.194 0.26   NA 0.22
-#> 3  0.107 0.089 0.15 0.14 0.12
-#> 4  0.103 0.081 0.14 0.13   NA
-#> 5  0.171 0.155 0.22   NA 0.18
-#> 6  0.239    NA 0.27 0.24   NA
-#> 7  0.193 0.175 0.24 0.21 0.20
-#> 8  0.224    NA 0.27 0.23   NA
-#> 9  0.246 0.267   NA   NA 0.25
+#>        a    b    c    e    g
+#> 1  0.148   NA 0.19   NA   NA
+#> 10 0.237 0.25 0.25 0.24   NA
+#> 2  0.082   NA 0.12 0.11   NA
+#> 3  0.138 0.12 0.19 0.16 0.15
+#> 4  0.238 0.24   NA 0.24 0.24
+#> 5  0.238 0.25 0.25   NA   NA
+#> 6  0.164 0.15 0.21   NA 0.18
+#> 7  0.220 0.25   NA 0.23 0.22
+#> 8  0.244 0.26 0.26   NA 0.24
+#> 9  0.143 0.12 0.20 0.17 0.15
 #> 
 #> attr(,"class")
 #> [1] "perfsumm"
@@ -96,43 +96,20 @@ mod <- msc(scores = c("a", "b", "c", "e", "g"),
                      "BS" = brier_score),
            model = "consistency", direct = FALSE, indirect = FALSE,
            ref = "first")
-#> Loading required package: future.apply
-#> Loading required package: future
-#> Loading required package: metafor
-#> Loading required package: Matrix
-#> Loading required package: metadat
-#> Loading required package: numDeriv
-#> 
-#> Loading the 'metafor' package (version 4.8-0). For an
-#> introduction to the package please type: help(metafor)
-#> Loading required package: metafor
-#> Loading required package: Matrix
-#> Loading required package: metadat
-#> Loading required package: numDeriv
-#> 
-#> Loading the 'metafor' package (version 4.8-0). For an
-#> introduction to the package please type: help(metafor)
-#> Loading required package: metafor
-#> Loading required package: Matrix
-#> Loading required package: metadat
-#> Loading required package: numDeriv
-#> 
-#> Loading the 'metafor' package (version 4.8-0). For an
-#> introduction to the package please type: help(metafor)
 mod
 #>    perfmeasure term    type estimate std.error statistic p.value conf.low conf.high ref evidence
-#> 1          AUC    b summary  0.00404    0.0067     0.605 5.5e-01 -0.00904     0.017   a  network
-#> 2          AUC    c summary  0.00739    0.0091     0.810 4.2e-01 -0.01050     0.025   a  network
-#> 3          AUC    e summary  0.00077    0.0094     0.081 9.4e-01 -0.01767     0.019   a  network
-#> 4          AUC    g summary -0.00422    0.0076    -0.554 5.8e-01 -0.01916     0.011   a  network
-#> 5           CS    b summary  0.08049    0.1343     0.599 5.5e-01 -0.18270     0.344   a  network
-#> 6           CS    c summary  0.02656    0.1457     0.182 8.6e-01 -0.25907     0.312   a  network
-#> 7           CS    e summary  1.22449    0.2734     4.480 7.5e-06  0.68873     1.760   a  network
-#> 8           CS    g summary  0.34282    0.1767     1.941 5.2e-02 -0.00344     0.689   a  network
-#> 9           BS    b summary -0.01967    0.0041    -4.798 1.6e-06 -0.02770    -0.012   a  network
-#> 10          BS    c summary  0.04246    0.0042    10.015 1.3e-23  0.03415     0.051   a  network
-#> 11          BS    e summary  0.02107    0.0038     5.604 2.1e-08  0.01370     0.028   a  network
-#> 12          BS    g summary  0.00689    0.0040     1.731 8.3e-02 -0.00091     0.015   a  network
+#> 1          AUC    b summary  0.00099    0.0041      0.24 8.1e-01 -7.0e-03   0.00893   a  network
+#> 2          AUC    c summary -0.00968    0.0048     -2.01 4.5e-02 -1.9e-02  -0.00024   a  network
+#> 3          AUC    e summary -0.00099    0.0063     -0.16 8.8e-01 -1.3e-02   0.01138   a  network
+#> 4          AUC    g summary  0.00281    0.0058      0.48 6.3e-01 -8.6e-03   0.01423   a  network
+#> 5           CS    b summary  0.01155    0.0720      0.16 8.7e-01 -1.3e-01   0.15267   a  network
+#> 6           CS    c summary -0.18249    0.0805     -2.27 2.3e-02 -3.4e-01  -0.02471   a  network
+#> 7           CS    e summary  1.13059    0.1646      6.87 6.5e-12  8.1e-01   1.45321   a  network
+#> 8           CS    g summary  0.53495    0.1183      4.52 6.1e-06  3.0e-01   0.76681   a  network
+#> 9           BS    b summary  0.00202    0.0069      0.29 7.7e-01 -1.1e-02   0.01550   a  network
+#> 10          BS    c summary  0.03593    0.0068      5.32 1.0e-07  2.3e-02   0.04918   a  network
+#> 11          BS    e summary  0.01451    0.0074      1.97 4.9e-02  9.5e-05   0.02893   a  network
+#> 12          BS    g summary  0.00663    0.0074      0.90 3.7e-01 -7.8e-03   0.02109   a  network
 plot(mod)
 ```
 
@@ -142,7 +119,7 @@ plot(mod)
 
 check_homogeneity(mod)
 #>   measure    tau2  QE df     QEp
-#> 1     AUC 1.3e-05  23 24 5.0e-01
-#> 2      CS 3.8e-02  27 24 3.0e-01
-#> 3      BS 9.5e-05 169 24 1.1e-23
+#> 1     AUC 2.5e-05  22 24 5.7e-01
+#> 2      CS 1.3e-02  31 24 1.7e-01
+#> 3      BS 3.7e-04 395 24 6.6e-69
 ```

@@ -29,7 +29,7 @@ devtools::install_github("srhaile/mscpredmodel")
 
 This is a basic example which shows you a typical analysis for a dataset having individual patient data for 30 cohorts, each with some combination of scores a, b, c, e, and g. The example here has only 25 bootstrap samples to speed up the runtime, but an actual analysis should use more.
 
-```{r example, out.width = "60%"}
+```{r example, out.width = "60%", message = FALSE}
 library(mscpredmodel)
 library(ggplot2)
 theme_set(theme_bw())
