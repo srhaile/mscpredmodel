@@ -141,7 +141,8 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
                                       slab = cohort,
                                       random = list(~contr | cohort), 
                                       rho = 0.5, 
-                                      control = list(tau2.init = 0.5),
+                                      control = list(tau2.init = 0.5,
+                                                     optimizer="BFGS"),
                                       ...)
                 } else if(model == "inconsistency"){
                     new_mod <- rma.mv(yi, V, data = nw_dat, 
@@ -150,7 +151,8 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
                                       random = list(~contr | cohort, 
                                                     ~contr | design), 
                                       rho = 0.5, phi = 0.5, 
-                                      control = list(tau2.init = 0.5),
+                                      control = list(tau2.init = 0.5,
+                                                     optimizer="BFGS"),
                                       ...)
                 }
                 this_res <- coeftab(new_mod)
@@ -568,7 +570,8 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
                               slab = cohort,
                               random = list(~contr | cohort), 
                               rho = 0.5, 
-                              control = list(tau2.init = 0.5),
+                              control = list(tau2.init = 0.5,
+                                             optimizer="BFGS"),
                               ...)
             } else if(model == "inconsistency"){
                 mod <- rma.mv(yi, V, data = aggr_ipd, 
@@ -577,7 +580,8 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
                               random = list(~contr | cohort, 
                                             ~contr | design), 
                               rho = 0.5, phi = 0.5, 
-                              control = list(tau2.init = 0.5),
+                              control = list(tau2.init = 0.5,
+                                             optimizer="BFGS"),
                               ...)
             }
         out <-  list(aggr_ipd, V, mod)
