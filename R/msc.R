@@ -179,13 +179,15 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
             for(j in 1:mc){ #perf fun i + combo j
                 this_combo <- combos[, j]
                 print(this_combo)
-                tmp[[j]] <- coeftab(fit_msc(scores = s, cohort = c,
-                                            outcome = o, subjid = id,
-                                            perf_fn = f_fn, perf_lbl = f_lbl,
-                                            mods = m, data = newdata, model = modeltype,
-                                            direct = this_combo, indirect = NULL,
-                                            n.boot = nb, seed = newseed, max_missing = pct,
-                                            run_checks = FALSE, ...)$rma.mv)
+                mod <- fit_msc(scores = s, cohort = c,
+                        outcome = o, subjid = id,
+                        perf_fn = f_fn, perf_lbl = f_lbl,
+                        mods = m, data = newdata, model = modeltype,
+                        direct = this_combo, indirect = NULL,
+                        n.boot = nb, seed = newseed, max_missing = pct,
+                        run_checks = FALSE, ...)$rma.mv
+                print(mod)
+                tmp[[j]] <- coeftab(mod)
                 
                 tmp[[j]]$ref <- this_combo[1]
                 tmp[[j]]$term <- this_combo[2]

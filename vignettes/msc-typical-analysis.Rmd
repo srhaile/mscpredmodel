@@ -76,13 +76,13 @@ check_transitivity(modm, graph = TRUE)
 Finally, if we want to compare direct, indirect and network evidence, we can also compute these comparisons.
 
 ```{r example3, eval = TRUE}
-moddi <- msc(scores = c("a", "b", "c", "e"),
+moddi <- msc(scores = c("a", "b", "c", "e", "g"),
            outcome = "outcome", subjid = "id",
            cohort = "study", mods = NULL, data = dat,
            fn = list("AUC" = c_statistic,
                      "CS" = calibration_slope,
                      "BS" = brier_score),
-           model = "consistency", direct = TRUE, indirect = TRUE,
+           model = "consistency", direct = TRUE, indirect = FALSE,
            ref = "all")
 
 moddi
