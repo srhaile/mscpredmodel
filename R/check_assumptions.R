@@ -209,7 +209,8 @@ check_consistency <- function(object, graph = TRUE){
                        position  = position_dodge(width = 0.3)) + 
             geom_linerange(aes(color = evidence),
                            position  = position_dodge(width = 0.3)) + 
-            facet_wrap(vars(perfmeasure)) + 
+            facet_wrap(vars(perfmeasure), ncol = 1,
+                       scales = "free_y") + 
             guides(size = "none") +
             xlab(NULL) + ylab("estimated difference in performance") + 
             theme(legend.position = "bottom")
