@@ -121,6 +121,7 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
                       n.boot = nb, seed = newseed, max_missing = pct, 
                       run_checks = FALSE, ...)
         nw_dat <- nw$aggrdat
+        print(nw_dat)
         nw_model <- nw$rma.mv
         V <- nw$V
         this_res <- coeftab(nw_model)
