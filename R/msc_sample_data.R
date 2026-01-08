@@ -14,104 +14,96 @@
 #'
 #' @examples
 #' dat <- msc_sample_data(n.cohorts = 30)
-msc_sample_data <- function(n.cohorts = 5, seed = NULL){
-  set.seed(seed)
-
-  scores_setup <- data.frame(score = letters[1:9],
-                         intercept = c(0, 0.5, -0.5, 0, 0, 0, 0, 0.5, -0.5),
-                         slope = c(1, 1, 1, 0.5, 1.5, 0.8, 1.2, 0.5, 1.5))
-
-  make_data <- function(n, p, p.width = 0.1){
-    p.min <- max(c(0.001, p - p.width))
-    p.max <-  min(c(p + p.width, 0.999))
-    ids <- data.frame(id = 1:n,
-                p.true = runif(n, p.min, p.max),
-                uncertainty = rnorm(n, mean = 0, sd = 0.75)) 
-    id_score <- expand.grid("id" = ids$id, "score" = scores_setup$score)
-    d <- merge(ids, id_score, by = "id", all = TRUE, sort = TRUE)
-    d <- merge(d, scores_setup, by = "score", all = TRUE, sort = TRUE)
+msc_sample_data <- function(seed = NULL){
+    n.cohorts <- 5
+    set.seed(seed)
     
-    d$logit.p.true <- qlogis(d$p.true)
-    d$logit.p.pred <- (d$logit.p.true - d$intercept) / d$slope
-    d$logit.p.outcome <- d$logit.p.true + d$uncertainty
-    d$outcome <- as.numeric(d$logit.p.outcome > 0)
-    d$p.pred <- plogis(d$logit.p.pred)
-    d <- d[, c("id", "outcome", "score", "p.pred")]
-    dwide <- reshape(d, direction = "wide",
-            idvar = c("id", "outcome"),
-            timevar = "score")
-    names(dwide) <- c("id", "outcome", as.character(scores_setup$score))
-    rownames(dwide) <- NULL
-    ord <- order(dwide$id)
-    dwide[ord, ]
-  }
-  sim_moderators <- function(n, mean.age, sd.age, pct.female, 
-                             mean.x1, sd.x1){
-      d <- data.frame(id = 1:n,
-                  age = rnorm(n, mean.age, sd.age), 
-                  female = rbinom(n, 1, pct.female),
-                  x1 = rnorm(n, mean.x1, sd.x1))
-      rownames(d) <- NULL
-      d
-  }
-  
+    sample_data <- data.frame(n = round(runif(n.cohorts, 100, 1000)),
+                              mean.age = round(runif(n.cohorts, 50, 70)),
+                              sd.age = round(runif(n.cohorts, 5, 15)),
+                              pct.female = round(runif(n.cohorts), 2),
+                              mean.x1 = round(rnorm(n.cohorts), 1),
+                              sd.x1 = round(rexp(n.cohorts, 1), 2),
+                              mean.x2 = round(rnorm(n.cohorts), 1),
+                              sd.x2 = round(rexp(n.cohorts, 1), 2),
+                              mean.z = round(rnorm(n.cohorts), 1),
+                              sd.z = round(rexp(n.cohorts, 1), 2)) 
+    
+    betas <- rnorm(6)
+    
+    gen_mods <- function(i){
+        this_cohort <- with(sample_data, 
+                            data.frame(cohort = i,
+                                       age = rnorm(n[i], mean.age[i], sd.age[i]),
+                                       sex = rbinom(n[i], 1, pct.female[i]),
+                                       x1 = rnorm(n[i], mean.x1[i], sd.x1[i]),
+                                       x2 = rnorm(n[i], mean.x2[i], sd.x2[i]),
+                                       z = rnorm(n[i], mean.z[i], sd.z[i])))
+        
+        
+        mm <- as.matrix(this_cohort[, -1])
+        mm[, "age"] <- mm[, "age"] - 55
+        mm <- cbind(1, mm)
+        pred <- betas %*% t(mm) + rnorm(sample_data$n[i], 0, 3)
+        this_cohort$y <- as.numeric(plogis(pred) > 0.5)
+        
+        this_cohort$sex <- factor(this_cohort$sex, 0:1, c("M", "F"))
+        return(this_cohort)
+    }
+    
+    spl <- lapply(1:n.cohorts, FUN = gen_mods)
+    
+    mod1 <- glm(y ~ age + sex, data = spl[[1]], 
+                family = binomial)
+    mod2 <- glm(y ~ age + x1, data = spl[[2]], 
+                family = binomial)
+    mod3 <- glm(y ~ sex + x2, data = spl[[3]], 
+                family = binomial)
+    mod4 <- glm(y ~ age + x2, data = spl[[4]], 
+                family = binomial)
+    mod5 <- glm(y ~ sex + age + x1 + x2, data = spl[[5]], 
+                family = binomial)
+    
+    spl[[1]]$x1 <- round(spl[[1]]$x1, 1)
+    spl[[2]]$x2 <- round(spl[[2]]$x2, 1)
+    spl[[3]]$x1 <- round(spl[[3]]$x1, 1)
+    spl[[3]]$x2 <- round(spl[[3]]$x2, 1)
+    spl[[4]]$x1 <- round(spl[[4]]$x1, 2)
+    spl[[4]]$x2 <- round(spl[[4]]$x2, 1)
+    spl[[5]]$x1 <- round(spl[[5]]$x1, 3)
+    spl[[5]]$x2 <- round(spl[[5]]$x2, 3)
+    spl <- lapply(spl, function(x){x[, -6]}) # remove z 
+    spl <- lapply(spl, function(x){
+        newpred <- predict(mod1, newdata = x, type = "link")
+        x$pred1 <- newpred
+        x
+    }) 
+    spl <- lapply(spl, function(x){
+        newpred <- predict(mod2, newdata = x, type = "response")
+        x$pred2 <- newpred
+        x
+    }) 
+    spl <- lapply(spl, function(x){
+        newpred <- predict(mod3, newdata = x, type = "link")
+        x$pred3 <- newpred
+        x
+    }) 
+    spl <- lapply(spl, function(x){
+        newpred <- predict(mod4, newdata = x, type = "link")
+        x$pred4 <- newpred
+        x
+    }) 
+    spl <- lapply(spl, function(x){
+        newpred <- predict(mod5, newdata = x, type = "response")
+        x$pred5 <- newpred
+        x
+    }) 
 
-  ## TO DO...
-  sample_data <- data.frame(cohort = sample(1:n.cohorts),
-                        n = round(runif(n.cohorts, 100, 1000)),
-                        p.outcome = runif(n.cohorts, 0.2, 0.6),
-                        mean.age = round(runif(n.cohorts, 40, 60)),
-                        sd.age = round(runif(n.cohorts, 5, 15)),
-                        pct.female = round(runif(n.cohorts), 2),
-                        mean.x1 = round(rnorm(n.cohorts), 1),
-                        sd.x1 = round(rexp(n.cohorts, 1), 2)) 
-  
-  dat <- mapply(make_data, sample_data$n, sample_data$p.outcome, SIMPLIFY = FALSE)
-  datm <- mapply(sim_moderators, sample_data$n, sample_data$mean.age, 
-                 sample_data$sd.age, sample_data$pct.female, 
-                 sample_data$mean.x1, sample_data$sd.x1, SIMPLIFY = FALSE)
-  names(dat) <- names(datm) <- sample_data$cohort
-  add_cohort <- function(x, nms){
-      varnames <- names(x)
-      x$cohort <- nms
-      x <- x[, c("cohort", varnames)]
-      x
-  }
-  dat <- mapply(add_cohort, dat, names(dat), SIMPLIFY = FALSE)
-  dat <- do.call(rbind, dat)
-  datm <- mapply(add_cohort, datm, names(datm), SIMPLIFY = FALSE)
-  datm <- do.call(rbind, datm)
-  dat2 <- merge(dat, datm, by = c("cohort", "id"))
-  sample_data <- split(dat2, dat2$cohort)
-  #sample_data <- mapply(add_cohort, sample_data, names(sample_data), SIMPLIFY = FALSE)
-
-  # add in structural missing (by cohort)
- lvls <- names(sample_data)
- b.missing <- sample(lvls, round(n.cohorts * 0.2))
- c.missing <- sample(lvls, round(n.cohorts * 0.2))
- d.missing <- sample(lvls, round(n.cohorts * 0.2))
- e.missing <- sample(lvls, round(n.cohorts * 0.4))
- f.missing <- sample(lvls, round(n.cohorts * 0.4))
- g.missing <- sample(lvls, round(n.cohorts * 0.4))
- h.missing <- sample(lvls, round(n.cohorts * 0.6))
- i.missing <- sample(lvls, round(n.cohorts * 0.6))
- 
- strucmiss <- function(d, s, coh){
-     if(d$cohort[1] %in% coh){
-         d[, s] <- NA
-     } 
-     d
- }
- 
- datmiss <- lapply(sample_data, strucmiss, s = "b", coh = b.missing)
- datmiss <- lapply(datmiss, strucmiss, s = "c", coh = c.missing)
- datmiss <- lapply(datmiss, strucmiss, s = "d", coh = d.missing)
- datmiss <- lapply(datmiss, strucmiss, s = "e", coh = e.missing)
- datmiss <- lapply(datmiss, strucmiss, s = "f", coh = f.missing)
- datmiss <- lapply(datmiss, strucmiss, s = "g", coh = g.missing)
- datmiss <- lapply(datmiss, strucmiss, s = "h", coh = h.missing)
- datmiss <- lapply(datmiss, strucmiss, s = "i", coh = i.missing)
-
+    # structural missings
+    spl[[1]]$pred3 <- NA
+    spl[[2]]$pred5 <- NA
+    spl[[4]]$pred4 <- NA
+    
   # ... and some random missings
  randmiss <- function(d, s, p = 0.2){
     make_missing <- rbinom(nrow(d), 1, prob = p)
@@ -119,19 +111,14 @@ msc_sample_data <- function(n.cohorts = 5, seed = NULL){
      d
  }
  
- datmiss <- lapply(datmiss, randmiss, s = "a", p = 0.05)
- datmiss <- lapply(datmiss, randmiss, s = "b", p = 0.1)
- datmiss <- lapply(datmiss, randmiss, s = "c", p = 0.2)
- datmiss <- lapply(datmiss, randmiss, s = "d", p = 0.3)
- datmiss <- lapply(datmiss, randmiss, s = "e", p = 0.2)
- datmiss <- lapply(datmiss, randmiss, s = "f", p = 0.1)
- datmiss <- lapply(datmiss, randmiss, s = "g", p = 0.2)
- datmiss <- lapply(datmiss, randmiss, s = "h", p = 0.1)
- datmiss <- lapply(datmiss, randmiss, s = "i", p = 0.3)
+ datmiss <- lapply(spl, randmiss, s = "pred1", p = 0.05)
+ datmiss <- lapply(datmiss, randmiss, s = "pred2", p = 0.1)
+ datmiss <- lapply(datmiss, randmiss, s = "pred3", p = 0.2)
+ datmiss <- lapply(datmiss, randmiss, s = "pred4", p = 0.3)
+ datmiss <- lapply(datmiss, randmiss, s = "pred5", p = 0.2)
  
  sample_data <- do.call(rbind, datmiss)
  names(sample_data)[1] <- "study"
- sample_data$sex <- factor(sample_data$female, 0:1, c("male", "female"))
  sample_data
 }
 
