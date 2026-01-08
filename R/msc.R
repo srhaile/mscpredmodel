@@ -493,6 +493,7 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
                                score.2 = mm[, 2],
                                yi = unlist(perfdiff),
                                vi = diag(V))
+        print(aggr_ipd)
         
         if(!is.null(append_aggregate)){
             naa <- names(append_aggregate)

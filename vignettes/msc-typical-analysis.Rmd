@@ -84,8 +84,18 @@ moddi <- msc(scores = c("a", "b", "c", "e", "g"),
                      "BS" = brier_score),
            model = "consistency", direct = TRUE, indirect = FALSE,
            ref = "all")
-
 moddi
+
+fit_msc(scores = c("a", "b", "c"),
+        outcome = "outcome", subjid = "id",
+        cohort = "study", mods = NULL, data = dat,
+        perf_fn = c_statistic,
+        perf_lbl = "c-statistic",
+        direct = c("b", "c"), 
+        indirect = NULL,
+        model = "consistency")
+
+
 
 #check_consistency(moddi, graph = TRUE)
 ```
