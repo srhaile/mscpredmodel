@@ -28,12 +28,14 @@ library(mscpredmodel)
 library(ggplot2)
 theme_set(theme_bw())
 
-dat <- msc_sample_data(n.cohorts = 6, seed = 123456)
+dat <- msc_sample_data(seed = 12345678)
 head(dat)
+names(dat)[7:11] <- c("a", "b", "c", "d", "e")
+dat$id <- 1:nrow(dat)
 
 get_performance_statistics(data = dat, 
-                          scores = c("a", "b", "c", "e", "g"), 
-                          cohort = "study", outcome = "outcome", 
+                          scores = c("a", "b", "c", "d", "e"), 
+                          cohort = "study", outcome = "y", 
                           fn = list(AUC = c_statistic, 
                                     `O/E` = oe_ratio,
                                     BS = brier_score))
@@ -43,8 +45,8 @@ get_performance_statistics(data = dat,
 We want to examine performance of the 5 scores according to c-statistic (area under the curve, AUC), calibration slope (CS) and Brier score. 
 
 ```{r example1, message = FALSE, out.width = "80%"}
-mod <- msc(scores = c("a", "b", "c", "e", "g"),
-           outcome = "outcome", subjid = "id",
+mod <- msc(scores = c("a", "b", "c", "d", "e"),
+           outcome = "y", subjid = "id",
            cohort = "study", mods = NULL, data = dat,
            fn = list("AUC" = c_statistic,
                      "CS" = calibration_slope,

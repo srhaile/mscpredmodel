@@ -30,6 +30,7 @@ msc_sample_data <- function(seed = NULL){
                               sd.z = round(rexp(n.cohorts, 1), 2)) 
     
     betas <- rnorm(6)
+    betas[1] <- -2
     
     gen_mods <- function(i){
         this_cohort <- with(sample_data, 
