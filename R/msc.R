@@ -565,16 +565,17 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
             mod <- NULL
         } else
             if(model == "consistency"){
-                mod <- rma.mv(yi, V, data = aggr_ipd, 
+                mod <- try(rma.mv(yi, V, data = aggr_ipd, 
                               mods = as.formula(this_fm),
                               slab = cohort,
                               random = list(~contr | cohort), 
                               rho = 0.5, 
                               control = list(tau2.init = 0.5,
                                              optimizer="BFGS"),
-                              ...)
+                              ...),
+                           silent = TRUE)
             } else if(model == "inconsistency"){
-                mod <- rma.mv(yi, V, data = aggr_ipd, 
+                mod <- try(rma.mv(yi, V, data = aggr_ipd, 
                               mods = as.formula(this_fm),
                               slab = cohort,
                               random = list(~contr | cohort, 
@@ -582,7 +583,8 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
                               rho = 0.5, phi = 0.5, 
                               control = list(tau2.init = 0.5,
                                              optimizer="BFGS"),
-                              ...)
+                              ...),
+                           silent = TRUE)
             }
         out <-  list(aggr_ipd, V, mod)
     }  else {
