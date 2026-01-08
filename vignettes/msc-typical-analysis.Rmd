@@ -46,12 +46,11 @@ get_performance_statistics(data = dat,
 
 We want to examine performance of the 5 scores according to c-statistic (area under the curve, AUC), calibration slope (CS) and Brier score. 
 
-```{r example1, message = FALSE, out.width = "80%"}
+```{r example1, message = FALSE, out.width = "100%"}
 mod <- msc(scores = c("a", "b", "c", "d", "e"),
            outcome = "y", subjid = "id",
            cohort = "study", mods = NULL, data = dat,
            fn = list("AUC" = c_statistic,
-                     "CS" = calibration_slope,
                      "BS" = brier_score),
            model = "consistency", direct = FALSE, indirect = FALSE,
            ref = "first")
@@ -63,7 +62,7 @@ check_homogeneity(mod)
 
 We can rerun the model with moderators to check for transitivity.
 
-```{r example2, out.width = "80%"}
+```{r example2, out.width = "100%"}
 dat$female <- as.numeric(dat$sex == "F")
 modm <- msc(scores = c("a", "b", "c", "d", "e"),
            outcome = "y", subjid = "id",
@@ -71,7 +70,6 @@ modm <- msc(scores = c("a", "b", "c", "d", "e"),
            mods = c("age", "female", "x1"), 
            data = dat,
            fn = list("AUC" = c_statistic,
-                     "CS" = calibration_slope,
                      "BS" = brier_score),
            model = "consistency", direct = FALSE, indirect = FALSE,
            ref = "first")
@@ -80,12 +78,11 @@ check_transitivity(modm, graph = TRUE)
 
 Finally, if we want to compare direct, indirect and network evidence, we can also compute these comparisons.
 
-```{r example3, eval = TRUE}
+```{r example3, eval = TRUE, out.width = "100%"}
 moddi <- msc(scores = c("a", "b", "c", "d", "e"),
            outcome = "y", subjid = "id",
            cohort = "study", mods = NULL, data = dat,
            fn = list("AUC" = c_statistic,
-                     "CS" = calibration_slope,
                      "BS" = brier_score),
            model = "consistency", 
            direct = TRUE, indirect = TRUE,
