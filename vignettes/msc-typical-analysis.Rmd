@@ -28,7 +28,7 @@ library(mscpredmodel)
 library(ggplot2)
 theme_set(theme_bw())
 
-dat <- msc_sample_data(n.cohorts = 6, seed = 12345)
+dat <- msc_sample_data(n.cohorts = 6, seed = 123456)
 head(dat)
 
 get_performance_statistics(data = dat, 
