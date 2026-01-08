@@ -13,13 +13,15 @@ vignette: >
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  warning = FALSE,
+  results = "show"
 )
 ```
 
 # Typical analysis
 
-This is a basic example which shows you a typical analysis for a dataset having individual patient data from 10 cohorts, each with some combination of scores a, b, c, e, and g. 
+This is a basic example which shows you a typical analysis for a dataset having individual patient data from 5 cohorts, each with some combination of scores a, b, c, d, and e. 
 
 
 ```{r msc_setup}
@@ -28,7 +30,7 @@ library(mscpredmodel)
 library(ggplot2)
 theme_set(theme_bw())
 
-dat <- msc_sample_data(seed = 12345678)
+dat <- msc_sample_data(seed = 12345)
 head(dat)
 names(dat)[7:11] <- c("a", "b", "c", "d", "e")
 dat$id <- 1:nrow(dat)
@@ -62,8 +64,9 @@ check_homogeneity(mod)
 We can rerun the model with moderators to check for transitivity.
 
 ```{r example2, out.width = "80%"}
-modm <- msc(scores = c("a", "b", "c", "e", "g"),
-           outcome = "outcome", subjid = "id",
+dat$female <- as.numeric(dat$sex == "F")
+modm <- msc(scores = c("a", "b", "c", "d", "e"),
+           outcome = "y", subjid = "id",
            cohort = "study", 
            mods = c("age", "female", "x1"), 
            data = dat,
@@ -78,27 +81,17 @@ check_transitivity(modm, graph = TRUE)
 Finally, if we want to compare direct, indirect and network evidence, we can also compute these comparisons.
 
 ```{r example3, eval = TRUE}
-moddi <- msc(scores = c("a", "b", "c", "e", "g"),
-           outcome = "outcome", subjid = "id",
+moddi <- msc(scores = c("a", "b", "c", "d", "e"),
+           outcome = "y", subjid = "id",
            cohort = "study", mods = NULL, data = dat,
            fn = list("AUC" = c_statistic,
                      "CS" = calibration_slope,
                      "BS" = brier_score),
-           model = "consistency", direct = TRUE, indirect = FALSE,
+           model = "consistency", 
+           direct = TRUE, indirect = TRUE,
            ref = "all")
 moddi
 
-fit_msc(scores = c("a", "b", "c"),
-        outcome = "outcome", subjid = "id",
-        cohort = "study", mods = NULL, data = dat,
-        perf_fn = c_statistic,
-        perf_lbl = "c-statistic",
-        direct = c("b", "c"), 
-        indirect = NULL,
-        model = "consistency")
-
-
-
-#check_consistency(moddi, graph = TRUE)
+check_consistency(moddi, graph = TRUE)
 ```
 

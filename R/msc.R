@@ -121,7 +121,6 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
                       n.boot = nb, seed = newseed, max_missing = pct, 
                       run_checks = FALSE, ...)
         nw_dat <- nw$aggrdat
-        print(nw_dat)
         nw_model <- nw$rma.mv
         V <- nw$V
         this_res <- coeftab(nw_model)
@@ -178,7 +177,6 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
             tmp <- vector("list", mc)
             for(j in 1:mc){ #perf fun i + combo j
                 this_combo <- combos[, j]
-                print(this_combo)
                 mod <- fit_msc(scores = s, cohort = c,
                         outcome = o, subjid = id,
                         perf_fn = f_fn, perf_lbl = f_lbl,
@@ -186,7 +184,6 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
                         direct = this_combo, indirect = NULL,
                         n.boot = nb, seed = newseed, max_missing = pct,
                         run_checks = FALSE, ...)$rma.mv
-                print(mod)
                 tmp[[j]] <- coeftab(mod)
                 
                 tmp[[j]]$ref <- this_combo[1]
@@ -202,7 +199,6 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
             tmp <- vector("list", mc)
             for(j in 1:mc){ #perf fun i + combo j
                 this_combo <- combos[, j]
-                print(this_combo)
                 tmp[[j]] <- coeftab(fit_msc(scores = s, cohort = c,
                                             outcome = o, subjid = id,
                                             perf_fn = f_fn, perf_lbl = f_lbl,
@@ -493,7 +489,6 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
                                score.2 = mm[, 2],
                                yi = unlist(perfdiff),
                                vi = diag(V))
-        print(aggr_ipd)
         
         if(!is.null(append_aggregate)){
             naa <- names(append_aggregate)
@@ -539,16 +534,12 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
         
         
         if(!is.null(mods)){
-            #print(spl[[1]])
             summ_mods <- lapply(spl, summarize_moderators, m = mods)
             summ_mods <- do.call("rbind", summ_mods)
-            #print(summ_mods)
             summ_mods <- as.data.frame(summ_mods)
             summ_mods$cohort <- names(spl)
             aggr_ipd <- merge(aggr_ipd, summ_mods, by = "cohort", all.x = TRUE)
         }
-        
-        # print(aggr_ipd)
         
         if(is.null(direct) & is.null(indirect)){
             this_fm <- paste(scores[-1], collapse = " + ")
