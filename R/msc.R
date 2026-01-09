@@ -179,7 +179,7 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
             mc <- ncol(combos)
         }
         
-        if(run_direct){
+        if(TRUE){
             tmp <- vector("list", mc)
             for(j in 1:mc){ #perf fun i + combo j
                 this_combo <- combos[, j]
