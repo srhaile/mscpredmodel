@@ -238,6 +238,7 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
         for(i in 1:length(fn)){
             out[[i]] <- my_fit(f_fn = fn[[i]], f_lbl = names(fn)[i])
         }
+        names(out) <- names(fn)
         
     class(out) <- "msc"
     attr(out, "scores") <- scores
