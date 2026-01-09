@@ -183,6 +183,7 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
             tmp <- vector("list", mc)
             for(j in 1:mc){ #perf fun i + combo j
                 this_combo <- combos[, j]
+ 
                 this_mod <- fit_msc(scores = s, cohort = c,
                         outcome = o, subjid = id,
                         perf_fn = f_fn, perf_lbl = f_lbl,
@@ -190,8 +191,7 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
                         direct = this_combo, indirect = NULL,
                         n.boot = nb, seed = newseed, max_missing = pct,
                         run_checks = FALSE, 
-                        optimizer_controls = oc, ...)$rma.mv
-                print(this_mod)
+                        optimizer_controls = oc, ...)
                 tmp[[j]] <- coeftab(this_mod$rma.mv)
                 tmp[[j]]$ref <- this_combo[1]
                 tmp[[j]]$term <- this_combo[2]
