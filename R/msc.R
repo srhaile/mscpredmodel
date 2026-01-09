@@ -234,7 +234,7 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
     #     out <- future_lapply(fn, function(x) my_fit(f_fn = x, f_lbl = names(x)),
     #                          future.seed = NULL)
     # }
-    
+        out <- vector("list", length(fn))
         for(i in 1:length(fn)){
             out[[i]] <- my_fit(f_fn = fn[[i]], f_lbl = names(fn)[i])
         }
