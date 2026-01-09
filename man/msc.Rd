@@ -22,6 +22,7 @@ msc(
   n.boot = 250,
   seed = NULL,
   max_missing = 0.8,
+  optimcontrol = list(maxit = 1500, tau2.init = 0.5),
   ...
 )
 
@@ -46,6 +47,7 @@ fit_msc(
   seed = NULL,
   max_missing = 0.8,
   run_checks = TRUE,
+  optimizer_controls = list(maxit = 1000),
   ...
 )
 }
@@ -77,6 +79,8 @@ fit_msc(
 \item{seed}{A random seed to make results reproducible (Default NULL)}
 
 \item{max_missing}{If the proportion of missingness for any score within a cohort exceeds \code{max_missing}, the score will be counted as missing for the entire cohort. (Default 0.8)}
+
+\item{optimcontrol}{A list of options for the optimizer used in \code{\link[metafor]{rma.mv}} can be set via its \code{control} option.  By default, we increase the maximum number of iterations to 1500, and set \code{tau2.init} to be 0.5. The optimizer could also be changed to another algorithm here.}
 
 \item{...}{In the \code{msc} functions, any other arguments are passed to \code{\link[metafor]{rma.mv}}.}
 

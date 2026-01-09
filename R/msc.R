@@ -22,6 +22,7 @@
 #' @param n.boot Number of bootstrap samples to be drawn. (Default: 250)
 #' @param seed A random seed to make results reproducible (Default NULL)
 #' @param max_missing If the proportion of missingness for any score within a cohort exceeds \code{max_missing}, the score will be counted as missing for the entire cohort. (Default 0.8)
+#' @param optimcontrol A list of options for the optimizer used in \code{\link[metafor]{rma.mv}} can be set via its \code{control} option.  By default, we increase the maximum number of iterations to 1500, and set \code{tau2.init} to be 0.5. The optimizer could also be changed to another algorithm here. 
 #' @param ... In the \code{msc} functions, any other arguments are passed to \code{\link[metafor]{rma.mv}}.
 #'
 #' @return A list of class \code{msc}, with the following components:
@@ -62,7 +63,7 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
                 direct = TRUE, indirect = TRUE, 
                 ref = c("first", "all")[1], n.boot = 250, 
                 seed = NULL, max_missing = 0.8, 
-                ...){
+                optimcontrol = list(maxit = 1500, tau2.init = 0.5), ...){
     
     # run basic checks before starting with the models
     if(is.null(scores)){
@@ -111,7 +112,9 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
                        run_direct = direct, run_indirect = indirect,
                        which_ref = ref,
                        nb = n.boot, newseed = seed, 
-                       pct = max_missing, ...){
+                       pct = max_missing, 
+                       oc = optimcontrol,
+                       ...){
         res <- NULL
         nw <- fit_msc(scores = s, cohort = c,
                       outcome = o, subjid = id,
@@ -119,7 +122,8 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
                       mods = m, data = newdata, model = modeltype,
                       direct = NULL, indirect = NULL,
                       n.boot = nb, seed = newseed, max_missing = pct, 
-                      run_checks = FALSE, ...)
+                      run_checks = FALSE,
+                      optimizer_controls = oc, ...)
         nw_dat <- nw$aggrdat
         nw_model <- nw$rma.mv
         V <- nw$V
@@ -183,7 +187,8 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
                         mods = m, data = newdata, model = modeltype,
                         direct = this_combo, indirect = NULL,
                         n.boot = nb, seed = newseed, max_missing = pct,
-                        run_checks = FALSE, ...)$rma.mv
+                        run_checks = FALSE, 
+                        optimizer_controls = oc, ...)$rma.mv
                 tmp[[j]] <- coeftab(this_mod$rma.mv)
                 tmp[[j]]$ref <- this_combo[1]
                 tmp[[j]]$term <- this_combo[2]
@@ -204,7 +209,8 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
                                     mods = m, data = newdata, model = modeltype,
                                     direct = NULL, indirect = this_combo,
                                     n.boot = nb, seed = newseed, max_missing = pct,
-                                    run_checks = FALSE, ...)
+                                    run_checks = FALSE, 
+                                    optimizer_controls = oc, ...)
                 tmp[[j]] <- coeftab(this_mod$rma.mv)
                 tmp[[j]]$ref <- this_combo[1]
                 tmp[[j]]$term <- this_combo[2]
@@ -315,7 +321,9 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
                     n.boot = 250,
                     seed = NULL,
                     max_missing = 0.8,
-                    run_checks = TRUE, ...){
+                    run_checks = TRUE, 
+                    optimizer_controls = list(maxit = 1000),
+                    ...){
     
     require(metafor)
     
@@ -568,7 +576,9 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
                               mods = as.formula(this_fm),
                               slab = cohort,
                               random = list(~contr | cohort), 
-                              rho = 0.5, ...),
+                              rho = 0.5, 
+                              control = optimizer_controls,
+                              ...),
                            silent = TRUE)
             } else if(model == "inconsistency"){
                 mod <- try(rma.mv(yi, V, data = aggr_ipd, 
@@ -576,7 +586,9 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
                               slab = cohort,
                               random = list(~contr | cohort, 
                                             ~contr | design), 
-                              rho = 0.5, phi = 0.5, ...),
+                              rho = 0.5, phi = 0.5, 
+                              control = optimizer_controls,
+                              ...),
                            silent = TRUE)
             }
         out <-  list(aggr_ipd, V, mod)
