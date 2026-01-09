@@ -177,7 +177,6 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
         }
         
         if(run_direct){
-            message("obtaining direct estimates")
             tmp <- vector("list", mc)
             for(j in 1:mc){ #perf fun i + combo j
                 this_combo <- combos[, j]
@@ -189,6 +188,7 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
                         n.boot = nb, seed = newseed, max_missing = pct,
                         run_checks = FALSE, 
                         optimizer_controls = oc, ...)$rma.mv
+                print(this_mod)
                 tmp[[j]] <- coeftab(this_mod$rma.mv)
                 tmp[[j]]$ref <- this_combo[1]
                 tmp[[j]]$term <- this_combo[2]
@@ -199,7 +199,6 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
         }
 
         if(run_indirect){
-            message("obtaining indirect estimates")
             tmp <- vector("list", mc)
             for(j in 1:mc){ #perf fun i + combo j
                 this_combo <- combos[, j]
@@ -445,9 +444,6 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
         has_none <- is.na(this_dat[, direct[1]]) & is.na(this_dat[, direct[2]])
         this_dat <- this_dat[has_both, c(cohort, subjid, outcome, direct, mods)]
     }
-    
-    print(nrow(this_dat))
-    print(this_dat)
     
     if(nrow(this_dat) >= 1){
         
