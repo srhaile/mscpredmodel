@@ -106,6 +106,9 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
     
     fnv <- as.vector(fn)
     
+    print(direct)
+    print(indirect)
+    
     my_fit <- function(f_fn, f_lbl, s = scores, c = cohort,
                        o = outcome, id = subjid,
                        m = mods, newdata = data, modeltype = model,
