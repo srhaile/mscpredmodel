@@ -213,6 +213,7 @@ coeftab <- function(x){
                           conf.low = NA, conf.high = NA)
     } else {
         conf.level <- 0.95
+        print(x)
         betas <- x$beta
         if (!is.null(nrow(betas)) && nrow(betas) > 1) {
             study <- rownames(betas)
