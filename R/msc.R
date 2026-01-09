@@ -99,9 +99,9 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
     }
     
     if(requireNamespace("future.apply", quietly = TRUE)) {
-        require(future.apply)
+        #require(future.apply)
         #plan(multisession, workers = 2)
-        plan(sequential)
+        #plan(sequential)
     }
     
     fnv <- as.vector(fn)
