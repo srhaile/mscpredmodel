@@ -229,12 +229,16 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
     }
     
     # if (!requireNamespace("future.apply", quietly = TRUE)) {
-        out <- lapply(fn, function(x) my_fit(f_fn = x, f_lbl = names(x)))
+    #    out <- lapply(fn, function(x) my_fit(f_fn = x, f_lbl = names(x)))
     # } else {
     #     out <- future_lapply(fn, function(x) my_fit(f_fn = x, f_lbl = names(x)),
     #                          future.seed = NULL)
     # }
     
+        for(i in 1:length(fn)){
+            out[[i]] <- my_fit(f_fn = fn[[i]], f_lbl = names(fn)[i])
+        }
+        
     class(out) <- "msc"
     attr(out, "scores") <- scores
     attr(out, "mods") <- mods
