@@ -106,9 +106,6 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
     
     fnv <- as.vector(fn)
     
-    print(direct)
-    print(indirect)
-    
     my_fit <- function(f_fn, f_lbl, s = scores, c = cohort,
                        o = outcome, id = subjid,
                        m = mods, newdata = data, modeltype = model,
@@ -228,17 +225,12 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
         res
     }
     
-    # if (!requireNamespace("future.apply", quietly = TRUE)) {
-    #    out <- lapply(fn, function(x) my_fit(f_fn = x, f_lbl = names(x)))
-    # } else {
-    #     out <- future_lapply(fn, function(x) my_fit(f_fn = x, f_lbl = names(x)),
-    #                          future.seed = NULL)
-    # }
-        out <- vector("list", length(fn))
-        for(i in 1:length(fn)){
-            out[[i]] <- my_fit(f_fn = fn[[i]], f_lbl = names(fn)[i])
-        }
-        names(out) <- names(fn)
+    if (!requireNamespace("future.apply", quietly = TRUE)) {
+       out <- lapply(fn, function(x) my_fit(f_fn = x, f_lbl = names(x)))
+    } else {
+        out <- future_lapply(fn, function(x) my_fit(f_fn = x, f_lbl = names(x)),
+                             future.seed = NULL)
+    }
         
     class(out) <- "msc"
     attr(out, "scores") <- scores
@@ -505,8 +497,6 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
                                score.2 = mm[, 2],
                                yi = unlist(perfdiff),
                                vi = diag(V))
-        
-        print(aggr_ipd)
         
         if(!is.null(append_aggregate)){
             naa <- names(append_aggregate)
