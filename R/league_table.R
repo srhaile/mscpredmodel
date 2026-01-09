@@ -45,7 +45,7 @@ league_table <- function(object,
     res <- vector("list", length(est))
     
     for(i in 1:length(est)){
-        lt <- matrix(NA, nrow = k[i], ncol = k[i])
+        lt <- matrix(NA, nrow = k, ncol = k)
         diag(lt) <- avail_scores
         rownames(lt) <- colnames(lt) <- avail_scores
         
