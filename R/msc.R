@@ -179,7 +179,7 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
             mc <- ncol(combos)
         }
         
-        if(TRUE){
+        if(run_direct){
             tmp <- vector("list", mc)
             for(j in 1:mc){ #perf fun i + combo j
                 this_combo <- combos[, j]
@@ -228,12 +228,12 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
         res
     }
     
-    if (!requireNamespace("future.apply", quietly = TRUE)) {
+    # if (!requireNamespace("future.apply", quietly = TRUE)) {
         out <- lapply(fn, function(x) my_fit(f_fn = x, f_lbl = names(x)))
-    } else {
-        out <- future_lapply(fn, function(x) my_fit(f_fn = x, f_lbl = names(x)),
-                             future.seed = NULL)
-    }
+    # } else {
+    #     out <- future_lapply(fn, function(x) my_fit(f_fn = x, f_lbl = names(x)),
+    #                          future.seed = NULL)
+    # }
     
     class(out) <- "msc"
     attr(out, "scores") <- scores
