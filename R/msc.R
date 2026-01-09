@@ -177,15 +177,14 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
             tmp <- vector("list", mc)
             for(j in 1:mc){ #perf fun i + combo j
                 this_combo <- combos[, j]
-                mod <- fit_msc(scores = s, cohort = c,
+                this_mod <- fit_msc(scores = s, cohort = c,
                         outcome = o, subjid = id,
                         perf_fn = f_fn, perf_lbl = f_lbl,
                         mods = m, data = newdata, model = modeltype,
                         direct = this_combo, indirect = NULL,
                         n.boot = nb, seed = newseed, max_missing = pct,
                         run_checks = FALSE, ...)$rma.mv
-                tmp[[j]] <- coeftab(mod)
-                
+                tmp[[j]] <- coeftab(this_mod$rma.mv)
                 tmp[[j]]$ref <- this_combo[1]
                 tmp[[j]]$term <- this_combo[2]
                 tmp[[j]]$evidence <- "direct"
@@ -199,13 +198,14 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
             tmp <- vector("list", mc)
             for(j in 1:mc){ #perf fun i + combo j
                 this_combo <- combos[, j]
-                tmp[[j]] <- coeftab(fit_msc(scores = s, cohort = c,
-                                            outcome = o, subjid = id,
-                                            perf_fn = f_fn, perf_lbl = f_lbl,
-                                            mods = m, data = newdata, model = modeltype,
-                                            direct = NULL, indirect = this_combo,
-                                            n.boot = nb, seed = newseed, max_missing = pct,
-                                            run_checks = FALSE, ...)$rma.mv)
+                this_mod <- fit_msc(scores = s, cohort = c,
+                                    outcome = o, subjid = id,
+                                    perf_fn = f_fn, perf_lbl = f_lbl,
+                                    mods = m, data = newdata, model = modeltype,
+                                    direct = NULL, indirect = this_combo,
+                                    n.boot = nb, seed = newseed, max_missing = pct,
+                                    run_checks = FALSE, ...)
+                tmp[[j]] <- coeftab(this_mod$rma.mv)
                 tmp[[j]]$ref <- this_combo[1]
                 tmp[[j]]$term <- this_combo[2]
                 tmp[[j]]$evidence <- "indirect"

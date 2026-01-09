@@ -44,7 +44,7 @@ get_performance_statistics(data = dat,
 
 ```
 
-We want to examine performance of the 5 scores according to c-statistic (area under the curve, AUC), calibration slope (CS) and Brier score. 
+We want to examine performance of the 5 scores according to c-statistic (area under the curve, AUC), and Brier score (BS). 
 
 ```{r example1, message = FALSE, out.width = "100%"}
 mod <- msc(scores = c("a", "b", "c", "d", "e"),
@@ -67,7 +67,7 @@ dat$female <- as.numeric(dat$sex == "F")
 modm <- msc(scores = c("a", "b", "c", "d", "e"),
            outcome = "y", subjid = "id",
            cohort = "study", 
-           mods = c("age", "female", "x1"), 
+           mods = c("age", "female"), 
            data = dat,
            fn = list("AUC" = c_statistic,
                      "BS" = brier_score),
@@ -86,7 +86,7 @@ moddi <- msc(scores = c("a", "b", "c", "d", "e"),
                      "BS" = brier_score),
            model = "consistency", 
            direct = TRUE, indirect = TRUE,
-           ref = "all")
+           ref = "first")
 moddi
 
 check_consistency(moddi, graph = TRUE)
