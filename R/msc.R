@@ -445,7 +445,6 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
         this_dat <- this_dat[has_both, c(cohort, subjid, outcome, direct, mods)]
     }
     
-    print(nrow(this_dat))
     if(nrow(this_dat) >= 1){
         
         g <- this_dat[, cohort]
