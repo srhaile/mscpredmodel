@@ -206,6 +206,7 @@ summarize_moderators <- function(x, m = mods){
 #' @describeIn util Summarize moderators
 #' @return A data.frame with model coefficients (similar to broom::tidy)
 coeftab <- function(x){
+    print(class(x))
     if(is.null(x) | inherits(x, "try-error")) {
         out <- data.frame(term = NA, type = "summary",
                           estimate = NA, std.error = NA,
