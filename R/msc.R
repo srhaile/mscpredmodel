@@ -101,6 +101,7 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
     if(!is.null(mods)){
         missing_mods <- mods[!mods %in% names(data)]
         mods <- mods[mods %in% names(data)]
+        mods <- mods[!mods %in% scores]
         if(length(missing_mods) > 0){
             message("Some moderators are not in data. Removing: ", 
                     paste(missing_mods, collapse = ", "), 
