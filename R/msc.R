@@ -110,6 +110,14 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
 
     }
     
+    used_vars <- c(scores, cohort, outcome, subjid, mods)
+    if(length(used_vars) != length(unique(used_vars))){
+        repeated_vars <- table(used_vars)
+        vars_to_remove <- names(repeated_vars)[repeated_vars > 1]
+        stop("There is overlap in the defined variables. Please check that scores, cohort, outcome, subjid and mods have been defined correctly. ",
+             "The variables ", paste(vars_to_remove, collapse = ", "), " have been included more than once.")
+    }
+    
     
     
     if(requireNamespace("future.apply", quietly = TRUE)) {
