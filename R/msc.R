@@ -98,10 +98,22 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
         stop("The specified subject ID (", subjid, ") is not in dataset.")
     }
     
+    if(!is.null(mods)){
+        missing_mods <- mods[!mods %in% names(data)]
+        mods <- mods[mods %in% names(data)]
+        if(length(missing_mods) > 0){
+            message("Some moderators are not in data. Removing: ", 
+                    paste(missing_mods, collapse = ", "), 
+                    ". New moderators are: ", paste(mods, collapse = ", "), ".")   
+        }
+
+    }
+    
+    
+    
     if(requireNamespace("future.apply", quietly = TRUE)) {
-        #require(future.apply)
-        #plan(multisession, workers = 2)
-        #plan(sequential)
+        require(future.apply)
+        plan(multisession, workers = 2)
     }
     
     fnv <- as.vector(fn)
