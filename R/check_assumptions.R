@@ -34,7 +34,7 @@
 #' @describeIn check_assumptions Check assumption of transitivity
 #' @param object An object from \code{msc}. For \code{check_transitivity}, it must contain moderators.
 #' @param graph Should a graph of outcomes versus moderators be printed?
-#' @return A tibble containing results of linear regression models of the effect size (outcome) against the cohort-specific average moderator value.
+#' @return A 2-dimensional list (moderator by contrast) containing linear regression model output of the effect size (outcome) against the cohort-specific average moderator value.
 #' 
 #' @importFrom stats model.matrix lm
 #' @importFrom broom tidy
@@ -65,21 +65,16 @@ check_transitivity <- function(object, graph = TRUE){
         p <- length(contrlist)
         
         tmp <- vector("list", m * p)
-        
-        k <- 0
+        dim(tmp) <- c(m, p)
+        dimnames(tmp) <- list(mods, contrlist)
         for(i in 1:m){
             for(j in 1:p){
-                k <- k + 1
                 trfm <- paste("yi ~ ", mods[i])
                 subdat <- subset(this_dat[[meas]], contr == contrlist[j])
                 trmodel <- try(lm(as.formula(trfm),
                                   weights = w, 
                                   data = subdat), silent = TRUE)
-                if (class(trmodel) == "try-error") {
-                    tmp[[k]] <- NULL
-                } else {
-                    tmp[[k]] <- trmodel
-                }
+                tmp[[i, j]] <- trmodel
             }
         }
         out[[meas]] <- tmp
@@ -123,9 +118,11 @@ check_transitivity <- function(object, graph = TRUE){
     if(graph){
         return(p)
     } else {
+        class(out) <- "msctr"
         return(out)
     }
 }
+
 
 #' @describeIn check_assumptions Check assumption of homogeneity
 #' @param object An object from \code{msc}.
