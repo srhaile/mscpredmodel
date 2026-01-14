@@ -72,9 +72,13 @@ check_transitivity <- function(object, graph = TRUE){
             for(j in 1:p){
                 trfm <- paste("yi ~ ", mods[i])
                 subdat <- subset(this_dat[[meas]], contr == contrlist[j])
-                trmodel <- try(lm(as.formula(trfm),
-                                  weights = w, 
-                                  data = subdat), silent = TRUE)
+                if(nrow(subdat) <= 1){
+                    trmodel <- NULL   
+                } else {
+                    trmodel <- try(lm(as.formula(trfm),
+                                      weights = w, 
+                                      data = subdat), silent = TRUE)
+                }
                 tmpp[[j]] <- trmodel
             }
             tmpm[[i]] <- tmpp
