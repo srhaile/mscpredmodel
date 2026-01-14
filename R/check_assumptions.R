@@ -129,6 +129,7 @@ check_transitivity <- function(object, graph = TRUE){
     }
 }
 
+#' @export
 print.msctr <- function(object){
     rbind_names <- function(x, newvar = "contrast"){
         k <- length(x)

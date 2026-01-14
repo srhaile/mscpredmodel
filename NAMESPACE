@@ -2,6 +2,7 @@
 
 S3method(plot,msc)
 S3method(print,msc)
+S3method(print,msctr)
 S3method(summary,perfsumm)
 export(E50)
 export(E90)
