@@ -77,8 +77,8 @@ check_transitivity <- function(object, graph = TRUE){
                 tmp[[i, j]] <- trmodel
             }
         }
+        
         out[[meas]] <- tmp
-        names(out[[meas]]) <- paste(rep(mods, each = p), rep(contrlist, m))
     }
     
     if (graph){
