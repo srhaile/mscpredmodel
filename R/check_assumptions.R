@@ -34,7 +34,7 @@
 #' @describeIn check_assumptions Check assumption of transitivity
 #' @param object An object from \code{msc}. For \code{check_transitivity}, it must contain moderators.
 #' @param graph Should a graph of outcomes versus moderators be printed?
-#' @return A 2-dimensional list (moderator by contrast) containing linear regression model output of the effect size (outcome) against the cohort-specific average moderator value.
+#' @return A nested list (performance measure, then moderator, than score contrast) containing linear regression model output of the effect size (outcome) against the cohort-specific average moderator value.
 #' 
 #' @importFrom stats model.matrix lm
 #' @importFrom broom tidy
@@ -64,21 +64,23 @@ check_transitivity <- function(object, graph = TRUE){
         contrlist <- unique(this_dat[[meas]]$contr)
         p <- length(contrlist)
         
-        tmp <- vector("list", m * p)
-        dim(tmp) <- c(m, p)
-        dimnames(tmp) <- list(mods, contrlist)
+        tmpm <- vector("list", m)
+        names(tmpm) <- mods
         for(i in 1:m){
+            tmpp <- vector("list", p)
+            names(tmpp) <- contrlist
             for(j in 1:p){
                 trfm <- paste("yi ~ ", mods[i])
                 subdat <- subset(this_dat[[meas]], contr == contrlist[j])
                 trmodel <- try(lm(as.formula(trfm),
                                   weights = w, 
                                   data = subdat), silent = TRUE)
-                tmp[[i, j]] <- trmodel
+                tmpp[[j]] <- trmodel
             }
+            tmpm[[i]] <- tmpp
         }
         
-        out[[meas]] <- tmp
+        out[[meas]] <- tmpm
     }
     
     if (graph){

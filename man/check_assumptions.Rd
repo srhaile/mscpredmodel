@@ -20,7 +20,7 @@ check_consistency(object, graph = TRUE)
 \item{dig}{Number of digits to be printed, see \code{\link{format.pval}}.}
 }
 \value{
-A 2-dimensional list (moderator by contrast) containing linear regression model output of the effect size (outcome) against the cohort-specific average moderator value.
+A nested list (performance measure, then moderator, than score contrast) containing linear regression model output of the effect size (outcome) against the cohort-specific average moderator value.
 
 A list containing datasets with tau-square, the Q likelihood ratio statistic, its degrees of freedom and its p-value.
 
