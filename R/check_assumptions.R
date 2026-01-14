@@ -129,6 +129,46 @@ check_transitivity <- function(object, graph = TRUE){
     }
 }
 
+print.msctr <- function(object){
+    rbind_names <- function(x, newvar = "contrast"){
+        k <- length(x)
+        for(i in 1:k){
+            x[[i]][, newvar] <- names(x)[i]
+            rownames(x[[i]]) <- NULL
+        }
+        print(x)
+        do.call("rbind", x)
+    }
+    
+    coeflm <- function(x){
+        if (is.null(x) | inherits(x, "try-error")) {
+            out <- data.frame(term = NA, estimate = NA, 
+                              std.error = NA, statistic = NA, p.value = NA, 
+                              conf.low = NA, conf.high = NA)
+        } else {
+            conf.level <- 0.95
+            level <- 1 - conf.level
+            crit <- qt(level/2, lower.tail = FALSE, df = x$df.residual)
+            betas <- as.numeric(x$coefficients)
+            se <- as.numeric(sqrt(diag(vcov(x))))
+            tval <- betas / se
+            pval <- 2 * pt(abs(tval), x$df.residual, lower.tail = FALSE)
+            conf.low <- c(betas - crit * se)
+            conf.high <- c(betas + crit * se)
+            out <- data.frame(term = names(x$coefficients), 
+                              estimate = betas, 
+                              std.error = se, 
+                              statistic = tval, 
+                              p.value = pval, 
+                              conf.low = conf.low, conf.high = conf.high)
+        }
+        out
+    }
+    
+    trsumm <- lapply(tr, function(y) do.call("rbind", lapply(y, function(x) rbind_names(lapply(x, coeflm)))))
+    trsumm
+}
+
 
 #' @describeIn check_assumptions Check assumption of homogeneity
 #' @param object An object from \code{msc}.
