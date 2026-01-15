@@ -102,6 +102,26 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
         missing_mods <- mods[!mods %in% names(data)]
         mods <- mods[mods %in% names(data)]
         mods <- mods[!mods %in% scores]
+        check_classes <- sapply(data[, mods], class)
+        if(any(check_classes != "numeric")){
+            message("Moderators should have numeric values, as study averages will be computed.")
+            numvar <- names(check_classes)[check_classes == "numeric"]
+            nonnum <- names(check_classes)[check_classes != "numeric"]
+            facvar <- names(check_classes)[check_classes == "factor"]
+            check_factor <- lapply(data[, facvar], levels)
+            check_2level <- sapply(check_factor, length)
+            which_2level <- names(check_2level)[check_2level == 2]
+            if(any(check_2level == 2)){
+                message("Factor variables ", paste(which_2level, collapse = ", "), 
+                        "have 2 levels only and have been recoded 0/1 where 1 denotes the 2nd level.")
+                for(i in which_2level){
+                    this_levels <- levels(data[, i])
+                    data[, i] <- as.numeric(data[, i] == this_levels[2])
+                }
+            }
+            mods <- c(numvar, which_2level)
+            
+        }
         if(length(missing_mods) > 0){
             message("Some moderators are not in data. Removing: ", 
                     paste(missing_mods, collapse = ", "), 
