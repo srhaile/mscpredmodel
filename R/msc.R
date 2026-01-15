@@ -108,19 +108,26 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
             numvar <- names(check_classes)[check_classes == "numeric"]
             nonnum <- names(check_classes)[check_classes != "numeric" & check_classes != "factor"]
             facvar <- names(check_classes)[check_classes == "factor"]
-            check_factor <- lapply(data[, facvar], levels)
-            check_2level <- sapply(check_factor, length)
-            print(check_2level)
-            which_2level <- names(check_2level)[check_2level == 2]
-            print(which_2level)
-            if(any(check_2level == 2)){
-                message("Factor variables ", paste(which_2level, collapse = ", "), 
-                        "have 2 levels only and have been recoded 0/1 where 1 denotes the 2nd level.")
-                for(i in which_2level){
-                    this_levels <- levels(data[, i])
-                    data[, i] <- as.numeric(data[, i] == this_levels[2])
+            if(length(facvar) >= 2){
+                check_factor <- apply(data[, facvar], 2, levels)
+                check_2level <- sapply(check_factor, length)
+                which_2level <- names(check_2level)[check_2level == 2]
+                if(any(check_2level == 2)){
+                    message("Factor variables ", paste(which_2level, collapse = ", "), 
+                            "have 2 levels only and have been recoded 0/1 where 1 denotes the 2nd level.")
+                    for(i in which_2level){
+                        this_levels <- levels(data[, i])
+                        data[, i] <- as.numeric(data[, i] == this_levels[2])
+                    }
+                }
+            } else if(length(facvar) == 1){
+                check_factor <- levels(data[, facvar])
+                check_2level <- length(check_factor)
+                if(check_2level == 2){
+                    
                 }
             }
+
             if(length(nonnum) > 0){
                 message("Non-numeric variables ", paste(nonnum, collapse = ", "), 
                         " have been removed from the list of moderators.")
