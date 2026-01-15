@@ -18,7 +18,6 @@
 #' @param direct If a pair of scores are given, e.g. \code{c("B", "C")}, a direct estimate comparing those two scores is returned. (Default: NULL meaning full network estimates are computed.) In \code{msc_pairwise}, this should be given as TRUE or FALSE.
 #' @param indirect If a pair of scores are given, e.g. \code{c("B", "C")}, a indirect estimate comparing those two scores is returned. (Default: NULL meaning full network estimates are computed.) If both \code{direct} and \code{indirect} are specified, only direct estimates are calculated. In \code{msc_pairwise}, this should be given as TRUE or FALSE.
 #' @param ref Should all scores be compared to the \code{"first"} score, or \code{"all"} comparisons be calculated? The option \code{"all"} should be used if league tables are to be calculated afterwards. If code{ref = "all"}, one network model is run for each potential reference score, and direct / indirect models are run for all potential reference scores, rather than just all compared to the first score.
-#' @param append_aggregate Name of structured dataset of aggregate data for which no IPD is available. Requires the following variables: cohort, contr, design, score.1, score.2,   yi, vi. (Default: NULL) TO DO
 #' @param n.boot Number of bootstrap samples to be drawn. (Default: 250)
 #' @param seed A random seed to make results reproducible (Default NULL)
 #' @param max_missing If the proportion of missingness for any score within a cohort exceeds \code{max_missing}, the score will be counted as missing for the entire cohort. (Default 0.8)
@@ -61,7 +60,9 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
                 mods = NULL, data = copddata, 
                 model = c("consistency", "inconsistency")[1], 
                 direct = TRUE, indirect = TRUE, 
-                ref = c("first", "all")[1], n.boot = 250, 
+                ref = c("first", "all")[1], 
+                append_aggregate = NULL,
+                n.boot = 250, 
                 seed = NULL, max_missing = 0.8, 
                 optimcontrol = list(maxit = 1500, tau2.init = 0.5), ...){
     
@@ -378,47 +379,10 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
                     n.boot = 250,
                     seed = NULL,
                     max_missing = 0.8,
-                    run_checks = TRUE, 
                     optimizer_controls = list(maxit = 1000),
                     ...){
     
     require(metafor)
-    
-    if(run_checks){
-        
-        if(is.null(scores)){
-            stop("No scores provided to compare.")
-        } else if(!is.null(scores)){
-            missing_scores <- scores[!scores %in% names(data)]
-        }
-        if(length(missing_scores) == length(scores)){
-            stop("Scores provided are not in data.")
-        } else if(length(missing_scores) < length(scores) & length(missing_scores) != 0){
-            scores <- scores[!scores %in% missing_scores]
-            message("Some scores are not in data. Removing: ", paste(missing_scores, collapse = ", "), 
-                    ". New scores are: ", paste(scores, collapse = ", "), ".")
-        }
-        
-        if(is.null(cohort)){
-            stop("A variable of study cohorts must be specified, under the option `cohort`.") 
-        } else if(!cohort %in% names(data)){
-            stop("Variable specifying study cohorts (", cohort, ") is not in dataset.")
-        }
-        
-        if(is.null(outcome)){
-            stop("An outcome variable must be specified, under the option `outcome`.") 
-        } else if(!outcome %in% names(data)){
-            stop("The specified outcome variable (", outcome, ") is not in dataset.")
-        }
-        
-        
-        if(is.null(subjid)){
-            stop("A subject ID must be specified, under the option `subjid`.") 
-        } else if(!subjid %in% names(data)){
-            stop("The specified subject ID (", subjid, ") is not in dataset.")
-        }
-    }
-    
     if(!is.null(direct)){
         check_length <- length(direct)
         if(check_length < 2){
@@ -546,57 +510,6 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
         
         perfdiff <- lapply(out1, get_perf_diff)
         perfdiff <- perfdiff[n.contrasts > 0]
-        
-        aggr_ipd <- data.frame(cohort = cohorts,
-                               contr = unlist(cntr),
-                               design = designs, 
-                               score.1 = mm[, 1],
-                               score.2 = mm[, 2],
-                               yi = unlist(perfdiff),
-                               vi = diag(V))
-        
-        if(!is.null(append_aggregate)){
-            naa <- names(append_aggregate)
-            nai <- names(aggr_ipd)
-            if(length(naa) > length(nai)){
-                message("append_aggregate does not have the right variables, it should contain:", paste(nai, collapse = ", "))
-                append_aggregate <- NULL
-            } else if(length(naa) > length(nai)){
-                if(all(nai %in% naa)){
-                    to_drop <- naa[!naa %in% nai]
-                    append_aggregate <- subset(append_aggrege, drop = to_drop)
-                } else {
-                    to_add <- nai[!nai %in% nai]
-                    message("append_aggregate is missing some variables, it should contain:", paste(to_add, collapse = ", "))
-                    append_aggregate <- NULL
-                }
-            } else if(length(naa) == length(nai)){
-                if(!all(naa == nai) & all(tolower(naa) == nai)){
-                    names(append_aggregate) <- tolower(names(append_aggregate))
-                } else if(!all(naa == nai) & all(naa %in% nai)){
-                    append_aggregate <- append_aggregate[, nai]
-                    aggr_ipd <- rbind(aggr_ipd, append_aggregate)
-                    
-                    aaV <- diag(append_aggregate$vi)
-                    V <- metafor::bldiag(V, aaV)
-                    
-                } else if(all(naa == nai)){
-                    aggr_ipd <- rbind(aggr_ipd, append_aggregate)
-                    
-                    aaV <- diag(append_aggregate$vi)
-                    V <- metafor::bldiag(V, aaV)
-                    
-                } else {
-                    message("append_aggregate seems to have mislabeled variables, it should contain:", paste(nai, collapse = ", "))
-                    append_aggregate <- NULL
-                }
-            }
-            
-        }
-        
-        
-        aggr_ipd <- metafor::contrmat(aggr_ipd, grp1 = "score.1", grp2 = "score.2")
-        
         
         if(!is.null(mods)){
             summ_mods <- lapply(spl, summarize_moderators, m = mods)
