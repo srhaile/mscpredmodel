@@ -123,6 +123,7 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
             } else if(length(facvar) == 1){
                 check_factor <- levels(data[, facvar])
                 check_2level <- length(check_factor)
+                which_2level <- facvar
                 if(check_2level == 2){
                     message("Factor variable ", facvar, 
                             " has 2 levels only and has been recoded 0/1 where 1 denotes the 2nd level.") 
