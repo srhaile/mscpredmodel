@@ -124,9 +124,13 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
                 check_factor <- levels(data[, facvar])
                 check_2level <- length(check_factor)
                 if(check_2level == 2){
-                    
+                    message("Factor variable ", facvar, 
+                            " has 2 levels only and has been recoded 0/1 where 1 denotes the 2nd level.") 
+                    this_levels <- levels(data[, facvar])
+                    data[, facvar] <- as.numeric(data[, facvar] == this_levels[2])
                 }
             }
+        }
 
             if(length(nonnum) > 0){
                 message("Non-numeric variables ", paste(nonnum, collapse = ", "), 
