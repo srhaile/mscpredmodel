@@ -130,7 +130,6 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
                     data[, facvar] <- as.numeric(data[, facvar] == this_levels[2])
                 }
             }
-        }
 
             if(length(nonnum) > 0){
                 message("Non-numeric variables ", paste(nonnum, collapse = ", "), 
