@@ -120,7 +120,7 @@ msc_sample_data <- function(seed = NULL){
  
  sample_data <- do.call(rbind, datmiss)
  names(sample_data)[1] <- "study"
- sample_data$pid <- 1:nrow(sample_data)
+ sample_data$ptid <- 1:nrow(sample_data)
  sample_data
 }
 
