@@ -205,8 +205,7 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
                                       slab = cohort,
                                       random = list(~contr | cohort), 
                                       rho = 0.5, 
-                                      control = list(tau2.init = 0.5,
-                                                     optimizer="bobyqa"),
+                                      control = oc,
                                       ...)
                 } else if(model == "inconsistency"){
                     new_mod <- rma.mv(yi, V, data = nw_dat, 
@@ -215,8 +214,7 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
                                       random = list(~contr | cohort, 
                                                     ~contr | design), 
                                       rho = 0.5, phi = 0.5, 
-                                      control = list(tau2.init = 0.5,
-                                                     optimizer="bobyqa"),
+                                      control = oc,
                                       ...)
                 }
                 this_res <- coeftab(new_mod)
