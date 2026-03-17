@@ -527,8 +527,8 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
         }
         
         if(is.null(direct) & is.null(indirect)){
-            aggr_ipd <- cbind(aggr_ipd, contrmat(aggr_ipd, "score.1", "score.2"))
-            print(aggr_ipd)
+            aggr_ipd <- metafor::contrmat(aggr_ipd, "score.1", "score.2",
+                                          append = TRUE)
             this_fm <- paste(scores[-1], collapse = " + ")
             this_fm <- paste("~", this_fm, "- 1")
         } else if(!is.null(direct) & is.null(indirect)){
