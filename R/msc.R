@@ -516,7 +516,7 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
             summ_mods <- do.call("rbind", summ_mods)
             summ_mods <- as.data.frame(summ_mods)
             summ_mods$cohort <- names(spl)
-            aggr_ipd <- merge(aggr_ipd, summ_mods, by = "cohort", all.x = TRUE)
+            #aggr_ipd <- merge(aggr_ipd, summ_mods, by = "cohort", all.x = TRUE)
         }
         
         if(is.null(direct) & is.null(indirect)){
