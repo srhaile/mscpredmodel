@@ -502,7 +502,6 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
         
         mm <- lapply(out1, get_mm)
         mm <- do.call("rbind", mm)
-        print(mm)
         
         designs <- lapply(out1, get_design)
         designs <- rep(unlist(designs), n.contrasts)
@@ -538,7 +537,6 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
             this_fm <- paste(indirect[-1], collapse = " + ")
             this_fm <- paste("~", this_fm, "- 1")
         }
-        print(this_fm)
         
         if(!is.null(mods)){
             modsfm <- paste(mods, collapse = " + ")
