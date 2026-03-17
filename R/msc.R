@@ -566,13 +566,13 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
                               ...),
                            silent = TRUE)
             }
-        out <-  list(aggr_ipd, V, mod)
+        out <-  list(aggr_ipd, V, mod, mm, this_fm)
         
         }
     }  else {
         out <- list(NULL, NULL, NULL)
     }
-    names(out) <- c("aggrdat","V" , "rma.mv")
+    names(out) <- c("aggrdat","V" , "rma.mv", "mm", "fm")
     class(out) <- "mscfit"
     out
     
