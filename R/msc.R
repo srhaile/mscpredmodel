@@ -509,12 +509,20 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
         perfdiff <- lapply(out1, get_perf_diff)
         perfdiff <- perfdiff[n.contrasts > 0]
         
+        aggr_ipd <- data.frame(cohort = cohorts,
+                               contr = unlist(cntr),
+                               design = designs, 
+                               score.1 = mm[, 1],
+                               score.2 = mm[, 2],
+                               yi = unlist(perfdiff),
+                               vi = diag(V))
+        
         if(!is.null(mods)){
             summ_mods <- lapply(spl, summarize_moderators, m = mods)
             summ_mods <- do.call("rbind", summ_mods)
             summ_mods <- as.data.frame(summ_mods)
             summ_mods$cohort <- names(spl)
-            #aggr_ipd <- merge(aggr_ipd, summ_mods, by = "cohort", all.x = TRUE)
+            aggr_ipd <- merge(aggr_ipd, summ_mods, by = "cohort", all.x = TRUE)
         }
         
         if(is.null(direct) & is.null(indirect)){
@@ -537,7 +545,7 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
             mod <- NULL
         } else
             if(model == "consistency"){
-                mod <- try(rma.mv(yi, V, data = this_dat, 
+                mod <- try(rma.mv(yi, V, data = aggr_ipd, 
                               mods = as.formula(this_fm),
                               slab = cohort,
                               random = list(~contr | cohort), 
@@ -545,10 +553,8 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
                               control = optimizer_controls,
                               ...),
                            silent = TRUE)
-                print(this_fm)
-                print(mod)
             } else if(model == "inconsistency"){
-                mod <- try(rma.mv(yi, V, data = this_dat, 
+                mod <- try(rma.mv(yi, V, data = aggr_ipd, 
                               mods = as.formula(this_fm),
                               slab = cohort,
                               random = list(~contr | cohort, 
