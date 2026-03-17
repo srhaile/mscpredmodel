@@ -527,6 +527,7 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
         }
         
         if(is.null(direct) & is.null(indirect)){
+            aggr_ipd <- contrmat(aggr_ipd, grp1="score.1", grp2="score.2")
             this_fm <- paste(scores[-1], collapse = " + ")
             this_fm <- paste("~", this_fm, "- 1")
         } else if(!is.null(direct) & is.null(indirect)){
@@ -566,13 +567,13 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
                               ...),
                            silent = TRUE)
             }
-        out <-  list(aggr_ipd, V, mod, mm, this_fm)
+        out <-  list(aggr_ipd, V, mod)
         
         }
     }  else {
         out <- list(NULL, NULL, NULL)
     }
-    names(out) <- c("aggrdat","V" , "rma.mv", "mm", "fm")
+    names(out) <- c("aggrdat","V" , "rma.mv")
     class(out) <- "mscfit"
     out
     
