@@ -182,7 +182,6 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
                       mods = m, data = newdata, model = modeltype,
                       direct = NULL, indirect = NULL,
                       n.boot = nb, seed = newseed, max_missing = pct, 
-                      run_checks = FALSE,
                       optimizer_controls = oc, ...)
         nw_dat <- nw$aggrdat
         nw_model <- nw$rma.mv
