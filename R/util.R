@@ -19,19 +19,19 @@
 #' @return A design matrix
 #' 
 #' @importFrom stats model.matrix var
-contrmat <- function(trt1, trt2, ref, sc = NULL){
-    all.lvls <- unique(c(levels(factor(trt1)), levels(factor(trt2))))
-    if(is.null(sc)) sc <- all.lvls
-    all.lvls <- factor(all.lvls, sc)
-    all.lvls <- sort(all.lvls)
-    trt1 <- factor(trt1, levels=all.lvls)
-    trt2 <- factor(trt2, levels=all.lvls)
-    X <- model.matrix(~ trt2 - 1) - model.matrix(~ trt1 - 1)
-    colnames(X) <- all.lvls
-    if (missing(ref))
-        ref <- all.lvls[1]
-    X[, colnames(X) != ref]
-}
+# contrmat <- function(trt1, trt2, ref, sc = NULL){
+#     all.lvls <- unique(c(levels(factor(trt1)), levels(factor(trt2))))
+#     if(is.null(sc)) sc <- all.lvls
+#     all.lvls <- factor(all.lvls, sc)
+#     all.lvls <- sort(all.lvls)
+#     trt1 <- factor(trt1, levels=all.lvls)
+#     trt2 <- factor(trt2, levels=all.lvls)
+#     X <- model.matrix(~ trt2 - 1) - model.matrix(~ trt1 - 1)
+#     colnames(X) <- all.lvls
+#     if (missing(ref))
+#         ref <- all.lvls[1]
+#     X[, colnames(X) != ref]
+# }
 
 #' @describeIn util Calculate differences between performance measures
 #' @return A new dataset with performance measures

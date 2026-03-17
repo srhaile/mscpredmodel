@@ -4,6 +4,7 @@
 #' @importFrom utils combn
 #' @importFrom ggplot2 ggplot
 #' @importFrom future.apply future_lapply
+#' @importFrom metafor contrmat
 #' 
 #' @description Compute comparisons of performance metrics for scores within a network.
 #'
