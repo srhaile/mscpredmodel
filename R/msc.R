@@ -244,7 +244,6 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
                         mods = m, data = newdata, model = modeltype,
                         direct = this_combo, indirect = NULL,
                         n.boot = nb, seed = newseed, max_missing = pct,
-                        run_checks = FALSE, 
                         optimizer_controls = oc, ...)
                 tmp[[j]] <- coeftab(this_mod$rma.mv)
                 tmp[[j]]$ref <- this_combo[1]
@@ -265,7 +264,6 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
                                     mods = m, data = newdata, model = modeltype,
                                     direct = NULL, indirect = this_combo,
                                     n.boot = nb, seed = newseed, max_missing = pct,
-                                    run_checks = FALSE, 
                                     optimizer_controls = oc, ...)
                 tmp[[j]] <- coeftab(this_mod$rma.mv)
                 tmp[[j]]$ref <- this_combo[1]
