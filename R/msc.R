@@ -564,7 +564,7 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
                               ...),
                            silent = TRUE)
             }
-        out <-  list(this_dat, V, mod)
+        out <-  list(aggr_ipd, V, mod)
     }  else {
         out <- list(NULL, NULL, NULL)
     }
