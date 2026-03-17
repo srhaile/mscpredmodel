@@ -545,6 +545,7 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
                               control = optimizer_controls,
                               ...),
                            silent = TRUE)
+                print(this_fm)
                 print(mod)
             } else if(model == "inconsistency"){
                 mod <- try(rma.mv(yi, V, data = this_dat, 
