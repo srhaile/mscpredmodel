@@ -149,7 +149,15 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
 
     }
     
+    if(class(fn) != "list"){
+        fn <- list(AUC = c_statistic, 
+                   `O/E` = oe_ratio)
+        message("The argument fn should be a *list* of functions to compute performance measures.", 
+                "Using default values: fn <- list(AUC = c_statistic, `O/E` = oe_ratio)")
+    }
+    
     used_vars <- c(scores, cohort, outcome, subjid, mods)
+    
     if(length(used_vars) != length(unique(used_vars))){
         repeated_vars <- table(used_vars)
         vars_to_remove <- names(repeated_vars)[repeated_vars > 1]
@@ -157,7 +165,24 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
              "The variables ", paste(vars_to_remove, collapse = ", "), " have been included more than once.")
     }
     
-    
+    if(!is.null(append_aggregate)){
+        
+        if(class(append_aggregate) != "list"){
+            message("append_aggregate should be a *list* with the same names as fn. The aggregated data will not be used.")
+            append_aggregate <- NULL
+        }
+        
+        if(!all(names(append_aggregate) %in% names(fn))){
+            message("append_aggregate should be a list with the *same names as fn*: list(", 
+                    paste(names(fn),"=...",  collapse = ", "), ")")
+            aa_keep <- names(append_aggregate)[names(append_aggregate) %in% names(fn)]
+            message("Keeping", aa_keep, " in append_aggregate")
+            append_aggregate <- append_aggregate[aa_keep]
+        }
+        
+        
+        
+    }
     
     if(requireNamespace("future.apply", quietly = TRUE)) {
         require(future.apply)
