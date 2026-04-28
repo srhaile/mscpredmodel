@@ -186,7 +186,7 @@ msc <- function(scores = c("A", "B", "C", "D"), cohort = "cohort",
     
     if(requireNamespace("future.apply", quietly = TRUE)) {
         require(future.apply)
-        plan(multisession, workers = 2)
+        plan(multisession)
     }
     
     fnv <- as.vector(fn)
@@ -404,6 +404,7 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
                     ...){
     
     require(metafor)
+    
     if(!is.null(direct)){
         check_length <- length(direct)
         if(check_length < 2){
@@ -548,8 +549,10 @@ fit_msc <- function(scores = c("A", "B", "C", "D"),
             aggr_ipd <- merge(aggr_ipd, summ_mods, by = "cohort", all.x = TRUE)
         }
         
+        
+        
         if(is.null(direct) & is.null(indirect)){
-            aggr_ipd <- metafor::contrmat(aggr_ipd, "score.1", "score.2",
+            aggr_ipd <- contrmat(aggr_ipd, "score.1", "score.2",
                                           append = TRUE)
             this_fm <- paste(scores[-1], collapse = " + ")
             this_fm <- paste("~", this_fm, "- 1")
